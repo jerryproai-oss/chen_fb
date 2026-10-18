@@ -1,24 +1,29 @@
-/* ── PostCard ──────────────────────────────────────────────── */
+/* ── PostCard — FB 風格排版 ─────────────────────────────── */
 
 .card {
   background-color: var(--color-card);
   border-radius: var(--radius-lg);
-  padding: var(--space-md);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
   transition: box-shadow var(--transition-normal);
-  border: 1px solid var(--color-border-light);
 }
 
 .card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
-/* Header: avatar + name + date + visibility */
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+/* ── 作者列 ──────────────────────────────────────────── */
 .header {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  margin-bottom: var(--space-sm);
+  padding: var(--space-md) var(--space-md) 0;
 }
 
 .authorInfo {
@@ -27,19 +32,23 @@
 }
 
 .authorName {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
+  font-size: var(--font-size-base);
+  font-weight: 700;
   color: var(--color-text);
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
 .meta {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: 4px;
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
-  line-height: 1.35;
+  line-height: 1.3;
+}
+
+.metaDot {
+  font-size: 10px;
 }
 
 .metaIcon {
@@ -47,53 +56,190 @@
   align-items: center;
 }
 
-/* Draft badge */
 .draftBadge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
+  padding: 1px 6px;
   border-radius: var(--radius-sm);
   background-color: var(--color-accent);
   color: #fff;
-  font-size: var(--font-size-xs);
+  font-size: 11px;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.4;
+  margin-left: 4px;
 }
 
-/* Content */
+/* ── 文字內容 ────────────────────────────────────────── */
+.content {
+  padding: var(--space-sm) var(--space-md);
+}
+
 .title {
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.35;
   color: var(--color-text);
-  margin-bottom: var(--space-xs);
+  margin: 0 0 2px;
 }
 
 .subtitle {
   font-size: var(--font-size-sm);
   line-height: 1.35;
   color: var(--color-text-secondary);
-  margin-bottom: var(--space-xs);
+  margin: 0 0 4px;
 }
 
 .bodyPreview {
   font-size: var(--font-size-sm);
-  line-height: 1.4;
+  line-height: 1.5;
   color: var(--color-text);
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: var(--space-sm);
+  margin: 0;
+  white-space: pre-line;
 }
 
-/* Footer: reactions + comments */
+.seeMore {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  margin-left: 2px;
+}
+
+/* ── 圖片網格：共用 ───────────────────────────────────── */
+.mediaGrid {
+  display: grid;
+  gap: 2px;
+  margin-top: 2px;
+  background-color: var(--color-border-light);
+}
+
+.mediaItem {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-bg);
+}
+
+.mediaImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mediaMore {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* ── 1 張：滿版 ──────────────────────────────────────── */
+.mediaGrid1 {
+  grid-template-columns: 1fr;
+}
+
+.mediaGrid1 .mediaItem {
+  max-height: 500px;
+}
+
+/* ── 2 張：並排 ──────────────────────────────────────── */
+.mediaGrid2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.mediaGrid2 .mediaItem {
+  height: 240px;
+}
+
+/* ── 3 張：左 1 大 + 右 2 小堆疊 ─────────────────────── */
+.mediaGrid3 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.mediaGrid3 .mediaItem:first-child {
+  grid-row: span 2;
+}
+
+.mediaGrid3 .mediaItem {
+  height: auto;
+  min-height: 0;
+}
+
+.mediaGrid3 .mediaItem:first-child {
+  height: 100%;
+}
+
+/* ── 4 張：2×2 網格 ──────────────────────────────────── */
+.mediaGrid4 {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+}
+
+.mediaGrid4 .mediaItem {
+  height: 200px;
+}
+
+/* ── 5+ 張：上 2 大 + 下 3 小（FB 經典佈局）───────────── */
+.mediaGrid5plus {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+/* 上排 2 張：各佔 3 欄，較高 */
+.mediaGrid5plus .mediaItem:nth-child(1),
+.mediaGrid5plus .mediaItem:nth-child(2) {
+  grid-column: span 3;
+  height: 260px;
+}
+
+/* 下排 3 張：各佔 2 欄，較矮 */
+.mediaGrid5plus .mediaItem:nth-child(n+3) {
+  grid-column: span 2;
+  height: 180px;
+}
+
+/* ── 響應式調整 ──────────────────────────────────────── */
+@media (min-width: 480px) {
+  .mediaGrid2 .mediaItem {
+    height: 280px;
+  }
+
+  .mediaGrid3 {
+    /* 讓右側兩張合計高度跟左邊大圖一樣 */
+    grid-template-rows: 1fr 1fr;
+    height: 360px;
+  }
+
+  .mediaGrid4 .mediaItem {
+    height: 240px;
+  }
+
+  .mediaGrid5plus .mediaItem:nth-child(1),
+  .mediaGrid5plus .mediaItem:nth-child(2) {
+    height: 300px;
+  }
+
+  .mediaGrid5plus .mediaItem:nth-child(n+3) {
+    height: 200px;
+  }
+}
+
+/* ── 互動列 ──────────────────────────────────────────── */
 .footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
   border-top: 1px solid var(--color-border-light);
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
@@ -106,21 +252,17 @@
 }
 
 .reactionEmoji {
-  font-size: var(--font-size-sm);
+  font-size: 16px;
+  line-height: 1;
 }
 
 .reactionCount {
-  margin-left: var(--space-xs);
+  margin-left: 4px;
+  font-size: var(--font-size-xs);
 }
 
 .commentCount {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
-}
-
-.cardLink {
-  text-decoration: none;
-  color: inherit;
-  display: block;
+  gap: 4px;
 }

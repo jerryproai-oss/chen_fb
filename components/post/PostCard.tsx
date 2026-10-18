@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { Lock, Users, UserCheck, MessageCircle } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
-import MediaGalleryMini from '@/components/post/MediaGalleryMini';
 import type { PostSummary, Visibility } from '@/lib/types';
 import { REACTION_EMOJI } from '@/lib/types';
 import styles from './PostCard.module.css';
@@ -33,11 +32,13 @@ function formatDate(dateStr: string): string {
 }
 
 /**
- * 貼文卡片
- * 顯示作者、日期、隱私、標題、內文預覽、心情回應摘要、留言數
+ * 貼文卡片 — FB 風格排版
+ * 結構：作者列 → 文字內容 → 圖片網格（上2大+下3小） → 互動列
  */
 export default function PostCard({ post, isOwn = false }: PostCardProps) {
   const isDraft = post.status === 'DRAFT';
+  const hasMedia = post.media && post.media.length > 0;
+  const mediaCount = post.media?.length ?? 0;
 
   // 取前 3 種不重複的 emoji 作為摘要
   const topReactions = (post.reactionSummary ?? [])
@@ -49,15 +50,30 @@ export default function PostCard({ post, isOwn = false }: PostCardProps) {
     0,
   );
 
+  // FB 風格：最多顯示 5 張，+N 覆蓋在第 5 張
+  const displayCount = Math.min(mediaCount, 5);
+
+  // 根據圖片數量選擇網格 class
+  const mediaGridClass =
+    mediaCount === 1
+      ? styles.mediaGrid1
+      : mediaCount === 2
+        ? styles.mediaGrid2
+        : mediaCount === 3
+          ? styles.mediaGrid3
+          : mediaCount === 4
+            ? styles.mediaGrid4
+            : styles.mediaGrid5plus;
+
   return (
     <article className={styles.card}>
       <Link href={`/posts/${post.id}`} className={styles.cardLink}>
-        {/* Header */}
+        {/* ── 作者列 ─────────────────────────── */}
         <div className={styles.header}>
           <Avatar
             name={post.author.displayName}
             avatarUrl={post.author.avatarUrl}
-            size="sm"
+            size="md"
           />
           <div className={styles.authorInfo}>
             <div className={styles.authorName}>
@@ -65,6 +81,7 @@ export default function PostCard({ post, isOwn = false }: PostCardProps) {
             </div>
             <div className={styles.meta}>
               <span>{formatDate(post.recordDate)}</span>
+              <span className={styles.metaDot}>·</span>
               <span className={styles.metaIcon}>
                 <VisibilityIcon visibility={post.visibility} />
               </span>
@@ -73,20 +90,40 @@ export default function PostCard({ post, isOwn = false }: PostCardProps) {
           </div>
         </div>
 
-        {/* Content */}
-        <h3 className={styles.title}>{post.title}</h3>
-        {post.subtitle && (
-          <p className={styles.subtitle}>{post.subtitle}</p>
-        )}
-        {post.bodyPlainText && (
-          <p className={styles.bodyPreview}>{post.bodyPlainText}</p>
+        {/* ── 文字內容 ───────────────────────── */}
+        <div className={styles.content}>
+          <h3 className={styles.title}>{post.title}</h3>
+          {post.subtitle && (
+            <p className={styles.subtitle}>{post.subtitle}</p>
+          )}
+          {post.bodyPlainText && (
+            <p className={styles.bodyPreview}>{post.bodyPlainText}</p>
+          )}
+        </div>
+
+        {/* ── 圖片網格（FB 風格：上2大+下3小） ── */}
+        {hasMedia && (
+          <div className={`${styles.mediaGrid} ${mediaGridClass}`}>
+            {post.media!.slice(0, displayCount).map((item, i) => (
+              <div key={item.id} className={styles.mediaItem}>
+                <img
+                  className={styles.mediaImage}
+                  src={item.url}
+                  alt={item.filename || `圖片 ${i + 1}`}
+                  loading="lazy"
+                />
+                {/* 最後一張顯示 +N 覆蓋 */}
+                {i === displayCount - 1 && mediaCount > displayCount && (
+                  <div className={styles.mediaMore}>
+                    +{mediaCount - displayCount}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         )}
 
-        {post.media && post.media.length > 0 && (
-          <MediaGalleryMini media={post.media} />
-        )}
-
-        {/* Footer */}
+        {/* ── 互動列 ────────────────────────── */}
         {(totalReactions > 0 || post.commentCount > 0) && (
           <div className={styles.footer}>
             <div className={styles.reactions}>
