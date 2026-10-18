@@ -1,6 +1,6 @@
 'use client';
 
-import { Bold, Italic, Strikethrough, List, ListOrdered, Quote, Minus, Heading2 } from 'lucide-react';
+import { Bold, Italic, Strikethrough, List, ListOrdered, Quote, Minus, Heading2, Code } from 'lucide-react';
 import EmojiPicker from '@/components/post/EmojiPicker';
 import styles from './TextToolbar.module.css';
 
@@ -108,6 +108,27 @@ const TOOLS: ToolAction[] = [
       const insert = before + '---\n';
       const newBody = body.slice(0, start) + insert + body.slice(start);
       return { newBody, cursorPos: start + insert.length };
+    },
+  },
+  {
+    icon: <Code size={16} />,
+    label: '程式碼區塊',
+    action: (ta, body) => {
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      const selected = body.slice(start, end);
+      const before = start > 0 && body[start - 1] !== '\n' ? '\n' : '';
+
+      if (selected.length > 0) {
+        // 包裹選取文字
+        const insert = before + '```\n' + selected + '\n```\n';
+        const newBody = body.slice(0, start) + insert + body.slice(end);
+        return { newBody, cursorPos: start + before.length + 4 + selected.length + 5 };
+      }
+      // 無選取：插入空的程式碼區塊，游標放在中間
+      const insert = before + '```\n\n```\n';
+      const newBody = body.slice(0, start) + insert + body.slice(end);
+      return { newBody, cursorPos: start + before.length + 4 };
     },
   },
 ];

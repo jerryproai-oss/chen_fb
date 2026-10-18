@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { PenSquare } from 'lucide-react';
 import PostCard from '@/components/post/PostCard';
+import MediaPool from '@/components/post/MediaPool';
 import type { PostSummary } from '@/lib/types';
 import styles from './page.module.css';
 
@@ -11,8 +12,10 @@ import styles from './page.module.css';
  * 生活手札頁面（Journal Feed）
  * 顯示自己的所有貼文（含草稿），按 recordDate 降序
  * 支援無限滾動
+ * 含媒體池 Tab
  */
 export default function JournalPage() {
+  const [activeTab, setActiveTab] = useState<'posts' | 'media'>('posts');
   const [posts, setPosts] = useState<PostSummary[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
@@ -50,7 +53,7 @@ export default function JournalPage() {
 
   // Infinite scroll with IntersectionObserver
   useEffect(() => {
-    if (!hasMore || loading) return;
+    if (activeTab !== 'posts' || !hasMore || loading) return;
     const el = sentinelRef.current;
     if (!el) return;
 
@@ -65,7 +68,7 @@ export default function JournalPage() {
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [hasMore, loading, cursor, fetchPosts]);
+  }, [activeTab, hasMore, loading, cursor, fetchPosts]);
 
   return (
     <div className={styles.container}>
@@ -74,29 +77,53 @@ export default function JournalPage() {
         <p className={styles.pageSubtitle}>記錄每一天的生活點滴</p>
       </div>
 
-      {initialLoad && loading ? (
-        <div className={styles.loader}>載入中…</div>
-      ) : posts.length === 0 ? (
-        <div className={styles.empty}>
-          <div className={styles.emptyIcon}>📝</div>
-          <h2 className={styles.emptyTitle}>還沒有手札</h2>
-          <p className={styles.emptyText}>
-            開始記錄你的第一篇生活手札吧！
-          </p>
-          <Link href="/write" className={styles.emptyBtn}>
-            <PenSquare size={16} />
-            寫手札
-          </Link>
-        </div>
-      ) : (
-        <div className={styles.postList}>
-          {posts.map((post) => (
-            <PostCard key={post.id} post={post} isOwn />
-          ))}
+      {/* Tab Bar */}
+      <div className={styles.tabBar}>
+        <button
+          type="button"
+          className={`${styles.tab} ${activeTab === 'posts' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('posts')}
+        >
+          📝 貼文
+        </button>
+        <button
+          type="button"
+          className={`${styles.tab} ${activeTab === 'media' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('media')}
+        >
+          🖼️ 媒體
+        </button>
+      </div>
 
-          {loading && <div className={styles.loader}>載入更多…</div>}
-          {hasMore && <div ref={sentinelRef} className={styles.sentinel} />}
-        </div>
+      {activeTab === 'posts' ? (
+        <>
+          {initialLoad && loading ? (
+            <div className={styles.loader}>載入中…</div>
+          ) : posts.length === 0 ? (
+            <div className={styles.empty}>
+              <div className={styles.emptyIcon}>📝</div>
+              <h2 className={styles.emptyTitle}>還沒有手札</h2>
+              <p className={styles.emptyText}>
+                開始記錄你的第一篇生活手札吧！
+              </p>
+              <Link href="/write" className={styles.emptyBtn}>
+                <PenSquare size={16} />
+                寫手札
+              </Link>
+            </div>
+          ) : (
+            <div className={styles.postList}>
+              {posts.map((post) => (
+                <PostCard key={post.id} post={post} isOwn />
+              ))}
+
+              {loading && <div className={styles.loader}>載入更多…</div>}
+              {hasMore && <div ref={sentinelRef} className={styles.sentinel} />}
+            </div>
+          )}
+        </>
+      ) : (
+        <MediaPool scope="journal" />
       )}
     </div>
   );

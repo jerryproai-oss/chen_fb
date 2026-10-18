@@ -190,3 +190,25 @@ export interface PollInput {
   options: PollOptionInput[];
 }
 
+
+// ── 媒體池 ────────────────────────────────────────────────────
+
+export interface MediaPoolItem {
+  id: string;
+  url: string;
+  filename: string;
+  mimeType: string;
+  fileSize: number;
+  width: number | null;
+  height: number | null;
+  postId: string;
+  postTitle: string;
+  recordDate: string;
+  authorName: string;
+}
+
+export interface MediaPoolResponse {
+  items: MediaPoolItem[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}

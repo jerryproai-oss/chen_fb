@@ -24,6 +24,8 @@ function renderInline(text: string): string {
   result = result.replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, '<em>$1</em>');
   // 刪除線 ~~text~~
   result = result.replace(/~~(.+?)~~/g, '<del>$1</del>');
+  // 行內程式碼 `text`
+  result = result.replace(/`([^`]+?)`/g, '<code class="inline-code">$1</code>');
   // URL 自動連結（簡易版）
   result = result.replace(
     /(https?:\/\/[^\s<]+)/g,
@@ -46,6 +48,25 @@ export function renderMarkdown(text: string): string {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
+
+    // 程式碼區塊 ```
+    if (line.trim().startsWith('```')) {
+      closeBlocks();
+      // 收集程式碼區塊的行
+      const lang = line.trim().slice(3).trim();
+      const codeLines: string[] = [];
+      i++;
+      while (i < lines.length && !lines[i].trim().startsWith('```')) {
+        codeLines.push(lines[i]);
+        i++;
+      }
+      // i 現在指向結尾的 ``` 或已超出範圍
+      const codeContent = escapeHtml(codeLines.join('\n'));
+      const langAttr = lang ? ` data-lang="${escapeHtml(lang)}"` : '';
+      const langLabel = lang ? `<div class="code-lang">${escapeHtml(lang)}</div>` : '';
+      htmlParts.push(`<div class="code-block"${langAttr}>${langLabel}<pre><code>${codeContent}</code></pre></div>`);
+      continue;
+    }
 
     // 分隔線 ---
     if (/^-{3,}$/.test(line.trim())) {
@@ -153,6 +174,10 @@ export function stripMarkdown(text: string): string {
     .replace(/~~(.+?)~~/g, '$1')
     // 標題 ## text
     .replace(/^#{1,6}\s+/gm, '')
+    // 程式碼區塊 ```...```
+    .replace(/```[\s\S]*?```/g, '')
+    // 行內程式碼 `text`
+    .replace(/`([^`]+?)`/g, '$1')
     // 分隔線
     .replace(/^-{3,}$/gm, '')
     // 引用 > text

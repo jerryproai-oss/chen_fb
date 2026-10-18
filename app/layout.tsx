@@ -13,8 +13,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-Hant-TW">
-      <body>{children}</body>
+    <html lang="zh-Hant-TW" suppressHydrationWarning>
+      <body>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem('shiri-font-size');if(s&&['small','medium','large'].includes(s)){document.documentElement.setAttribute('data-font-size',s)}}catch(e){}}())`,
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

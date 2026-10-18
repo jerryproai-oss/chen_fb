@@ -12,6 +12,7 @@ import {
   Camera,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
+import FontSizeSwitcher from '@/components/ui/FontSizeSwitcher';
 import type { UserProfile } from '@/lib/types';
 import styles from './page.module.css';
 
@@ -188,6 +189,8 @@ export default function ProfilePage() {
             </span>
           </Link>
         )}
+
+        <FontSizeSwitcher />
       </div>
 
       {/* Logout */}

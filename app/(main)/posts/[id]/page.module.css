@@ -182,6 +182,66 @@
   opacity: 0.8;
 }
 
+/* 程式碼區塊 */
+.body :global(.code-block) {
+  position: relative;
+  margin: 0.8em 0;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.body :global(.code-lang) {
+  padding: var(--space-xs) var(--space-md);
+  background-color: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.body :global(.code-block) pre {
+  margin: 0;
+  padding: var(--space-md);
+  background-color: #1e1e1e;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (prefers-color-scheme: dark) {
+  .body :global(.code-block) pre {
+    background-color: #161616;
+  }
+}
+
+.body :global(.code-block) code {
+  font-family: 'Fira Code', 'Source Code Pro', 'Cascadia Code', 'Consolas', 'Monaco', monospace;
+  font-size: 0.85em;
+  line-height: 1.5;
+  color: #d4d4d4;
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* 行內程式碼 */
+.body :global(.inline-code) {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: rgba(90, 122, 90, 0.1);
+  border: 1px solid var(--color-border-light);
+  font-family: 'Fira Code', 'Source Code Pro', 'Consolas', monospace;
+  font-size: 0.88em;
+  color: var(--color-accent);
+  word-break: break-all;
+}
+
+@media (prefers-color-scheme: dark) {
+  .body :global(.inline-code) {
+    background-color: rgba(122, 158, 122, 0.15);
+  }
+}
+
 /* Author actions */
 .authorActions {
   display: flex;
