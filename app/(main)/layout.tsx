@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth/middleware';
 import TopNav from '@/components/nav/TopNav';
+import MobileToolbar from '@/components/nav/MobileToolbar';
 import BottomNav from '@/components/nav/BottomNav';
 import FloatingButton from '@/components/ui/FloatingButton';
 
@@ -22,6 +23,7 @@ export default async function MainLayout({
   return (
     <>
       <TopNav />
+      <MobileToolbar />
       <main
         style={{
           minHeight: '100vh',
