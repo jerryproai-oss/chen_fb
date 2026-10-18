@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Visibility } from '@/lib/types';
 import VisibilityPicker from '@/components/post/VisibilityPicker';
 import DatePicker from '@/components/post/DatePicker';
+import TextToolbar from '@/components/post/TextToolbar';
 import styles from './page.module.css';
 
 function todayStr(): string {
@@ -25,6 +26,7 @@ export default function WritePage() {
   const [recordDate, setRecordDate] = useState(todayStr());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   const canSubmit = title.trim().length > 0 && !saving;
 
@@ -113,10 +115,16 @@ export default function WritePage() {
           </label>
           <textarea
             id="body"
-            className={styles.bodyTextarea}
+            ref={bodyRef}
+            className={`${styles.bodyTextarea} ${styles.bodyTextareaWithToolbar}`}
             placeholder="寫下你想記錄的…"
             value={body}
             onChange={(e) => setBody(e.target.value)}
+          />
+          <TextToolbar
+            textareaRef={bodyRef}
+            body={body}
+            onBodyChange={setBody}
           />
         </div>
 

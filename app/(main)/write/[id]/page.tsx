@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
+import { useState, useEffect, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Visibility, PostDetail } from '@/lib/types';
 import VisibilityPicker from '@/components/post/VisibilityPicker';
 import DatePicker from '@/components/post/DatePicker';
+import TextToolbar from '@/components/post/TextToolbar';
 import styles from '../page.module.css';
 
 /**
@@ -27,6 +28,7 @@ export default function EditPostPage({
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   // Load existing post data
   useEffect(() => {
@@ -42,8 +44,8 @@ export default function EditPostPage({
         setVisibility(post.visibility);
         setRecordDate(post.recordDate.split('T')[0]);
         setOriginalStatus(post.status);
-        if (post.audiences) {
-          setSelectedUserIds(post.audiences.map((a) => a.userId));
+        if (post.audienceUserIds) {
+          setSelectedUserIds(post.audienceUserIds);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : '載入失敗');
@@ -148,10 +150,16 @@ export default function EditPostPage({
           </label>
           <textarea
             id="body"
-            className={styles.bodyTextarea}
+            ref={bodyRef}
+            className={`${styles.bodyTextarea} ${styles.bodyTextareaWithToolbar}`}
             placeholder="寫下你想記錄的…"
             value={body}
             onChange={(e) => setBody(e.target.value)}
+          />
+          <TextToolbar
+            textareaRef={bodyRef}
+            body={body}
+            onBodyChange={setBody}
           />
         </div>
 

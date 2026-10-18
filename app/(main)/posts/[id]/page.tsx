@@ -77,7 +77,8 @@ export default function PostDetailPage({
           fetch('/api/me'),
         ]);
         if (!postRes.ok) throw new Error('無法載入貼文');
-        const postData: PostDetail = await postRes.json();
+        const postWrapper = await postRes.json();
+        const postData: PostDetail = postWrapper.post;
         setPost(postData);
 
         if (meRes.ok) {
@@ -89,7 +90,12 @@ export default function PostDetailPage({
         const reactRes = await fetch(`/api/posts/${id}/reactions`);
         if (reactRes.ok) {
           const reactData = await reactRes.json();
-          setReactions(reactData.reactions ?? []);
+          // Convert summary object { LIKE: 3, LOVE: 1 } to ReactionSummary[]
+          const summaryObj = (reactData.summary ?? {}) as Record<string, number>;
+          const summaryArr: ReactionSummary[] = Object.entries(summaryObj).map(
+            ([type, count]) => ({ type: type as ReactionType, count }),
+          );
+          setReactions(summaryArr);
           setMyReaction(reactData.myReaction ?? null);
         }
 
@@ -160,8 +166,8 @@ export default function PostDetailPage({
         body: JSON.stringify({ bodyText: commentText.trim() }),
       });
       if (!res.ok) throw new Error('留言失敗');
-      const newComment = await res.json();
-      setComments((prev) => [...prev, newComment]);
+      const data = await res.json();
+      setComments((prev) => [...prev, data.comment]);
       setCommentText('');
     } catch (err) {
       console.error(err);

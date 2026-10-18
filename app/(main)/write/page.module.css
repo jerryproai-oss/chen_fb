@@ -111,6 +111,12 @@
   color: var(--color-text-secondary);
 }
 
+.bodyTextareaWithToolbar {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom: none;
+}
+
 /* Settings row */
 .settingsRow {
   display: flex;
