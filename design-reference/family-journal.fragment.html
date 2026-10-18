@@ -1,0 +1,300 @@
+<div id="family-journal" aria-label="拾日家庭手札介面設計">
+<style>
+#family-journal{--paper:light-dark(#f7f5f0,#242722);--panel:light-dark(#fffefa,#2d312b);--ink:light-dark(#303b34,#edece4);--sub:light-dark(#697269,#b7bdb1);--line:light-dark(#e3e5da,#454c41);--green:light-dark(#425f4d,#bad2bc);--on-green:light-dark(#fffef8,#223428);--soft:light-dark(#eaf0e6,#364236);--clay:light-dark(#925d42,#dfb79d);--warm:light-dark(#efe6d8,#413a30);--radius:16px;color:var(--ink);background:var(--paper);font:14px/1.65 'Segoe UI','Microsoft JhengHei',sans-serif;border-radius:18px;overflow:hidden;max-width:100%;}
+#family-journal *{box-sizing:border-box}#family-journal button,#family-journal input,#family-journal textarea,#family-journal select{font:inherit}#family-journal button{color:inherit;cursor:pointer}#family-journal button:focus-visible,#family-journal input:focus-visible,#family-journal textarea:focus-visible,#family-journal select:focus-visible{outline:3px solid var(--clay);outline-offset:3px}#family-journal [hidden]{display:none!important}#family-journal h1,#family-journal h2,#family-journal p{margin:0}#family-journal h1{font-family:Georgia,'PMingLiU',serif;font-size:30px;line-height:1.45;font-weight:500;letter-spacing:2px}#family-journal h2{font-size:17px;font-weight:600}#family-journal svg{width:19px;height:19px;flex-shrink:0}#family-journal .fj-top{padding:19px 28px;display:flex;align-items:center;gap:12px;background:var(--panel);border-bottom:1px solid var(--line);padding-right:106px}#family-journal .fj-logo{width:38px;height:38px;border-radius:12px;background:var(--green);color:var(--on-green);display:grid;place-items:center}#family-journal .fj-brand{font-size:21px;letter-spacing:4px;font-weight:600}#family-journal .fj-tagline{color:var(--sub);font-size:12px}#family-journal .fj-demo{margin-left:auto;color:var(--sub);font-size:12px;white-space:nowrap}#family-journal .fj-layout{display:grid;grid-template-columns:178px minmax(0,1fr)}#family-journal .fj-sidebar{padding:26px 14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:22px}#family-journal .fj-profile{display:flex;gap:10px;align-items:center;padding:0 10px}#family-journal .fj-avatar{width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:var(--warm);color:var(--clay);flex-shrink:0;font-weight:600}#family-journal .fj-small{font-size:12px;color:var(--sub)}#family-journal .fj-nav{display:grid;gap:7px}#family-journal .fj-nav button{display:flex;gap:11px;align-items:center;background:transparent;border:0;text-align:left;padding:12px;border-radius:10px}#family-journal .fj-nav button[aria-pressed=true]{background:var(--soft);color:var(--green);font-weight:600}#family-journal .fj-sidebar-note{margin-top:auto;padding:15px 10px;color:var(--sub);font-size:12px;border-top:1px solid var(--line)}#family-journal .fj-main{padding:28px;min-width:0}#family-journal .fj-hero{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-bottom:25px}#family-journal .fj-eyebrow{font-size:12px;letter-spacing:2px;color:var(--clay);margin-bottom:7px}#family-journal .fj-intro{color:var(--sub);margin-top:8px}#family-journal .fj-date{border-left:1px solid var(--line);padding-left:22px;text-align:center;color:var(--sub);white-space:nowrap}#family-journal .fj-date strong{display:block;font:42px/1.2 Georgia,serif;color:var(--clay)}#family-journal .fj-columns{display:grid;grid-template-columns:minmax(0,1fr) 188px;gap:20px;align-items:start}#family-journal .fj-box{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius)}#family-journal .fj-composer{padding:17px;margin-bottom:24px}#family-journal .fj-start{display:flex;gap:12px;align-items:center}#family-journal .fj-write{border:0;background:transparent;text-align:left;flex:1;padding:8px 0;color:var(--sub)}#family-journal .fj-compose-bottom{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:15px;padding-top:13px;border-top:1px solid var(--line);flex-wrap:wrap}#family-journal .fj-inline{display:flex;gap:7px;align-items:center}#family-journal .fj-primary{border:0;border-radius:9px;padding:10px 16px;background:var(--green);color:var(--on-green)}#family-journal .fj-quiet{background:transparent;border:0;padding:7px 0;color:var(--green)}#family-journal .fj-badge{display:inline-flex;gap:5px;align-items:center;border-radius:5px;padding:3px 7px;background:var(--soft);color:var(--green);font-size:12px}#family-journal .fj-badge svg{width:13px;height:13px}#family-journal .fj-section{display:flex;justify-content:space-between;align-items:center;margin:0 0 14px;gap:10px}#family-journal .fj-post{padding:20px;margin-bottom:16px}#family-journal .fj-post-head{display:flex;align-items:center;gap:10px;margin-bottom:16px}#family-journal .fj-post-head .fj-badge{margin-left:auto}#family-journal .fj-post-title{font-family:Georgia,'PMingLiU',serif;font-size:21px;margin:8px 0!important;font-weight:500}#family-journal .fj-post-copy{line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere}#family-journal .fj-media{display:grid;grid-template-columns:1.4fr 1fr;gap:7px;margin-top:17px}#family-journal .fj-photo{background:var(--warm);color:var(--clay);min-height:115px;border-radius:9px;display:flex;align-items:center;justify-content:center;gap:8px;flex-direction:column;font-size:12px}#family-journal .fj-photo:nth-child(2){background:var(--soft);color:var(--green)}#family-journal .fj-post-footer{border-top:1px solid var(--line);padding-top:12px;margin-top:17px;font-size:12px;color:var(--sub)}#family-journal .fj-memory{padding:20px;background:var(--warm);border-radius:var(--radius)}#family-journal .fj-memory-icon{color:var(--clay);margin-bottom:12px}#family-journal .fj-memory h2{font-family:Georgia,'PMingLiU',serif;font-size:22px;font-weight:500;margin:8px 0}#family-journal .fj-memory p{font-size:13px;color:var(--sub)}#family-journal .fj-memory button{margin-top:16px}#family-journal .fj-aside-text{padding:22px 4px;color:var(--sub);font-size:12px}#family-journal .fj-aside-text strong{display:block;color:var(--ink);font-size:13px;font-weight:500;margin-bottom:6px}#family-journal .fj-editor{margin-top:16px}#family-journal .fj-editor label{display:block;font-size:12px;color:var(--sub);margin:12px 0 5px}#family-journal input,#family-journal textarea,#family-journal select{background:var(--paper);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;width:100%;min-width:0}#family-journal textarea{min-height:120px;resize:vertical}#family-journal .fj-form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}#family-journal .fj-members{padding:10px 0}#family-journal .fj-members label{display:inline-flex;gap:7px;align-items:center;margin-right:15px;color:var(--ink)}#family-journal .fj-members input{width:auto}#family-journal .fj-actions{display:flex;gap:16px;align-items:center;margin-top:16px}#family-journal .fj-status{color:var(--clay);font-size:12px;margin-top:9px}#family-journal .fj-bottom-note{color:var(--sub);font-size:11px;margin-top:16px}
+@media(max-width:850px){#family-journal .fj-columns{grid-template-columns:minmax(0,1fr)}#family-journal .fj-right{display:none}#family-journal .fj-main{padding:24px}#family-journal .fj-layout{grid-template-columns:160px minmax(0,1fr)}}
+@media(max-width:560px){#family-journal .fj-top{padding:16px;padding-right:92px}#family-journal .fj-demo{display:none}#family-journal .fj-layout{display:block}#family-journal .fj-sidebar{padding:10px 12px;border-right:0;border-bottom:1px solid var(--line)}#family-journal .fj-profile,#family-journal .fj-sidebar-note{display:none}#family-journal .fj-nav{display:flex;gap:4px}#family-journal .fj-nav button{flex:1;justify-content:center;gap:5px;padding:12px 4px;font-size:12px}#family-journal .fj-nav svg{width:16px}#family-journal .fj-main{padding:22px 15px}#family-journal h1{font-size:25px}#family-journal .fj-date{display:none}#family-journal .fj-post{padding:16px}#family-journal .fj-form-row{grid-template-columns:1fr}#family-journal .fj-post-head{flex-wrap:wrap}#family-journal .fj-post-head .fj-badge{margin-left:0}#family-journal input,#family-journal textarea,#family-journal select{font-size:16px}#family-journal .fj-section{flex-wrap:wrap}}
+#family-journal .fj-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0;padding:9px;background:var(--soft);border-radius:10px}#family-journal .fj-toolbar button{border:1px solid var(--line);background:var(--panel);border-radius:6px;min-width:38px;min-height:38px;padding:6px 9px}#family-journal .fj-toolbar select{width:auto;flex:1;min-width:110px;max-width:145px;padding:7px;background:var(--panel)}#family-journal .fj-rich{padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--paper);white-space:pre-wrap;overflow-wrap:anywhere;min-height:48px}#family-journal .fj-rich:focus-visible{outline:3px solid var(--clay);outline-offset:2px}#family-journal .fj-rich:empty:before{content:attr(data-placeholder);color:var(--sub);pointer-events:none}#family-journal #fj-body{min-height:170px;line-height:1.9}#family-journal #fj-title{font-family:Georgia,'PMingLiU',serif;font-size:22px}#family-journal #fj-subtitle{font-size:16px;color:var(--sub)}#family-journal .fj-post-subtitle{color:var(--sub);font-size:15px;margin:0 0 15px!important;white-space:pre-wrap;overflow-wrap:anywhere}#family-journal .fj-post-title{white-space:pre-wrap;overflow-wrap:anywhere}#family-journal .fj-post-copy p{margin:0 0 10px}#family-journal .fj-tone-clay{color:var(--clay)}#family-journal .fj-tone-green{color:var(--green)}#family-journal .fj-tone-blue{color:light-dark(#355f89,#a9c8e9)}#family-journal .fj-tone-rose{color:light-dark(#9a4962,#e6adc0)}#family-journal .fj-tone-ink{color:var(--ink)}#family-journal .fj-editor-heading{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:5px}#family-journal .fj-format-status{font-size:12px;color:var(--sub);margin-bottom:12px}#family-journal .fj-toolbar button:active{background:var(--warm)}#family-journal .fj-editor .fj-small{margin-top:12px}#family-journal .fj-rich strong{font-weight:700}#family-journal .fj-post strong{font-weight:700}
+@media(max-width:560px){#family-journal .fj-toolbar button{min-height:44px;min-width:44px}#family-journal .fj-rich{font-size:16px}#family-journal .fj-toolbar select{max-width:none}#family-journal .fj-editor-heading{align-items:flex-start;flex-wrap:wrap}}
+#family-journal .fj-ai{margin:18px 0;border:1px solid var(--line);border-radius:12px;background:var(--soft);padding:15px}#family-journal .fj-ai-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:var(--green)}#family-journal .fj-ai-head h3{font-size:15px;font-weight:600;margin:0}#family-journal .fj-ai-head span{margin-left:auto;font-size:11px;color:var(--sub)}#family-journal .fj-ai-actions{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}#family-journal .fj-ai-actions button{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:9px 12px;color:var(--green);min-height:42px}#family-journal .fj-ai-actions button[aria-pressed=true]{background:var(--green);color:var(--on-green)}#family-journal .fj-ai-result{background:var(--panel);border-radius:9px;padding:14px}#family-journal .fj-ai-result h4{font-size:13px;margin:0 0 9px;font-weight:600}#family-journal .fj-ai-result p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.8}#family-journal .fj-ai .fj-actions{flex-wrap:wrap;gap:12px}#family-journal .fj-ai-status{font-size:12px;color:var(--clay);margin-top:8px}#family-journal .fj-ai small{font-size:12px;color:var(--sub)}#family-journal button:disabled{opacity:.55;cursor:not-allowed}
+#family-journal .fj-post-copy,#family-journal #fj-body,#family-journal .fj-ai-result p{line-height:1.4}#family-journal .fj-post-copy p{margin:0 0 4px}#family-journal .fj-post-copy.is-collapsed{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;line-clamp:3;max-height:4.2em;overflow:hidden}#family-journal .fj-read-more{display:block;margin-top:5px;padding:5px 0;background:transparent;border:0;color:var(--green);font-weight:600;min-height:36px}#family-journal .fj-comments{border-top:1px solid var(--line);padding-top:13px;margin-top:15px}#family-journal .fj-comments h3{font-size:13px;font-weight:600;margin:0 0 10px}#family-journal .fj-comment{display:flex;align-items:flex-start;gap:8px;margin:10px 0}#family-journal .fj-comment .fj-avatar{width:28px;height:28px;font-size:12px}#family-journal .fj-comment-content{flex:1;min-width:0;padding:9px 11px;background:var(--paper);border-radius:10px}#family-journal .fj-comment-content strong{font-size:12px;font-weight:600}#family-journal .fj-comment-content p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.5;margin-top:3px}#family-journal .fj-comment-meta{font-size:11px;color:var(--sub);margin-top:4px}#family-journal .fj-comment-form{margin-top:12px}#family-journal .fj-comment-form label{display:block;font-size:12px;color:var(--sub);margin-bottom:5px}#family-journal .fj-comment-form textarea{min-height:64px;line-height:1.5;padding:10px}#family-journal .fj-comment-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:7px}#family-journal .fj-comment-actions .fj-primary{padding:8px 13px}#family-journal .fj-comment-actions span{font-size:11px;color:var(--sub)}#family-journal .fj-comment-status{font-size:12px;color:var(--clay);margin-top:6px}#family-journal .fj-emoji-picker{display:flex;flex-wrap:wrap;gap:5px;padding:9px;background:var(--soft);border-radius:9px;margin:7px 0}#family-journal .fj-emoji-picker button{background:var(--panel);border:1px solid var(--line);border-radius:7px;width:40px;min-height:40px;font-size:21px;line-height:1}#family-journal .fj-comment-empty{font-size:12px;color:var(--sub);margin:8px 0}#family-journal .fj-post-subtitle{margin-bottom:10px!important}#family-journal .fj-post-head{margin-bottom:12px}
+@media(pointer:coarse){#family-journal .fj-read-more,#family-journal .fj-emoji-picker button{min-height:44px}#family-journal .fj-emoji-picker button{width:44px}}
+#family-journal .fj-columns{grid-template-columns:minmax(0,1fr);max-width:760px;margin:0 auto}#family-journal .fj-memory-label{display:flex;align-items:center;gap:7px;padding:8px 11px;margin-bottom:16px;border-radius:8px;background:var(--warm);color:var(--clay);font-size:12px;font-weight:600}
+#family-journal .fj-reactions{margin-top:15px;border-top:1px solid var(--line);padding-top:9px}#family-journal .fj-reaction-picker{display:flex;flex-wrap:wrap;gap:5px;padding:9px;margin-bottom:8px;background:var(--panel);border:1px solid var(--line);border-radius:16px;max-width:100%;width:fit-content}#family-journal .fj-reaction-option{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:44px;min-height:58px;padding:5px 7px;border:0;border-radius:10px;background:transparent;color:var(--ink)}#family-journal .fj-reaction-option span:first-child{font-size:27px;line-height:1.15}#family-journal .fj-reaction-option span:last-child{font-size:11px}#family-journal .fj-reaction-option:hover{background:var(--warm)}#family-journal .fj-reaction-option[aria-pressed=true]{background:var(--soft);box-shadow:inset 0 0 0 1px var(--green)}#family-journal .fj-social-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}#family-journal .fj-social-actions button{display:flex;gap:7px;align-items:center;justify-content:center;min-height:44px;padding:8px 12px;border:0;border-radius:8px;background:transparent;color:var(--sub)}#family-journal .fj-social-actions button:hover{background:var(--soft)}#family-journal .fj-social-actions button[data-selected=true]{color:var(--green);background:var(--soft);font-weight:600}#family-journal .fj-reaction-emoji{font-size:20px;line-height:1}#family-journal .fj-reaction-status{font-size:12px;color:var(--sub);padding:4px 12px 0}#family-journal .fj-reaction-status:empty{display:none}#family-journal .fj-social-actions .fj-reaction-clear{margin-left:auto;font-size:12px;padding:8px}#family-journal .fj-reactions+.fj-comments{margin-top:9px;padding-top:12px}
+@media(max-width:560px){#family-journal .fj-reaction-picker{display:grid;grid-template-columns:repeat(3,minmax(44px,1fr));width:100%;gap:4px}}
+#family-journal .fj-post-title{line-height:1.25;margin:0 0 3px!important}#family-journal .fj-post-subtitle{line-height:1.35;margin:0 0 4px!important}#family-journal .fj-post-copy p,#family-journal .fj-post-copy div{margin:0}#family-journal .fj-read-more{margin-top:2px;padding-top:2px;padding-bottom:2px}#family-journal .fj-post-head{margin-bottom:9px}
+#family-journal .fj-login{display:grid;grid-template-columns:1.05fr 1fr;gap:44px;padding:54px 44px;align-items:center;min-height:550px}#family-journal .fj-login-story{padding:24px 12px}#family-journal .fj-login-story h1{font-size:34px;letter-spacing:2px;line-height:1.5;margin:16px 0}#family-journal .fj-login-story p{color:var(--sub);line-height:1.6;max-width:330px}#family-journal .fj-login-signature{margin-top:38px;color:var(--clay);font-family:Georgia,'PMingLiU',serif;font-size:19px}#family-journal .fj-login-panel{padding:28px;background:var(--panel);border:1px solid var(--line);border-radius:16px;min-width:0}#family-journal .fj-login-panel h2{font-size:22px;margin:0 0 4px}#family-journal .fj-login-panel label{display:block;font-size:13px;margin:20px 0 6px}#family-journal .fj-login-panel input{min-height:46px}#family-journal .fj-password{display:flex;gap:6px;align-items:center}#family-journal .fj-password input{flex:1;min-width:0}#family-journal .fj-password button{min-height:44px;padding:8px 10px;white-space:nowrap;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:12px}#family-journal .fj-login-help{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:10px 0 18px;font-size:12px}#family-journal .fj-login-submit{width:100%;min-height:46px}#family-journal .fj-login-preview{width:100%;min-height:44px;margin-top:10px;padding:9px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--green)}#family-journal .fj-login-note{font-size:12px;color:var(--sub);padding-top:16px;line-height:1.5}#family-journal .fj-login-status{font-size:12px;color:var(--clay);margin-top:12px}#family-journal .fj-account-view{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:8px 11px;min-height:38px;font-size:12px;white-space:nowrap}
+@media(max-width:760px){#family-journal .fj-login{grid-template-columns:1fr;gap:16px;padding:28px 22px;min-height:0}#family-journal .fj-login-story{padding:0 4px}#family-journal .fj-login-story h1{font-size:26px;margin:7px 0}#family-journal .fj-login-signature{display:none}#family-journal .fj-login-panel{padding:22px}#family-journal .fj-login-panel input{font-size:16px}#family-journal .fj-account-view{font-size:11px;padding:6px}#family-journal .fj-login-help{flex-wrap:wrap}}
+</style>
+<header class="fj-top"><div class="fj-logo"><i data-lucide="book-heart" aria-hidden="true"></i></div><div><div class="fj-brand">拾日</div><div class="fj-tagline">把日子，留給未來的自己。</div></div><span class="fj-demo">家庭手札 · 介面示意</span><button type="button" id="fj-account-view" class="fj-account-view" hidden>登入畫面</button></header>
+<section class="fj-login" id="fj-login-view" aria-label="家庭帳號登入示意">
+<div class="fj-login-story"><div class="fj-eyebrow">A PLACE FOR OUR STORIES</div><h1>回到這裡，<br>都是我們的日常。</h1><p>把生活寫下來，讓回憶留下來。<br>屬於你與家人的安心小天地。</p><div class="fj-login-signature">每個平凡的日子，都值得珍藏。</div></div>
+<div class="fj-login-panel"><h2>歡迎回家</h2><p class="fj-small">使用家庭管理員建立的帳號登入</p>
+<form id="fj-login-form"><label for="fj-login-id">帳號 ID</label><input id="fj-login-id" name="username" type="text" placeholder="例如：chen_family" autocomplete="off" autocapitalize="none" spellcheck="false" pattern="[A-Za-z0-9_.\-]{3,32}" maxlength="32" required aria-describedby="fj-id-help"><div class="fj-small" id="fj-id-help">3–32 字，英文、數字、底線、點或連字號</div>
+<label for="fj-login-password">密碼</label><div class="fj-password"><input id="fj-login-password" name="password" type="password" placeholder="示意欄位，請勿輸入真實密碼" autocomplete="off" maxlength="128" required><button type="button" id="fj-password-toggle" aria-label="顯示密碼" aria-pressed="false">顯示</button></div>
+<div class="fj-login-help"><span class="fj-small">僅限家庭成員</span><button type="button" class="fj-quiet" id="fj-password-help">忘記密碼？</button></div>
+<button type="submit" class="fj-primary fj-login-submit">登入（示意）</button></form>
+<button type="button" id="fj-preview-home" class="fj-login-preview">查看登入後畫面</button>
+<div class="fj-login-status" id="fj-login-status" role="status" aria-live="polite"></div><p class="fj-login-note">目前為設計預覽，尚未連接帳號驗證。輸入資料不會傳送或儲存。</p></div>
+</section>
+<div class="fj-layout"><aside class="fj-sidebar"><div class="fj-profile"><span class="fj-avatar">我</span><div>我的小天地<div class="fj-small">家庭成員</div></div></div><nav class="fj-nav" aria-label="主要功能"><button data-page="diary" aria-pressed="true"><i data-lucide="notebook-pen" aria-hidden="true"></i>生活手札</button><button data-page="family" aria-pressed="false"><i data-lucide="house" aria-hidden="true"></i>家庭動態</button></nav><div class="fj-sidebar-note">每段日常，都值得珍藏。<br>貼文預設僅自己可見。</div></aside>
+<main class="fj-main"><section class="fj-hero"><div><div class="fj-eyebrow" id="fj-eyebrow">YOUR EVERYDAY STORY</div><h1 id="fj-heading">今天，也值得被記住。</h1><p class="fj-intro" id="fj-intro">寫給自己，也留一點溫暖給家人。</p></div><div class="fj-date"><span>OCTOBER</span><strong>17</strong><span>2026 · 星期六</span></div></section>
+<div class="fj-columns"><div><section class="fj-composer fj-box" aria-label="寫手札"><div class="fj-start"><span class="fj-avatar">我</span><button class="fj-write" id="fj-open">今天，有什麼想留下來？</button></div><div class="fj-compose-bottom"><span class="fj-badge"><i data-lucide="lock-keyhole" aria-hidden="true"></i>預設僅自己可見</span><button class="fj-primary" id="fj-write-button">＋ 寫手札</button></div>
+<form class="fj-editor" id="fj-editor" hidden>
+<div class="fj-editor-heading"><h2>寫下今天的故事</h2><span class="fj-small">範例內容，可直接改寫</span></div>
+<div class="fj-toolbar" role="group" aria-label="選取文字的格式">
+<button type="button" data-format="strong" aria-label="套用粗體"><strong>B</strong></button>
+<button type="button" data-format="em" aria-label="套用斜體"><em>I</em></button>
+<button type="button" data-format="u" aria-label="套用底線"><u>U</u></button>
+<select id="fj-color" aria-label="選取文字顏色"><option value="">文字顏色</option value="ink">墨灰</option><option value="green">森林綠</option><option value="clay">暖棕</option><option value="blue">湖水藍</option><option value="rose">玫瑰紅</option></select>
+<button type="button" data-format="clear" aria-label="重設目前整欄的文字格式">重設整欄</button>
+<button type="button" id="fj-emoji-toggle" aria-expanded="false" aria-controls="fj-emoji-picker">☺ 小圖示</button>
+</div>
+<div id="fj-emoji-picker" class="fj-emoji-picker" role="group" aria-label="插入貼文小圖示" hidden>
+<button type="button" data-emoji="😊" aria-label="插入微笑">😊</button><button type="button" data-emoji="❤️" aria-label="插入愛心">❤️</button><button type="button" data-emoji="🏡" aria-label="插入家">🏡</button><button type="button" data-emoji="🌿" aria-label="插入葉子">🌿</button><button type="button" data-emoji="☕" aria-label="插入咖啡">☕</button><button type="button" data-emoji="🍰" aria-label="插入蛋糕">🍰</button><button type="button" data-emoji="🎂" aria-label="插入生日蛋糕">🎂</button><button type="button" data-emoji="🎉" aria-label="插入慶祝">🎉</button><button type="button" data-emoji="📷" aria-label="插入相機">📷</button><button type="button" data-emoji="✨" aria-label="插入星光">✨</button><button type="button" data-emoji="🌈" aria-label="插入彩虹">🌈</button><button type="button" data-emoji="🌸" aria-label="插入花朵">🌸</button>
+</div>
+<div id="fj-format-status" class="fj-format-status" role="status" aria-live="polite">選取主標、次標或內文中的文字，再套用格式。</div>
+<label id="fj-title-label">主標 · 選填</label><div id="fj-title" class="fj-rich" contenteditable="true" role="textbox" aria-labelledby="fj-title-label" aria-multiline="true" data-placeholder="為今天取個名字">最喜歡的，還是<strong>一起吃飯</strong></div>
+<label id="fj-subtitle-label">次標 · 選填</label><div id="fj-subtitle" class="fj-rich" contenteditable="true" role="textbox" aria-labelledby="fj-subtitle-label" aria-multiline="true" data-placeholder="一句話，留下今天的心情"><span class="fj-tone-clay">一桌家常菜，就是我們的小幸福</span></div>
+<label id="fj-body-label">內文</label><div id="fj-body" class="fj-rich" contenteditable="true" role="textbox" aria-labelledby="fj-body-label" aria-multiline="true" aria-required="true" data-placeholder="慢慢寫，這裡是你的日記本。">今晚大家難得都在。媽媽煮了熟悉的味道，飯桌上說說笑笑，連時間都好像慢了下來。<br><br><strong class="fj-tone-green">幸福，大概就是這些平凡的小事。</strong><br>想把這份溫暖，留給明年的自己。</div>
+<section class="fj-ai" aria-label="AI 寫作助手示意">
+<div class="fj-ai-head"><i data-lucide="sparkles" aria-hidden="true"></i><h3>AI 寫作助手</h3><span>互動示意</span></div>
+<small>先看提案，再決定採用。你的語氣與原文都值得保留。</small>
+<div class="fj-ai-actions" role="group" aria-label="寫作輔助方式"><button type="button" data-ai="title" aria-pressed="false">標題提案</button><button type="button" data-ai="polish" aria-pressed="false">潤飾內文</button><button type="button" data-ai="summary" aria-pressed="false">重點摘要</button></div>
+<div id="fj-ai-result" class="fj-ai-result" hidden><h4 id="fj-ai-result-label"></h4><p id="fj-ai-result-text"></p><div class="fj-actions"><button type="button" id="fj-ai-apply" class="fj-primary">採用提案</button><button type="button" id="fj-ai-dismiss" class="fj-quiet">保留目前內容</button></div></div>
+<div class="fj-actions"><button type="button" id="fj-ai-restore" class="fj-quiet" hidden>復原上次採用</button></div>
+<div id="fj-ai-status" class="fj-ai-status" role="status" aria-live="polite"></div>
+<p class="fj-small">目前使用固定範例示範操作，不會依輸入生成，未連接 AI 或傳送內容。</p>
+</section>
+<div class="fj-form-row"><div><label for="fj-day">紀錄日期</label><input id="fj-day" type="date" value="2026-10-17" required></div><div><label for="fj-privacy">誰可以看見？</label><select id="fj-privacy"><option value="private">僅自己</option><option value="family">家人可見</option><option value="selected">指定家人</option></select></div></div><fieldset class="fj-members" id="fj-members" hidden><legend>選擇家人</legend><label><input type="checkbox" value="媽媽">媽媽</label><label><input type="checkbox" value="爸爸">爸爸</label></fieldset><div class="fj-actions"><button type="submit" class="fj-primary">加入預覽</button><button type="button" class="fj-quiet" id="fj-cancel">收起編輯器</button></div><p class="fj-small">僅體驗版面，內容不會儲存到 NAS。</p></form><div id="fj-status" class="fj-status" role="status" aria-live="polite"></div></section><div class="fj-section"><h2 id="fj-list-heading">生活手札</h2><span class="fj-small" id="fj-list-label">生活的片刻，依日期收藏</span></div><div id="fj-posts" aria-live="polite"></div></div>
+</div><div class="fj-bottom-note">範例日期為 2026/10/17 · 時間以台灣時間（UTC+8）顯示 · 所有互動僅供設計預覽</div></main></div>
+<script>
+(()=>{
+const root=document.getElementById('family-journal');
+const q=s=>root.querySelector(s);
+q('.fj-layout').hidden=true;
+function resetLoginFields(){q('#fj-login-form').reset();q('#fj-login-password').type='password';q('#fj-password-toggle').textContent='顯示';q('#fj-password-toggle').setAttribute('aria-label','顯示密碼');q('#fj-password-toggle').setAttribute('aria-pressed','false');}
+q('#fj-password-toggle').onclick=()=>{const field=q('#fj-login-password');const showing=field.type==='password';field.type=showing?'text':'password';q('#fj-password-toggle').textContent=showing?'隱藏':'顯示';q('#fj-password-toggle').setAttribute('aria-label',showing?'隱藏密碼':'顯示密碼');q('#fj-password-toggle').setAttribute('aria-pressed',String(showing));};
+q('#fj-password-help').onclick=()=>{q('#fj-login-status').textContent='請聯絡家庭管理員重設密碼，無須使用信箱。';};
+q('#fj-login-form').onsubmit=event=>{event.preventDefault();resetLoginFields();q('#fj-login-status').textContent='正式登入尚未啟用。可按「查看登入後畫面」體驗設計；未驗證或儲存任何帳密。';};
+q('#fj-preview-home').onclick=()=>{resetLoginFields();q('#fj-login-status').textContent='';q('#fj-login-view').hidden=true;q('.fj-layout').hidden=false;q('#fj-account-view').hidden=false;go('family');q('[data-page="family"]').focus();};
+q('#fj-account-view').onclick=()=>{resetLoginFields();q('.fj-layout').hidden=true;q('#fj-login-view').hidden=false;q('#fj-account-view').hidden=true;q('#fj-login-id').focus();};
+let page='diary';
+const posts=[
+ {author:'我',date:'2026-10-17',privacy:'private',title:'留一點時間給自己 ☕',subtitle:'一杯茶，一個安靜的午後',body:'趁著午後安靜，泡了一杯茶，把這週的心情慢慢寫下來。原來不需要發生什麼大事，也可以是值得記住的一天。\n窗邊的陽光剛剛好，翻到上次旅行留下的照片，又想起當時的笑聲。\n最近忙著工作，好像很久沒有這樣好好坐下來。今天想提醒自己，再忙也要留一點時間，照顧自己的心情。🌿'},
+ {author:'我',date:'2026-10-16',privacy:'family',title:'最喜歡的，還是<strong>一起吃飯</strong>',subtitle:'<span class="fj-tone-clay">一桌家常菜，就是我們的小幸福</span>',body:'今晚大家難得都在。媽媽煮了熟悉的味道，飯桌上說說笑笑，連時間都好像慢了下來。<br><br><strong class="fj-tone-green">幸福，大概就是這些平凡的小事。</strong><br>想把這份溫暖，留給明年的自己。',media:true},
+ {author:'媽媽',date:'2026-10-17',privacy:'family',title:'週末的廚房，很熱鬧',subtitle:'一起動手，晚餐多了一點甜',body:'一起準備晚餐，一邊切菜一邊聊天。有人幫忙，就是最好的週末禮物。'},
+ {author:'我',date:'2025-10-17',privacy:'private',title:'把今天的風景，留給明年的自己',subtitle:'河岸、晚風，還有我們',body:'傍晚和家人沿著河岸散步。沒有特別的行程，卻拍下了最喜歡的一張合照。',media:true}
+];
+const sampleTimes=['2026-10-17T07:30:00Z','2026-10-16T11:45:00Z','2026-10-17T09:20:00Z','2025-10-17T10:10:00Z'];
+posts.forEach((post,index)=>{post.id='post-'+(index+1);post.comments=[];post.createdAt=sampleTimes[index];});
+posts[1].comments=[{author:'媽媽',text:'大家一起吃飯最開心了，下次再煮你們喜歡的菜 ❤️',createdAt:'2026-10-16T12:08:00Z'}];
+posts[2].comments=[{author:'爸爸',text:'下次換我來洗碗 😊',createdAt:'2026-10-17T09:35:00Z'}];
+posts.push({id:'post-5',author:'爸爸',date:'2024-10-17',createdAt:'2024-10-17T08:40:00Z',privacy:'family',title:'那年秋天，一起去走走 🍂',subtitle:'一家人的合照，笑得特別開心',body:'今天，全家一起到河邊散步。孩子一路撿著落葉，大家輪流拿相機，留下好多笑得很自然的照片。\n傍晚坐下來喝杯熱茶，聊著下次想去的地方。\n回頭看才發現，最值得收藏的，就是能一起度過的平凡時光。',media:true,comments:[{author:'媽媽',text:'還記得那天的風很舒服，下次再一起去 ❤️',createdAt:'2024-10-17T12:15:00Z'}]});
+const previewToday='2026-10-17';
+function isAnniversary(post){return post.date.slice(5)===previewToday.slice(5)&&post.date.slice(0,4)<previewToday.slice(0,4);}
+function memoryLabel(post){return page==='family'&&isAnniversary(post)?'<div class="fj-memory-label"><i data-lucide="history" aria-hidden="true"></i>歷年今日 · '+(Number(previewToday.slice(0,4))-Number(post.date.slice(0,4)))+' 年前的今天</div>':'';}
+let nextPostId=posts.length+1;
+const expandedPosts=new Set();
+const commentDrafts=new Map();
+const selectedReactions=new Map();
+const reactionChoices=[{id:'like',emoji:'👍',label:'讚'},{id:'love',emoji:'❤️',label:'愛心'},{id:'care',emoji:'🥰',label:'抱抱'},{id:'haha',emoji:'😆',label:'大笑'},{id:'wow',emoji:'😮',label:'驚訝'},{id:'sad',emoji:'😢',label:'難過'},{id:'angry',emoji:'😡',label:'生氣'},{id:'received',emoji:'📩',label:'收到'},{id:'no_problem',emoji:'👌',label:'沒問題'}];
+const labels={private:'僅自己',family:'家人可見',selected:'指定家人'};
+const icons={private:'lock-keyhole',family:'users',selected:'user-check'};
+const tones=['ink','green','clay','blue','rose'];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Preview-only allowlist. Production storage also requires server-side validation.
+function clean(html){
+ const template=document.createElement('template');template.innerHTML=html;
+ function walk(node){
+  if(node.nodeType===3)return esc(node.textContent);
+  if(node.nodeType!==1)return '';
+  const tag=node.tagName.toLowerCase();
+  if(['script','style','iframe','object','svg','math','img','video','audio','input','button'].includes(tag))return '';
+  const inner=Array.from(node.childNodes,walk).join('');
+  if(tag==='br')return '<br>';
+  const allowed=['strong','b','em','i','u','span','p','div'];
+  if(!allowed.includes(tag))return inner;
+  const tone=tones.find(t=>node.classList.contains('fj-tone-'+t));
+  return '<'+tag+(tone?' class="fj-tone-'+tone+'"':'')+'>'+inner+'</'+tag+'>';
+ }
+ return Array.from(template.content.childNodes,walk).join('');
+}
+function compactBody(html){
+ const template=document.createElement('template');template.innerHTML=clean(html);
+ template.content.querySelectorAll('p,div').forEach(block=>{if(!block.textContent.trim())block.remove();});
+ // Compact display only; saved text and editor formatting remain unchanged.
+ return template.innerHTML.replace(/(?:<br>\s*){2,}/g,'<br>').replace(/\n(?:[\t ]*\n)+/g,'\n');
+}
+function save(){if(window.openai?.setWidgetState)window.openai.setWidgetState({modelContent:{screen:page,design:'拾日・主標次標與格式編輯'},privateContent:{screen:page}}).catch(()=>{});}
+const dateTimeFormatter=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+function dateTimeParts(iso){const parts=Object.fromEntries(dateTimeFormatter.formatToParts(new Date(iso)).filter(part=>part.type!=='literal').map(part=>[part.type,part.value]));return {date:parts.year+'-'+parts.month+'-'+parts.day,text:parts.year+'/'+parts.month+'/'+parts.day+' '+parts.hour+':'+parts.minute};}
+function timeMarkup(iso){const text=dateTimeParts(iso).text;return '<time datetime="'+esc(iso)+'" aria-label="'+esc(text)+' 台灣時間">'+esc(text)+'</time>';}
+function postTimeMarkup(post){return (post.date!==dateTimeParts(post.createdAt).date?'紀錄 '+esc(post.date.replaceAll('-','/'))+'<br>發布 ':'')+timeMarkup(post.createdAt);}
+function commentMarkup(comment){return '<div class="fj-comment"><span class="fj-avatar">'+esc(comment.author.slice(0,1))+'</span><div class="fj-comment-content"><strong>'+esc(comment.author)+'</strong><p>'+esc(comment.text)+'</p><div class="fj-comment-meta">'+timeMarkup(comment.createdAt)+'</div></div></div>';}
+function reactionMarkup(post){
+ if(post.privacy==='private')return '';
+ const selected=reactionChoices.find(choice=>choice.id===selectedReactions.get(post.id));
+ return '<div class="fj-reactions" data-reaction-post="'+post.id+'"><div class="fj-reaction-picker" id="reactions-'+post.id+'" role="group" aria-label="選擇心情回應，再選同一種可取消" hidden>'+reactionChoices.map(choice=>'<button type="button" class="fj-reaction-option" data-reaction="'+choice.id+'" aria-label="'+choice.label+'" aria-pressed="'+String(selected?.id===choice.id)+'"><span aria-hidden="true">'+choice.emoji+'</span><span>'+choice.label+'</span></button>').join('')+'</div><div class="fj-social-actions"><button type="button" class="fj-reaction-toggle" aria-expanded="false" aria-controls="reactions-'+post.id+'" data-selected="'+String(Boolean(selected))+'"><span class="fj-reaction-emoji" aria-hidden="true">'+(selected?.emoji||'♡')+'</span><span>'+(selected?.label||'心情回應')+'</span></button><button type="button" class="fj-focus-comments"><i data-lucide="message-circle" aria-hidden="true"></i>留言</button>'+(selected?'<button type="button" class="fj-reaction-clear">取消心情</button>':'')+'</div><div class="fj-reaction-status" role="status" aria-live="polite">'+(selected?'你以「'+selected.label+'」回應':'')+'</div></div>';
+}
+function closeReactionPickers(except){root.querySelectorAll('.fj-reactions').forEach(area=>{if(area!==except){area.querySelector('.fj-reaction-picker').hidden=true;area.querySelector('.fj-reaction-toggle').setAttribute('aria-expanded','false');}});}
+function updateReaction(post,choice){
+ if(post.privacy==='private')return;
+ if(!choice||selectedReactions.get(post.id)===choice)selectedReactions.delete(post.id);else selectedReactions.set(post.id,choice);
+ const area=q('[data-reaction-post="'+post.id+'"]');area.outerHTML=reactionMarkup(post);
+ if(globalThis.lucide)lucide.createIcons();
+ const replacement=q('[data-reaction-post="'+post.id+'"]');
+ if(!selectedReactions.has(post.id))replacement.querySelector('.fj-reaction-status').textContent='已取消心情回應';
+ replacement.querySelector('.fj-reaction-toggle').focus();
+}
+q('#fj-posts').addEventListener('click',event=>{
+ const area=event.target.closest('.fj-reactions');if(!area)return;
+ const post=posts.find(item=>item.id===area.dataset.reactionPost);if(!post||post.privacy==='private')return;
+ if(event.target.closest('.fj-reaction-toggle')){const picker=area.querySelector('.fj-reaction-picker');const opening=picker.hidden;closeReactionPickers(area);picker.hidden=!opening;area.querySelector('.fj-reaction-toggle').setAttribute('aria-expanded',String(opening));if(opening)(picker.querySelector('[aria-pressed="true"]')||picker.querySelector('button')).focus();return;}
+ const option=event.target.closest('[data-reaction]');
+ if(option&&reactionChoices.some(choice=>choice.id===option.dataset.reaction)){updateReaction(post,option.dataset.reaction);return;}
+ if(event.target.closest('.fj-reaction-clear')){updateReaction(post,null);return;}
+ if(event.target.closest('.fj-focus-comments')){closeReactionPickers();area.closest('.fj-post').querySelector('.fj-comment-form textarea').focus();}
+});
+root.addEventListener('click',event=>{if(!event.target.closest('.fj-reactions'))closeReactionPickers();});
+root.addEventListener('keydown',event=>{if(event.key==='Escape'){const area=event.target.closest('.fj-reactions');if(area&&!area.querySelector('.fj-reaction-picker').hidden){closeReactionPickers();area.querySelector('.fj-reaction-toggle').focus();event.preventDefault();}}});
+function commentsMarkup(post){
+ if(post.privacy==='private')return '<div class="fj-post-footer">這一篇，留給自己。家人無法閱讀或回應。</div>';
+ return '<section class="fj-comments" aria-label="家人回應"><h3>家人回應 <span class="fj-comment-count">'+post.comments.length+'</span></h3><div class="fj-comment-list">'+(post.comments.length?post.comments.map(commentMarkup).join(''):'<p class="fj-comment-empty">留一句話，讓回憶多一點溫度。</p>')+'</div><form class="fj-comment-form" data-comment-post="'+post.id+'"><label for="comment-'+post.id+'">以「我」回應</label><textarea id="comment-'+post.id+'" name="comment" maxlength="1000" placeholder="寫下想對家人說的話… 😊" required>'+esc(commentDrafts.get(post.id)||'')+'</textarea><div class="fj-comment-actions"><span>僅能看見這篇貼文的家人可讀</span><button type="submit" class="fj-primary">送出回應</button></div><div class="fj-comment-status" role="status" aria-live="polite"></div></form></section>';
+}
+function refreshClamps(){
+ root.querySelectorAll('.fj-post').forEach(article=>{
+  const copy=article.querySelector('.fj-post-copy');const button=article.querySelector('.fj-read-more');
+  copy.classList.remove('is-collapsed');
+  const exceeds=copy.getBoundingClientRect().height>parseFloat(getComputedStyle(copy).lineHeight)*3+1;
+  const expanded=expandedPosts.has(article.dataset.postId);
+  copy.classList.toggle('is-collapsed',exceeds&&!expanded);
+  button.hidden=!exceeds;button.setAttribute('aria-expanded',String(expanded));button.textContent=expanded?'收合':'⋯⋯顯示更多';
+ });
+}
+let clampFrame=0;
+function scheduleClamps(){cancelAnimationFrame(clampFrame);clampFrame=requestAnimationFrame(refreshClamps);}
+function render(){
+ root.querySelectorAll('[data-page]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.page===page)));
+ const titles={diary:['今天，也值得被記住。','寫給自己，也留一點溫暖給家人。','生活手札','生活的片刻，依日期收藏'],family:['一家人的日常，在這裡。','今天的分享，和那些值得回味的日子。','家庭動態','生活近況與歷年回憶']};
+ const t=titles[page];q('#fj-heading').textContent=t[0];q('#fj-intro').textContent=t[1];q('#fj-list-heading').textContent=t[2];q('#fj-list-label').textContent=t[3];
+ const visible=posts.filter(p=>page==='diary'?p.author==='我':p.privacy==='family').sort((a,b)=>(page==='family'?Number(isAnniversary(b))-Number(isAnniversary(a)):0)||b.date.localeCompare(a.date)||b.createdAt.localeCompare(a.createdAt));
+ q('#fj-posts').innerHTML=visible.map(p=>'<article class="fj-post fj-box" data-post-id="'+p.id+'">'+memoryLabel(p)+'<div class="fj-post-head"><span class="fj-avatar">'+esc(p.author.slice(0,1))+'</span><div>'+esc(p.author)+'<div class="fj-small">'+postTimeMarkup(p)+'</div></div><span class="fj-badge"><i data-lucide="'+icons[p.privacy]+'" aria-hidden="true"></i>'+labels[p.privacy]+'</span></div>'+(p.title?'<h2 class="fj-post-title">'+clean(p.title)+'</h2>':'')+(p.subtitle?'<div class="fj-post-subtitle">'+clean(p.subtitle)+'</div>':'')+'<div class="fj-post-copy is-collapsed" id="copy-'+p.id+'">'+compactBody(p.body)+'</div><button type="button" class="fj-read-more" aria-expanded="false" aria-controls="copy-'+p.id+'" hidden>⋯⋯顯示更多</button>'+(p.media?'<div class="fj-media" aria-label="媒體版位示意"><div class="fj-photo"><i data-lucide="image" aria-hidden="true"></i>家庭照片示意</div><div class="fj-photo"><i data-lucide="film" aria-hidden="true"></i>生活影片示意</div></div>':'')+reactionMarkup(p)+commentsMarkup(p)+'</article>').join('');
+ if(globalThis.lucide)lucide.createIcons();
+ scheduleClamps();
+}
+q('#fj-posts').addEventListener('click',event=>{
+ const button=event.target.closest('.fj-read-more');if(!button)return;
+ const article=button.closest('.fj-post');const id=article.dataset.postId;
+ if(expandedPosts.has(id))expandedPosts.delete(id);else expandedPosts.add(id);
+ refreshClamps();
+});
+q('#fj-posts').addEventListener('input',event=>{
+ const form=event.target.closest('.fj-comment-form');if(form)commentDrafts.set(form.dataset.commentPost,event.target.value);
+});
+q('#fj-posts').addEventListener('submit',event=>{
+ const form=event.target.closest('.fj-comment-form');if(!form)return;event.preventDefault();
+ const post=posts.find(p=>p.id===form.dataset.commentPost);if(!post||post.privacy==='private')return;
+ const field=form.querySelector('textarea');const text=field.value.trim();
+ if(!text||text.length>1000){form.querySelector('.fj-comment-status').textContent='請輸入 1 至 1000 字的回應。';return;}
+ const comment={author:'我',text,createdAt:new Date().toISOString()};post.comments.push(comment);commentDrafts.delete(post.id);
+ const section=form.closest('.fj-comments');section.querySelector('.fj-comment-empty')?.remove();
+ section.querySelector('.fj-comment-list').insertAdjacentHTML('beforeend',commentMarkup(comment));section.querySelector('.fj-comment-count').textContent=String(post.comments.length);
+ field.value='';form.querySelector('.fj-comment-status').textContent='已加入本次預覽，尚未儲存到 NAS。';field.focus();
+});
+let previousFeedWidth=0;
+const feedObserver=new ResizeObserver(entries=>{const width=entries[0].contentRect.width;if(Math.abs(width-previousFeedWidth)>.5){previousFeedWidth=width;scheduleClamps();}});
+feedObserver.observe(q('#fj-posts'));
+document.fonts?.ready.then(scheduleClamps);
+function normalizePage(value){return value==='memories'?'family':(['diary','family'].includes(value)?value:null);}
+function go(next){const target=normalizePage(next);if(!target)return;page=target;render();save();}
+root.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>go(b.dataset.page)));
+function openEditor(){q('#fj-editor').hidden=false;q('#fj-title').focus();}
+q('#fj-open').onclick=openEditor;q('#fj-write-button').onclick=openEditor;
+q('#fj-cancel').onclick=()=>{q('#fj-editor').hidden=true;q('#fj-status').textContent='';};
+q('#fj-privacy').onchange=()=>{q('#fj-members').hidden=q('#fj-privacy').value!=='selected';};
+let selectedRange=null;
+let lastRichField=q('#fj-body');
+root.querySelectorAll('.fj-rich').forEach(field=>field.addEventListener('focus',()=>{lastRichField=field;}));
+q('#fj-emoji-toggle').addEventListener('mousedown',event=>event.preventDefault());
+q('#fj-emoji-toggle').onclick=()=>{const picker=q('#fj-emoji-picker');picker.hidden=!picker.hidden;q('#fj-emoji-toggle').setAttribute('aria-expanded',String(!picker.hidden));};
+root.querySelectorAll('[data-emoji]').forEach(button=>{
+ button.addEventListener('mousedown',event=>event.preventDefault());
+ button.onclick=()=>{
+  const field=lastRichField;let range=selectedRange?.cloneRange();
+  if(!range||fieldFor(range.startContainer)!==field||fieldFor(range.endContainer)!==field){range=document.createRange();range.selectNodeContents(field);range.collapse(false);}
+  range.deleteContents();const text=document.createTextNode(button.dataset.emoji);range.insertNode(text);range.setStartAfter(text);range.collapse(true);
+  field.focus();const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);selectedRange=range.cloneRange();
+  q('#fj-emoji-picker').hidden=true;q('#fj-emoji-toggle').setAttribute('aria-expanded','false');q('#fj-format-status').textContent='已插入小圖示，可繼續輸入。';
+ };
+});
+function fieldFor(node){const el=node?.nodeType===1?node:node?.parentElement;const field=el?.closest('.fj-rich');return field&&root.contains(field)?field:null;}
+document.addEventListener('selectionchange',()=>{
+ const sel=window.getSelection();if(!sel?.rangeCount)return;
+ const range=sel.getRangeAt(0);const field=fieldFor(range.startContainer);
+ if(field&&field===fieldFor(range.endContainer))selectedRange=range.cloneRange();
+ else if(field||fieldFor(range.endContainer))selectedRange=null;
+});
+function applyFormat(type,tone){
+ const range=selectedRange;const field=range&&fieldFor(range.startContainer);
+ if(!range||!field||field!==fieldFor(range.endContainer)||q('#fj-editor').hidden){q('#fj-format-status').textContent='請先在主標、次標或內文中選取文字。';return;}
+ if(type==='clear'){field.textContent=field.innerText;selectedRange=null;q('#fj-format-status').textContent='已重設這一欄的全部格式，文字內容保留。';return;}
+ if(range.collapsed){q('#fj-format-status').textContent='請先選取要套用格式的文字。';return;}
+ const fragment=range.extractContents();
+ const inserted=document.createElement(type==='color'?'span':type);
+  if(type==='color'){
+   fragment.querySelectorAll('[class]').forEach(el=>tones.forEach(t=>el.classList.remove('fj-tone-'+t)));
+   inserted.className='fj-tone-'+tone;
+  }
+ inserted.append(fragment);
+ range.insertNode(inserted);const next=document.createRange();next.selectNodeContents(inserted);
+ const sel=window.getSelection();sel.removeAllRanges();sel.addRange(next);selectedRange=next.cloneRange();
+ q('#fj-format-status').textContent='已套用格式，可繼續選取其他文字。';
+}
+root.querySelectorAll('[data-format]').forEach(button=>{
+ button.addEventListener('mousedown',e=>e.preventDefault());
+ button.onclick=()=>applyFormat(button.dataset.format);
+});
+q('#fj-color').onchange=e=>{const tone=e.target.value;if(tones.includes(tone))applyFormat('color',tone);e.target.value='';};
+root.querySelectorAll('.fj-rich').forEach(field=>{
+ field.addEventListener('paste',e=>{
+  e.preventDefault();const text=e.clipboardData?.getData('text/plain')||'';
+  const sel=window.getSelection();if(!sel?.rangeCount)return;const range=sel.getRangeAt(0);
+  if(fieldFor(range.startContainer)!==field||fieldFor(range.endContainer)!==field)return;
+  range.deleteContents();const node=document.createTextNode(text);range.insertNode(node);range.setStartAfter(node);range.collapse(true);sel.removeAllRanges();sel.addRange(range);selectedRange=null;
+ });
+ field.addEventListener('drop',e=>e.preventDefault());
+ field.addEventListener('dragstart',e=>e.preventDefault());
+});
+const aiExamples={
+ title:{field:'#fj-title',label:'主標提案 · 固定範例',text:'一桌家常菜，滿滿都是家的味道'},
+ polish:{field:'#fj-body',label:'內文潤飾 · 固定範例',text:'今晚，難得全家都在。媽媽端上熟悉的家常菜，大家圍著飯桌說說笑笑，連時間都彷彿慢了下來。\n\n原來，幸福就藏在這些平凡的小事裡。想把今晚的溫暖，好好留給明年的自己。'},
+ summary:{field:'#fj-subtitle',label:'摘要提案 · 採用後放入次標',text:'全家相聚的一頓晚餐，留下熟悉的味道與溫暖。'}
+};
+let aiPending=null,aiPrevious=null;
+function writingSnapshot(){return ['#fj-title','#fj-subtitle','#fj-body'].map(id=>q(id).innerHTML).join('\u001f');}
+function clearAI(){aiPending=null;aiPrevious=null;q('#fj-ai-result').hidden=true;q('#fj-ai-restore').hidden=true;q('#fj-ai-status').textContent='';root.querySelectorAll('[data-ai]').forEach(b=>b.setAttribute('aria-pressed','false'));}
+root.querySelectorAll('[data-ai]').forEach(button=>button.onclick=()=>{
+ const example=aiExamples[button.dataset.ai];aiPending={...example,snapshot:writingSnapshot()};
+ root.querySelectorAll('[data-ai]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));
+ q('#fj-ai-result-label').textContent=example.label;q('#fj-ai-result-text').textContent=example.text;q('#fj-ai-result').hidden=false;q('#fj-ai-status').textContent='固定範例，不會讀取或送出你的文字。';
+});
+q('#fj-ai-apply').onclick=()=>{
+ if(!aiPending)return;
+ if(aiPending.snapshot!==writingSnapshot()){q('#fj-ai-status').textContent='內容已修改，未覆蓋目前文字。請重新選擇提案後再採用。';return;}
+ const field=q(aiPending.field);const before=field.innerHTML;field.textContent=aiPending.text;
+ aiPrevious={field:aiPending.field,before,after:field.innerHTML};aiPending=null;selectedRange=null;
+ q('#fj-ai-result').hidden=true;q('#fj-ai-restore').hidden=false;q('#fj-ai-status').textContent='已套用範例，可繼續編輯或復原。尚未發布。';
+};
+q('#fj-ai-dismiss').onclick=()=>{aiPending=null;q('#fj-ai-result').hidden=true;q('#fj-ai-status').textContent='已保留目前內容。';};
+q('#fj-ai-restore').onclick=()=>{
+ if(!aiPrevious)return;const field=q(aiPrevious.field);
+ if(field.innerHTML!==aiPrevious.after){q('#fj-ai-status').textContent='採用後已有新修改，為避免遺失內容，未直接復原。';return;}
+ field.innerHTML=clean(aiPrevious.before);aiPrevious=null;selectedRange=null;q('#fj-ai-restore').hidden=true;q('#fj-ai-status').textContent='已復原原文與格式。';
+};
+q('#fj-editor').onsubmit=e=>{
+ e.preventDefault();
+ if(!q('#fj-body').innerText.trim()){q('#fj-status').textContent='請先寫下手札內容。';q('#fj-body').focus();return;}
+ if(q('#fj-title').innerText.trim().length>80||q('#fj-subtitle').innerText.trim().length>160){q('#fj-status').textContent='主標最多 80 字，次標最多 160 字。';return;}
+ if(q('#fj-privacy').value==='selected'&&!q('#fj-members input:checked')){q('#fj-status').textContent='請至少選擇一位家人。';return;}
+ posts.unshift({id:'post-'+nextPostId++,comments:[],createdAt:new Date().toISOString(),author:'我',date:q('#fj-day').value,privacy:q('#fj-privacy').value,title:q('#fj-title').innerText.trim()?clean(q('#fj-title').innerHTML):'',subtitle:q('#fj-subtitle').innerText.trim()?clean(q('#fj-subtitle').innerHTML):'',body:clean(q('#fj-body').innerHTML)});
+ q('#fj-editor').reset();root.querySelectorAll('.fj-rich').forEach(el=>el.replaceChildren());selectedRange=null;clearAI();
+ q('#fj-emoji-picker').hidden=true;q('#fj-emoji-toggle').setAttribute('aria-expanded','false');lastRichField=q('#fj-body');
+ q('#fj-members').hidden=true;q('#fj-editor').hidden=true;go('diary');q('#fj-status').textContent='已加入本次預覽，文字格式已保留；未儲存到 NAS。';
+};
+const restored=normalizePage(window.openai?.widgetState?.privateContent?.screen);if(restored)page=restored;render();
+window.addEventListener('openai:set_globals',e=>{const s=normalizePage(e.detail?.globals?.widgetState?.privateContent?.screen);if(s){page=s;render();}});
+if(globalThis.Tweak){const settings={radius:16};const tweak=new Tweak({container:root,onChange:()=>root.style.setProperty('--radius',settings.radius+'px')});tweak.addSlider(settings,'radius',{label:'卡片圓角',min:4,max:24,unit:'px'});}
+})();
+</script>
+</div>

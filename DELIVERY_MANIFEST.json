@@ -1,0 +1,117 @@
+{
+  "name": "family-journal-antigravity-claude-handoff",
+  "version": "2026-10-18",
+  "scope": "Design documentation and prototype references only; no production application",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "bytes": 3665,
+      "sha256": "c056a67a498a261c60f03b63067eebceab08496e52af4c461db49fec1627ba18"
+    },
+    {
+      "path": "CLAUDE.md",
+      "bytes": 1632,
+      "sha256": "1da8ba0a4e46d7ef6c992233693b8e21c72ef399cb7501108cb9459eb320bde5"
+    },
+    {
+      "path": "DESIGN_DEVELOPMENT.md",
+      "bytes": 91878,
+      "sha256": "0ec8960952038859c9ec15b01fd7ea8c695d095581b696c45a14bcaca1d5f1b3"
+    },
+    {
+      "path": "design-reference/family-journal.fragment.html",
+      "bytes": 54594,
+      "sha256": "b58b12f1c2d4cb9e405fa8ce14ddf4dff93f43600f7f4498296c26aa542694f9"
+    },
+    {
+      "path": "design-reference/README.md",
+      "bytes": 1956,
+      "sha256": "5a90498d076ef8b0e08ca1a04b9001e9e040d2677bcf13aed8affc576efdca54"
+    },
+    {
+      "path": "design-reference/screenshots/editor-desktop-light.png",
+      "bytes": 211436,
+      "sha256": "aca1c42a77cfac54d96c24e0b2b9872745707f6a0600debfd7ca2dcee2e13ea3"
+    },
+    {
+      "path": "design-reference/screenshots/feed-desktop-light.png",
+      "bytes": 154316,
+      "sha256": "dcee371ba3557d605dc15b31ec5e765eee3d8b6d5ef5eaab2135890ccea079ac"
+    },
+    {
+      "path": "design-reference/screenshots/login-desktop-light.png",
+      "bytes": 46814,
+      "sha256": "f1592193e1da1dfdedbf8de1b2135800968e11db2af02dc221cdf4e4f7c8b070"
+    },
+    {
+      "path": "design-reference/screenshots/login-mobile-dark.png",
+      "bytes": 38053,
+      "sha256": "3a11dcc0bdc5d504aa5dacc0f838b9c4110d9026af8c3855d4b9b54974bbc8fe"
+    },
+    {
+      "path": "design-reference/screenshots/reactions-mobile-dark.png",
+      "bytes": 151206,
+      "sha256": "92f1ba291b9096553fc69b6a92073ff7a67ecb71489d98e204bc0887f10995ac"
+    },
+    {
+      "path": "docs/architecture/system-design.md",
+      "bytes": 17527,
+      "sha256": "896cd8df5e6715528991587635c0fdab5f75922955fc4924e9e158795d1b6574"
+    },
+    {
+      "path": "docs/deployment/nas-docker.md",
+      "bytes": 8316,
+      "sha256": "9dcff3b07cc19b7cb673f39a8bfecedb68597fca3a034d1b769922f1bfa378be"
+    },
+    {
+      "path": "docs/design/interface-design.md",
+      "bytes": 9102,
+      "sha256": "65a84d8d672338fd61318a9bd32f68d16b8494213b2cdaedf37eb95189e31073"
+    },
+    {
+      "path": "docs/handoff/claude-start-prompt.md",
+      "bytes": 4660,
+      "sha256": "5e1b3ab070f6322b22af764041bf5a3c9b6598da810820b5edc517e5e765d149"
+    },
+    {
+      "path": "docs/handoff/delivery-validation.md",
+      "bytes": 2466,
+      "sha256": "695d5b9975f5b805e4588f2dfb74923dc7522c23bc156d66746ee25232f5e798"
+    },
+    {
+      "path": "docs/handoff/implementation-handoff.md",
+      "bytes": 5732,
+      "sha256": "9aa4e3ccf6b47067b8ef24fc4ca5ee489c3b15dfa38ae4b8a00a80c27c19bed0"
+    },
+    {
+      "path": "docs/handoff/preview-validation.json",
+      "bytes": 824,
+      "sha256": "1fb138d14acbd3e9981a8b31c9e4f5b03f485e2e2300db436c3802ba5f629e8a"
+    },
+    {
+      "path": "docs/specs/family-journal-product-spec.md",
+      "bytes": 32798,
+      "sha256": "3e0819183fc458df464d202eedec769ee02b3a92c88ccf901932c17dca240ff6"
+    },
+    {
+      "path": "docs/testing/acceptance-plan.md",
+      "bytes": 8649,
+      "sha256": "4399b6058c3bc25f4ba35792a95e9677213da23f5f952ccae8335cbadbd0b448"
+    },
+    {
+      "path": "README.md",
+      "bytes": 2460,
+      "sha256": "d135b9a1c029678f2d54a8158510da36fea583478c8fabe84a67d33e424ffde3"
+    },
+    {
+      "path": "scripts/build-design-handoff.mjs",
+      "bytes": 2298,
+      "sha256": "55e95073b86789ec55be88aed825940dc4306dcee802e3180ebbb463f4fd7c6c"
+    },
+    {
+      "path": "scripts/verify-design-handoff.mjs",
+      "bytes": 2374,
+      "sha256": "1e19acd8c0ce5050440653f5b4e957554342af4ca1494449cf077bc333d85e7e"
+    }
+  ]
+}

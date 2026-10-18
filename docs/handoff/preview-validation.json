@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-18",
+  "browser": "Edge Chromium 155.0.4283.45",
+  "execution": "Headless Windows; no real devices or NAS",
+  "widths": [
+    320,
+    360,
+    390,
+    430,
+    768,
+    820,
+    1024,
+    1280,
+    1440,
+    1920
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ],
+  "overflowChecks": 40,
+  "checks": [
+    "mock login does not authenticate",
+    "password reveal and clearing",
+    "admin reset help",
+    "two main screen navigation",
+    "anniversary inline",
+    "editor opens",
+    "nine reactions including received/no_problem"
+  ],
+  "runtimeErrors": [],
+  "networkRequests": [],
+  "screenshots": 5,
+  "limitations": [
+    "No server auth, persistence, real AI or media",
+    "Host-provided Lucide icons are absent in standalone test",
+    "No Firefox/Safari/iOS/Android actual device tests"
+  ]
+}
