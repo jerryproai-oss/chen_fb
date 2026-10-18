@@ -2,14 +2,15 @@
 
 import { useState, useEffect, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Visibility, PostDetail, MediaItem } from '@/lib/types';
+import { MapPin, Check } from 'lucide-react';
+import type { Visibility, PostDetail, MediaItem, PollInput } from '@/lib/types';
+import { PRESET_BG_COLORS, MILESTONE_TYPES } from '@/lib/types';
 import VisibilityPicker from '@/components/post/VisibilityPicker';
 import DatePicker from '@/components/post/DatePicker';
 import TextToolbar from '@/components/post/TextToolbar';
 import EmojiPicker from '@/components/post/EmojiPicker';
 import MediaUploader from '@/components/post/MediaUploader';
 import PollEditor from '@/components/post/PollEditor';
-import type { PollInput } from '@/lib/types';
 import styles from '../page.module.css';
 
 /**
@@ -35,6 +36,10 @@ export default function EditPostPage({
   const [mediaIds, setMediaIds] = useState<string[]>([]);
   const [existingMedia, setExistingMedia] = useState<MediaItem[]>([]);
   const [poll, setPoll] = useState<PollInput | null>(null);
+  const [locationName, setLocationName] = useState('');
+  const [bgColor, setBgColor] = useState<string | null>(null);
+  const [isMilestone, setIsMilestone] = useState(false);
+  const [milestoneType, setMilestoneType] = useState<string>('紀念日');
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const subtitleRef = useRef<HTMLInputElement>(null);
@@ -83,6 +88,18 @@ export default function EditPostPage({
           setMediaIds(post.media.map((m: MediaItem) => m.id));
           setExistingMedia(post.media);
         }
+        if (post.locationName) {
+          setLocationName(post.locationName);
+        }
+        if (post.bgColor) {
+          setBgColor(post.bgColor);
+        }
+        if (post.isMilestone) {
+          setIsMilestone(true);
+        }
+        if (post.milestoneType) {
+          setMilestoneType(post.milestoneType);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : '載入失敗');
       } finally {
@@ -109,6 +126,10 @@ export default function EditPostPage({
         recordDate,
         status,
         mediaIds,
+        locationName: locationName.trim() || null,
+        bgColor,
+        isMilestone,
+        milestoneType: isMilestone ? milestoneType : null,
       };
 
       const res = await fetch(`/api/posts/${id}`, {
@@ -194,6 +215,24 @@ export default function EditPostPage({
         </div>
 
         <div className={styles.field}>
+          <label className={styles.fieldLabel} htmlFor="location">
+            地點
+          </label>
+          <div className={styles.locationInputWrapper}>
+            <MapPin size={16} className={styles.locationIcon} />
+            <input
+              id="location"
+              type="text"
+              className={styles.locationInput}
+              placeholder="新增地點（選填）"
+              value={locationName}
+              onChange={(e) => setLocationName(e.target.value)}
+              maxLength={100}
+            />
+          </div>
+        </div>
+
+        <div className={styles.field}>
           <label className={styles.fieldLabel} htmlFor="body">
             內容
           </label>
@@ -210,6 +249,62 @@ export default function EditPostPage({
             body={body}
             onBodyChange={setBody}
           />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.fieldLabel}>貼文背景色</label>
+          <div className={styles.colorPickerGroup}>
+            {PRESET_BG_COLORS.map((c) => {
+              const isSelected = bgColor === c.value;
+              return (
+                <button
+                  key={c.value ?? 'none'}
+                  type="button"
+                  className={`${styles.colorOption} ${c.value === null ? styles.colorOptionNone : ''} ${isSelected ? styles.colorOptionSelected : ''}`}
+                  style={c.value ? { backgroundColor: c.value } : undefined}
+                  onClick={() => setBgColor(c.value)}
+                  title={c.label}
+                  aria-label={c.label}
+                >
+                  {isSelected ? (
+                    <Check size={16} className={styles.colorCheckIcon} />
+                  ) : c.value === null ? (
+                    '無'
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className={styles.milestoneContainer}>
+          <label className={styles.milestoneToggleRow} htmlFor="milestone-toggle">
+            <div className={styles.milestoneToggleLabel}>
+              <span>🏆</span>
+              <span>人生大事</span>
+            </div>
+            <input
+              id="milestone-toggle"
+              type="checkbox"
+              className={styles.milestoneCheckbox}
+              checked={isMilestone}
+              onChange={(e) => setIsMilestone(e.target.checked)}
+            />
+          </label>
+          {isMilestone && (
+            <div className={styles.milestoneTypePicker}>
+              {MILESTONE_TYPES.map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  className={`${styles.milestoneTypeBtn} ${milestoneType === type ? styles.milestoneTypeBtnActive : ''}`}
+                  onClick={() => setMilestoneType(type)}
+                >
+                  {type}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className={styles.field}>

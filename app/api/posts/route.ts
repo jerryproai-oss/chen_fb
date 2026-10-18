@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/client';
 import { withAuth } from '@/lib/auth/middleware';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
+import { syncPostTags } from '@/lib/tags';
 
 /** 合法的隱私設定值 */
 const VALID_VISIBILITIES = ['PRIVATE', 'FAMILY', 'SELECTED'] as const;
@@ -17,6 +18,9 @@ const UUID_PATTERN =
 
 /** 日期格式驗證 (YYYY-MM-DD) */
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+/** 色碼 Hex 格式驗證 (#RGB 或 #RRGGBB) */
+const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 /**
  * GET /api/posts
@@ -90,6 +94,9 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
       poll: {
         select: { id: true },
       },
+      tags: {
+        include: { tag: true },
+      },
       _count: {
         select: {
           comments: { where: { deletedAt: null } },
@@ -133,6 +140,12 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
         sortOrder: m.sortOrder,
       })),
       hasPoll: !!p.poll,
+      pinnedAt: p.pinnedAt,
+      locationName: p.locationName,
+      bgColor: p.bgColor,
+      isMilestone: p.isMilestone,
+      milestoneType: p.milestoneType,
+      tags: p.tags.map((pt) => pt.tag.name),
     })),
     nextCursor,
   });
@@ -176,6 +189,10 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
     audienceUserIds,
     mediaIds,
     poll,
+    locationName,
+    bgColor,
+    isMilestone,
+    milestoneType,
   } = body as Record<string, unknown>;
 
   // ── 驗證 recordDate ─────────────────────────────────
@@ -261,6 +278,55 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
       { error: '無效的貼文狀態，可用值：DRAFT, PUBLISHED' },
       { status: 400 },
     );
+  }
+
+  // ── 驗證 locationName ──────────────────────────────
+  if (locationName !== undefined && locationName !== null) {
+    if (typeof locationName !== 'string') {
+      return NextResponse.json(
+        { error: '地點名稱格式不正確' },
+        { status: 400 },
+      );
+    }
+    if (locationName.trim().length > 100) {
+      return NextResponse.json(
+        { error: '地點名稱長度上限 100 字' },
+        { status: 400 },
+      );
+    }
+  }
+
+  // ── 驗證 bgColor ───────────────────────────────────
+  if (bgColor !== undefined && bgColor !== null) {
+    if (typeof bgColor !== 'string' || !HEX_COLOR_PATTERN.test(bgColor)) {
+      return NextResponse.json(
+        { error: '無效的背景色色碼格式，需為 Hex 格式（例如 #FFF8DC）' },
+        { status: 400 },
+      );
+    }
+  }
+
+  // ── 驗證 isMilestone & milestoneType ──────────────
+  if (isMilestone !== undefined && typeof isMilestone !== 'boolean') {
+    return NextResponse.json(
+      { error: 'isMilestone 必須為布林值' },
+      { status: 400 },
+    );
+  }
+
+  if (milestoneType !== undefined && milestoneType !== null) {
+    if (typeof milestoneType !== 'string') {
+      return NextResponse.json(
+        { error: '里程碑類型格式不正確' },
+        { status: 400 },
+      );
+    }
+    if (milestoneType.trim().length > 50) {
+      return NextResponse.json(
+        { error: '里程碑類型長度上限 50 字' },
+        { status: 400 },
+      );
+    }
   }
 
   // ── 驗證 audienceUserIds ───────────────────────────
@@ -373,6 +439,21 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
         visibility: postVisibility,
         status: postStatus,
         publishedAt: postStatus === 'PUBLISHED' ? now : null,
+        locationName:
+          typeof locationName === 'string' && locationName.trim().length > 0
+            ? locationName.trim()
+            : null,
+        bgColor:
+          typeof bgColor === 'string' && HEX_COLOR_PATTERN.test(bgColor)
+            ? bgColor
+            : null,
+        isMilestone: isMilestone === true,
+        milestoneType:
+          isMilestone === true &&
+          typeof milestoneType === 'string' &&
+          milestoneType.trim().length > 0
+            ? milestoneType.trim()
+            : null,
         audiences:
           postVisibility === 'SELECTED' && validAudienceIds.length > 0
             ? {
@@ -437,6 +518,14 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
       }
     }
 
+    // 同步 Hashtag 標籤
+    await syncPostTags(
+      tx,
+      created.id,
+      typeof bodyPlainText === 'string' ? bodyPlainText : undefined,
+      user.id,
+    );
+
     return tx.post.findUniqueOrThrow({
       where: { id: created.id },
       include: {
@@ -455,6 +544,9 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
         },
         poll: {
           select: { id: true },
+        },
+        tags: {
+          include: { tag: true },
         },
       },
     });
@@ -498,6 +590,12 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
           sortOrder: m.sortOrder,
         })),
         hasPoll: !!post.poll,
+        pinnedAt: post.pinnedAt,
+        locationName: post.locationName,
+        bgColor: post.bgColor,
+        isMilestone: post.isMilestone,
+        milestoneType: post.milestoneType,
+        tags: post.tags.map((pt) => pt.tag.name),
       },
     },
     { status: 201 },

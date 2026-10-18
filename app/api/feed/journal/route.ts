@@ -38,6 +38,7 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
       deletedAt: null,
     },
     orderBy: [
+      { pinnedAt: { sort: 'desc', nulls: 'last' } },
       { recordDate: 'desc' },
       { createdAt: 'desc' },
     ],
@@ -64,6 +65,13 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
       },
       poll: {
         select: { id: true },
+      },
+      bookmarks: {
+        where: { userId: user.id },
+        select: { userId: true },
+      },
+      tags: {
+        include: { tag: true },
       },
       _count: {
         select: {
@@ -108,6 +116,13 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
         sortOrder: m.sortOrder,
       })),
       hasPoll: !!p.poll,
+      isBookmarked: p.bookmarks && p.bookmarks.length > 0,
+      pinnedAt: p.pinnedAt,
+      locationName: p.locationName,
+      bgColor: p.bgColor,
+      isMilestone: p.isMilestone,
+      milestoneType: p.milestoneType,
+      tags: p.tags.map((pt) => pt.tag.name),
     })),
     nextCursor,
   });

@@ -168,3 +168,20 @@ select {
   --font-size-2xl: 1.75rem;
   --font-size-3xl: 2.125rem;
 }
+
+/* ── Hashtag Links ─────────────────────────────────────── */
+a.hashtag {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  padding: 0 2px;
+  transition: color var(--transition-fast), background-color var(--transition-fast);
+}
+
+a.hashtag:hover {
+  color: var(--color-primary-hover);
+  background-color: rgba(90, 122, 90, 0.1);
+  text-decoration: underline;
+}
+

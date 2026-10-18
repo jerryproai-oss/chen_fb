@@ -10,6 +10,7 @@ import {
   Users,
   Shield,
   Camera,
+  Bookmark,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import FontSizeSwitcher from '@/components/ui/FontSizeSwitcher';
@@ -27,6 +28,9 @@ export default function ProfilePage() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [isEditingBirthday, setIsEditingBirthday] = useState(false);
+  const [birthdayInput, setBirthdayInput] = useState('');
+  const [savingBirthday, setSavingBirthday] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -35,10 +39,37 @@ export default function ProfilePage() {
         if (!res.ok) throw new Error();
         return res.json();
       })
-      .then((data) => setUser(data))
+      .then((data: UserProfile) => {
+        setUser(data);
+        if (data.birthday) {
+          setBirthdayInput(data.birthday);
+        }
+      })
       .catch(() => router.push('/login'))
       .finally(() => setLoading(false));
   }, [router]);
+
+  async function handleSaveBirthday() {
+    setSavingBirthday(true);
+    try {
+      const res = await fetch('/api/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ birthday: birthdayInput || null }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || '儲存失敗');
+      }
+      const data = await res.json();
+      setUser((prev) => (prev ? { ...prev, birthday: data.birthday } : prev));
+      setIsEditingBirthday(false);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '更新生日失敗');
+    } finally {
+      setSavingBirthday(false);
+    }
+  }
 
   async function handleLogout() {
     setLoggingOut(true);
@@ -153,6 +184,64 @@ export default function ProfilePage() {
         <div className={styles.profileInfo}>
           <div className={styles.displayName}>{user.displayName}</div>
           <div className={styles.username}>@{user.username}</div>
+
+          {/* 生日資訊與編輯 */}
+          {isEditingBirthday ? (
+            <div className={styles.birthdayForm}>
+              <input
+                type="date"
+                className={styles.birthdayInput}
+                value={birthdayInput}
+                onChange={(e) => setBirthdayInput(e.target.value)}
+                aria-label="選擇生日"
+              />
+              <button
+                type="button"
+                className={styles.birthdaySaveBtn}
+                onClick={handleSaveBirthday}
+                disabled={savingBirthday}
+              >
+                {savingBirthday ? '儲存中…' : '儲存'}
+              </button>
+              <button
+                type="button"
+                className={styles.birthdayCancelBtn}
+                onClick={() => {
+                  setIsEditingBirthday(false);
+                  setBirthdayInput(user.birthday || '');
+                }}
+                disabled={savingBirthday}
+              >
+                取消
+              </button>
+            </div>
+          ) : (
+            <div className={styles.birthdayRow}>
+              {user.birthday ? (
+                <button
+                  type="button"
+                  className={styles.birthdayDisplay}
+                  onClick={() => setIsEditingBirthday(true)}
+                  title="點擊編輯生日"
+                >
+                  🎂{' '}
+                  {user.birthday.split('-').length >= 3
+                    ? `${user.birthday.split('-')[1]}/${user.birthday.split('-')[2]}`
+                    : user.birthday}
+                </button>
+              ) : (
+                <span className={styles.birthdayDisplay}>🎂 未設定生日</span>
+              )}
+              <button
+                type="button"
+                className={styles.birthdayEditBtn}
+                onClick={() => setIsEditingBirthday(true)}
+              >
+                編輯生日
+              </button>
+            </div>
+          )}
+
           <span
             className={`${styles.roleBadge} ${user.role === 'ADMIN' ? styles.roleAdmin : styles.roleMember}`}
           >
@@ -168,6 +257,16 @@ export default function ProfilePage() {
 
       {/* Menu */}
       <div className={styles.menu}>
+        <Link href="/bookmarks" className={styles.menuItem}>
+          <span className={styles.menuItemIcon}>
+            <Bookmark size={18} />
+          </span>
+          <span className={styles.menuItemLabel}>我的收藏</span>
+          <span className={styles.menuItemArrow}>
+            <ChevronRight size={18} />
+          </span>
+        </Link>
+
         <Link href="/change-password" className={styles.menuItem}>
           <span className={styles.menuItemIcon}>
             <KeyRound size={18} />

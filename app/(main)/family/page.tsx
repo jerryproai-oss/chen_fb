@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { Calendar } from 'lucide-react';
 import PostCard from '@/components/post/PostCard';
 import MediaPool from '@/components/post/MediaPool';
+import StoryBar from '@/components/story/StoryBar';
+import BirthdayBanner from '@/components/family/BirthdayBanner';
 import type { PostSummary } from '@/lib/types';
 import styles from './page.module.css';
 
@@ -113,6 +115,12 @@ export default function FamilyPage() {
 
       {activeTab === 'posts' ? (
         <>
+          {/* 限時動態 */}
+          <StoryBar />
+
+          {/* 生日提醒 */}
+          <BirthdayBanner />
+
           {/* 歷年今日 */}
           {onThisDay.length > 0 && (
             <section className={styles.onThisDay}>

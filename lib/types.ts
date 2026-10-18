@@ -35,6 +35,7 @@ export interface UserProfile {
   username: string;
   displayName: string;
   avatarUrl: string | null;
+  birthday?: string | null;
   role: Role;
   status: UserStatus;
 }
@@ -65,7 +66,41 @@ export interface PostSummary {
   myReaction?: ReactionType | null;
   media?: MediaItem[];
   hasPoll?: boolean;
+  pinnedAt?: string | null;
+  locationName?: string | null;
+  bgColor?: string | null;
+  isMilestone?: boolean;
+  milestoneType?: string | null;
+  isBookmarked?: boolean;
+  tags?: string[];
 }
+
+export type SearchScope = 'all' | 'journal' | 'family';
+
+export const MILESTONE_TYPES = [
+  '畢業',
+  '結婚',
+  '寶寶誕生',
+  '搬新家',
+  '新工作',
+  '旅行',
+  '紀念日',
+  '其他',
+] as const;
+
+export type MilestoneType = (typeof MILESTONE_TYPES)[number];
+
+export const PRESET_BG_COLORS = [
+  { label: '無背景色', value: null },
+  { label: '玉米絲', value: '#FFF8DC' },
+  { label: '卡其黃', value: '#F0E68C' },
+  { label: '霧玫瑰', value: '#FFE4E1' },
+  { label: '薰衣草', value: '#E6E6FA' },
+  { label: '蜜瓜綠', value: '#F0FFF0' },
+  { label: '貝殼白', value: '#FFF5EE' },
+  { label: '米麥色', value: '#F5F5DC' },
+  { label: '薄荷綠', value: '#E0F0E0' },
+] as const;
 
 export interface PostDetail extends PostSummary {
   bodyJson: string | null;
@@ -211,4 +246,80 @@ export interface MediaPoolResponse {
   items: MediaPoolItem[];
   nextCursor: string | null;
   hasMore: boolean;
+}
+
+// ── 行事曆 ────────────────────────────────────────────────────
+
+export interface FamilyEventItem {
+  id: string;
+  authorId: string;
+  author: { displayName: string; avatarUrl: string | null };
+  title: string;
+  description: string | null;
+  eventDate: string;
+  eventTime: string | null;
+  isAllDay: boolean;
+  isRecurring: boolean;
+  recurringType: string | null;
+}
+
+// ── 生日 ──────────────────────────────────────────────────────
+
+export interface BirthdayItem {
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  birthday: string;
+  daysUntil: number;
+}
+
+// ── 限時動態 ──────────────────────────────────────────────────
+
+export interface StoryItem {
+  id: string;
+  text: string | null;
+  mediaUrl: string | null;
+  bgColor: string | null;
+  expiresAt: string;
+  createdAt: string;
+}
+
+export interface StoryGroup {
+  author: { id: string; displayName: string; avatarUrl: string | null };
+  items: StoryItem[];
+}
+
+// ── 標籤 ──────────────────────────────────────────────────────
+
+export interface TagItem {
+  id: string;
+  name: string;
+  slug: string;
+  postCount: number;
+}
+
+// ── 通知 ──────────────────────────────────────────────────────
+
+export interface NotificationItem {
+  id: string;
+  userId: string;
+  type: string;
+  title: string;
+  body: string | null;
+  linkUrl: string | null;
+  isRead: boolean;
+  actorId: string | null;
+  resourceId: string | null;
+  createdAt: string;
+  actor?: {
+    id: string;
+    displayName: string;
+    avatarUrl: string | null;
+  } | null;
+}
+
+export interface NotificationsResponse {
+  notifications: NotificationItem[];
+  nextCursor: string | null;
+  unreadCount: number;
 }

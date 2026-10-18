@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db/client';
 import { withAuth } from '@/lib/auth/middleware';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
 import { canViewPost, canEditPost, canDeletePost } from '@/lib/policy/post-authorization';
+import { syncPostTags } from '@/lib/tags';
 
 /** 合法的隱私設定值 */
 const VALID_VISIBILITIES = ['PRIVATE', 'FAMILY', 'SELECTED'] as const;
@@ -18,6 +19,9 @@ const UUID_PATTERN =
 
 /** 日期格式驗證 (YYYY-MM-DD) */
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+/** 色碼 Hex 格式驗證 (#RGB 或 #RRGGBB) */
+const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 
 /**
  * GET /api/posts/[id]
@@ -52,6 +56,9 @@ export const GET = withAuth(async ({ user }, _req: NextRequest, routeCtx) => {
       },
       poll: {
         select: { id: true },
+      },
+      tags: {
+        include: { tag: true },
       },
       _count: {
         select: {
@@ -108,6 +115,12 @@ export const GET = withAuth(async ({ user }, _req: NextRequest, routeCtx) => {
         sortOrder: m.sortOrder,
       })),
       hasPoll: !!post.poll,
+      pinnedAt: post.pinnedAt,
+      locationName: post.locationName,
+      bgColor: post.bgColor,
+      isMilestone: post.isMilestone,
+      milestoneType: post.milestoneType,
+      tags: post.tags.map((pt) => pt.tag.name),
     },
   });
 });
@@ -188,6 +201,10 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     status,
     audienceUserIds,
     mediaIds,
+    locationName,
+    bgColor,
+    isMilestone,
+    milestoneType,
   } = body as Record<string, unknown>;
 
   // ── 構建更新資料 ────────────────────────────────────
@@ -294,6 +311,72 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     // 首次發布設定 publishedAt
     if (status === 'PUBLISHED' && !existingPost.publishedAt) {
       updateData.publishedAt = new Date();
+    }
+  }
+
+  // locationName
+  if (locationName !== undefined) {
+    if (locationName === null) {
+      updateData.locationName = null;
+    } else if (typeof locationName !== 'string') {
+      return NextResponse.json(
+        { error: '地點名稱格式不正確' },
+        { status: 400 },
+      );
+    } else if (locationName.trim().length > 100) {
+      return NextResponse.json(
+        { error: '地點名稱長度上限 100 字' },
+        { status: 400 },
+      );
+    } else {
+      updateData.locationName = locationName.trim().length > 0 ? locationName.trim() : null;
+    }
+  }
+
+  // bgColor
+  if (bgColor !== undefined) {
+    if (bgColor === null) {
+      updateData.bgColor = null;
+    } else if (typeof bgColor !== 'string' || !HEX_COLOR_PATTERN.test(bgColor)) {
+      return NextResponse.json(
+        { error: '無效的背景色色碼格式，需為 Hex 格式（例如 #FFF8DC）' },
+        { status: 400 },
+      );
+    } else {
+      updateData.bgColor = bgColor;
+    }
+  }
+
+  // isMilestone
+  if (isMilestone !== undefined) {
+    if (typeof isMilestone !== 'boolean') {
+      return NextResponse.json(
+        { error: 'isMilestone 必須為布林值' },
+        { status: 400 },
+      );
+    }
+    updateData.isMilestone = isMilestone;
+    if (!isMilestone && milestoneType === undefined) {
+      updateData.milestoneType = null;
+    }
+  }
+
+  // milestoneType
+  if (milestoneType !== undefined) {
+    if (milestoneType === null) {
+      updateData.milestoneType = null;
+    } else if (typeof milestoneType !== 'string') {
+      return NextResponse.json(
+        { error: '里程碑類型格式不正確' },
+        { status: 400 },
+      );
+    } else if (milestoneType.trim().length > 50) {
+      return NextResponse.json(
+        { error: '里程碑類型長度上限 50 字' },
+        { status: 400 },
+      );
+    } else {
+      updateData.milestoneType = milestoneType.trim().length > 0 ? milestoneType.trim() : null;
     }
   }
 
@@ -440,6 +523,14 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
       }
     }
 
+    // 編輯貼文時重新提取 tag：刪除舊的 PostTag，重新建立
+    const textForTags =
+      bodyPlainText !== undefined
+        ? (typeof bodyPlainText === 'string' ? bodyPlainText : null)
+        : existingPost.bodyPlainText;
+
+    await syncPostTags(tx, id, textForTags, user.id);
+
     return tx.post.update({
       where: { id },
       data: updateData,
@@ -456,6 +547,9 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
         },
         media: {
           orderBy: { sortOrder: 'asc' },
+        },
+        tags: {
+          include: { tag: true },
         },
         _count: {
           select: {
@@ -505,6 +599,12 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
         height: m.height,
         sortOrder: m.sortOrder,
       })),
+      pinnedAt: updatedPost.pinnedAt,
+      locationName: updatedPost.locationName,
+      bgColor: updatedPost.bgColor,
+      isMilestone: updatedPost.isMilestone,
+      milestoneType: updatedPost.milestoneType,
+      tags: updatedPost.tags.map((pt) => pt.tag.name),
     },
   });
 });

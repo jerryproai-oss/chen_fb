@@ -195,6 +195,23 @@ export const PUT = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     },
   });
 
+  // ── 觸發通知（非阻塞） ─────────────────────────────
+  if (post.authorId !== user.id) {
+    const actorName = user.displayName || '有人';
+    prisma.notification
+      .create({
+        data: {
+          userId: post.authorId,
+          actorId: user.id,
+          type: 'REACTION',
+          title: `${actorName} 對你的手札做了回應`,
+          linkUrl: `/posts/${postId}`,
+          resourceId: postId,
+        },
+      })
+      .catch((err) => console.error('[notification] 心情回應通知建立失敗:', err));
+  }
+
   // ── 稽核 ────────────────────────────────────────────
   await logAudit({
     actorId: user.id,

@@ -51,6 +51,7 @@ model User {
   usernameNormalized         String      @unique @map("username_normalized")
   displayName                String      @map("display_name")
   avatarUrl                  String?     @map("avatar_url")
+  birthday                   DateTime?   @map("birthday") @db.Date
   passwordHash               String      @map("password_hash")
   role                       Role        @default(MEMBER)
   status                     UserStatus  @default(ACTIVE)
@@ -61,13 +62,19 @@ model User {
   createdAt                  DateTime    @default(now()) @map("created_at")
   updatedAt                  DateTime    @updatedAt @map("updated_at")
 
-  sessions Session[]
+  sessions      Session[]
   posts         Post[]
   audiences     PostAudience[]
   comments      Comment[]
   reactions     PostReaction[]
   media         PostMedia[]
   pollVotes     PollVote[]
+  bookmarks     PostBookmark[]
+  notifications Notification[]   @relation("notifications")
+  notifyActs    Notification[]   @relation("notificationActor")
+  albums        Album[]
+  familyEvents  FamilyEvent[]
+  stories       Story[]
 
   @@map("users")
 }
@@ -124,6 +131,13 @@ model Post {
   version       Int         @default(1)
   publishedAt   DateTime?   @map("published_at")
   deletedAt     DateTime?   @map("deleted_at")
+  pinnedAt      DateTime?   @map("pinned_at")        // 釘選時間
+  locationName  String?     @map("location_name")    // 地點名稱
+  bgColor       String?     @map("bg_color")         // 貼文背景色
+  isMilestone   Boolean     @default(false) @map("is_milestone")  // 人生大事
+  milestoneType String?     @map("milestone_type")   // 里程碑類型
+  quotedPostId  String?     @map("quoted_post_id") @db.Uuid  // 引用貼文
+  threadId      String?     @map("thread_id") @db.Uuid  // 串文群組 ID
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
 
@@ -133,12 +147,16 @@ model Post {
   reactions PostReaction[]
   media     PostMedia[]
   poll      Poll?
+  bookmarks PostBookmark[]
+  tags      PostTag[]
 
   @@index([authorId])
   @@index([recordDate])
   @@index([visibility, status])
   @@index([publishedAt])
   @@index([deletedAt])
+  @@index([pinnedAt])
+  @@index([threadId])
   @@map("posts")
 }
 
@@ -157,8 +175,9 @@ model PostMedia {
   sortOrder   Int      @default(0) @map("sort_order")
   createdAt   DateTime @default(now()) @map("created_at")
 
-  post     Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
-  uploader User  @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  post       Post?       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  uploader   User        @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  albumItems AlbumItem[]
 
   @@index([postId])
   @@index([uploaderId])
@@ -249,4 +268,136 @@ model PollVote {
   @@id([optionId, userId])
   @@index([userId])
   @@map("poll_votes")
+}
+
+// ── Phase 6: 收藏 ─────────────────────────────────────────
+
+model PostBookmark {
+  postId    String   @map("post_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+  @@index([userId])
+  @@map("post_bookmarks")
+}
+
+// ── Phase 6: 標籤系統 ─────────────────────────────────────
+
+model Tag {
+  id   String @id @default(uuid()) @db.Uuid
+  name String @unique              // 顯示用名稱（不含 #）
+  slug String @unique              // URL-safe slug
+
+  posts PostTag[]
+
+  @@map("tags")
+}
+
+model PostTag {
+  postId String @map("post_id") @db.Uuid
+  tagId  String @map("tag_id") @db.Uuid
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId])
+  @@map("post_tags")
+}
+
+// ── Phase 6: 通知系統 ─────────────────────────────────────
+
+model Notification {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid         // 收件人
+  type       String                                      // COMMENT, REACTION, MENTION, BIRTHDAY, etc.
+  title      String                                      // 通知標題
+  body       String?                                     // 通知內文
+  linkUrl    String?  @map("link_url")                   // 點擊後前往的 URL
+  isRead     Boolean  @default(false) @map("is_read")
+  actorId    String?  @map("actor_id") @db.Uuid          // 觸發者
+  resourceId String?  @map("resource_id")                // 相關資源 ID
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user  User  @relation("notifications", fields: [userId], references: [id], onDelete: Cascade)
+  actor User? @relation("notificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ── Phase 6: 相簿 ─────────────────────────────────────────
+
+model Album {
+  id           String   @id @default(uuid()) @db.Uuid
+  authorId     String   @map("author_id") @db.Uuid
+  title        String
+  description  String?
+  coverMediaId String?  @map("cover_media_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  author User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  items  AlbumItem[]
+
+  @@index([authorId])
+  @@map("albums")
+}
+
+model AlbumItem {
+  albumId   String   @map("album_id") @db.Uuid
+  mediaId   String   @map("media_id") @db.Uuid
+  sortOrder Int      @default(0) @map("sort_order")
+  addedAt   DateTime @default(now()) @map("added_at")
+
+  album Album     @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  media PostMedia @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@id([albumId, mediaId])
+  @@map("album_items")
+}
+
+// ── Phase 6: 家庭行事曆 ───────────────────────────────────
+
+model FamilyEvent {
+  id            String    @id @default(uuid()) @db.Uuid
+  authorId      String    @map("author_id") @db.Uuid
+  title         String
+  description   String?
+  eventDate     DateTime  @map("event_date") @db.Date    // 事件日期
+  eventTime     String?   @map("event_time")             // 事件時間 (HH:mm)
+  isAllDay      Boolean   @default(true) @map("is_all_day")
+  isRecurring   Boolean   @default(false) @map("is_recurring")
+  recurringType String?   @map("recurring_type")         // YEARLY, MONTHLY, WEEKLY
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@index([eventDate])
+  @@map("family_events")
+}
+
+// ── Phase 6: 限時動態 ─────────────────────────────────────
+
+model Story {
+  id        String    @id @default(uuid()) @db.Uuid
+  authorId  String    @map("author_id") @db.Uuid
+  mediaId   String?   @map("media_id") @db.Uuid         // 媒體 ID
+  text      String?                                       // 文字內容
+  bgColor   String?   @map("bg_color")                   // 背景色
+  expiresAt DateTime  @map("expires_at")                  // 過期時間 (24h)
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@index([expiresAt])
+  @@map("stories")
 }

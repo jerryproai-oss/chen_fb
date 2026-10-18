@@ -12,6 +12,8 @@ import {
   Pencil,
   Trash2,
   X,
+  Bookmark,
+  Pin,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import ReactionBar from '@/components/post/ReactionBar';
@@ -78,8 +80,10 @@ export default function PostDetailPage({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isBookmarked, setIsBookmarked] = useState(false);
+  const [pinning, setPinning] = useState(false);
 
-  // Load post, reactions, comments
+  // Load post, reactions, comments, bookmark
   useEffect(() => {
     async function load() {
       try {
@@ -95,6 +99,13 @@ export default function PostDetailPage({
         if (meRes.ok) {
           const meData = await meRes.json();
           setCurrentUserId(meData.id);
+        }
+
+        // Load bookmark status
+        const bookmarkRes = await fetch(`/api/posts/${id}/bookmark`);
+        if (bookmarkRes.ok) {
+          const bookmarkData = await bookmarkRes.json();
+          setIsBookmarked(bookmarkData.bookmarked ?? false);
         }
 
         // Load reactions
@@ -124,6 +135,44 @@ export default function PostDetailPage({
     }
     load();
   }, [id]);
+
+  // Handle bookmark
+  async function handleToggleBookmark() {
+    const next = !isBookmarked;
+    setIsBookmarked(next);
+    try {
+      const res = await fetch(`/api/posts/${id}/bookmark`, {
+        method: next ? 'PUT' : 'DELETE',
+      });
+      if (!res.ok) {
+        setIsBookmarked(!next);
+      }
+    } catch {
+      setIsBookmarked(!next);
+    }
+  }
+
+  // Toggle pin
+  async function handleTogglePin() {
+    if (!post || pinning) return;
+    const isPinned = !!post.pinnedAt;
+    setPinning(true);
+    try {
+      const res = await fetch(`/api/posts/${id}/pin`, {
+        method: isPinned ? 'DELETE' : 'PUT',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || (isPinned ? '取消釘選失敗' : '釘選失敗'));
+      }
+      const data = await res.json();
+      setPost((prev) => (prev ? { ...prev, pinnedAt: data.pinnedAt ?? null } : null));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '釘選操作失敗');
+    } finally {
+      setPinning(false);
+    }
+  }
 
   // Handle reaction
   async function handleReact(type: ReactionType | null) {
@@ -249,7 +298,10 @@ export default function PostDetailPage({
       </Link>
 
       {/* Article */}
-      <article className={styles.article}>
+      <article
+        className={`${styles.article} ${post.isMilestone ? styles.milestoneArticle : ''}`}
+        style={post.bgColor ? { backgroundColor: post.bgColor } : undefined}
+      >
         <div className={styles.articleHeader}>
           <Avatar
             name={post.author.displayName}
@@ -270,9 +322,24 @@ export default function PostDetailPage({
               {post.status === 'DRAFT' && (
                 <span className={styles.draftBadge}>草稿</span>
               )}
+              {post.pinnedAt && (
+                <span className={styles.pinnedBadge} title="置頂貼文">📌 置頂</span>
+              )}
+              {post.locationName && (
+                <span className={styles.locationMeta}>📍 {post.locationName}</span>
+              )}
             </div>
           </div>
         </div>
+
+        {post.isMilestone && (
+          <div className={styles.milestoneBadge}>
+            <span className={styles.milestoneIcon}>🏆</span>
+            <span className={styles.milestoneText}>
+              人生大事{post.milestoneType ? ` · ${post.milestoneType}` : ''}
+            </span>
+          </div>
+        )}
 
         <h1 className={styles.title}>{post.title}</h1>
         {post.subtitle && <p className={styles.subtitle}>{post.subtitle}</p>}
@@ -291,22 +358,43 @@ export default function PostDetailPage({
           <PollDetail postId={id} />
         )}
 
-        {isAuthor && (
-          <div className={styles.authorActions}>
-            <Link href={`/write/${post.id}`} className={styles.editBtn}>
-              <Pencil size={14} />
-              編輯
-            </Link>
-            <button
-              className={styles.deleteBtn}
-              onClick={() => setShowDeleteConfirm(true)}
-              type="button"
-            >
-              <Trash2 size={14} />
-              刪除
-            </button>
-          </div>
-        )}
+        <div className={styles.authorActions}>
+          <button
+            type="button"
+            className={`${styles.bookmarkBtn} ${isBookmarked ? styles.bookmarked : ''}`}
+            onClick={handleToggleBookmark}
+            aria-label={isBookmarked ? '取消收藏' : '收藏手札'}
+          >
+            <Bookmark size={14} fill={isBookmarked ? 'currentColor' : 'none'} />
+            <span>{isBookmarked ? '已收藏' : '收藏'}</span>
+          </button>
+          {isAuthor && (
+            <>
+              <button
+                type="button"
+                className={`${styles.pinBtn} ${post.pinnedAt ? styles.pinnedActive : ''}`}
+                onClick={handleTogglePin}
+                disabled={pinning}
+                title={post.pinnedAt ? '取消釘選' : '釘選貼文'}
+              >
+                <Pin size={14} />
+                <span>{pinning ? '處理中…' : post.pinnedAt ? '取消釘選' : '釘選貼文'}</span>
+              </button>
+              <Link href={`/write/${post.id}`} className={styles.editBtn}>
+                <Pencil size={14} />
+                編輯
+              </Link>
+              <button
+                className={styles.deleteBtn}
+                onClick={() => setShowDeleteConfirm(true)}
+                type="button"
+              >
+                <Trash2 size={14} />
+                刪除
+              </button>
+            </>
+          )}
+        </div>
       </article>
 
       {/* Reactions */}

@@ -1,3 +1,8 @@
+/** 將 tag 名稱轉為 slug（英文轉小寫，中文保留） */
+function slugifyTag(name: string): string {
+  return name.trim().toLowerCase();
+}
+
 /**
  * 簡易 Markdown 渲染器
  * 將 TextToolbar 產生的 markdown 語法轉換為安全的 HTML
@@ -30,6 +35,14 @@ function renderInline(text: string): string {
   result = result.replace(
     /(https?:\/\/[^\s<]+)/g,
     '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>',
+  );
+  // Hashtag #tag -> <a href="/tags/slug" class="hashtag">#tag</a>
+  result = result.replace(
+    /(^|[^\w&/])#([\u4e00-\u9fff\w]+)/g,
+    (_match, prefix, tag) => {
+      const slug = slugifyTag(tag);
+      return `${prefix}<a href="/tags/${slug}" class="hashtag">#${tag}</a>`;
+    },
   );
   return result;
 }

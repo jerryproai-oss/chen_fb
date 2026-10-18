@@ -1,0 +1,118 @@
+/* ── Birthday Reminder Banner ─────────────────────────────── */
+
+.birthdaySection {
+  margin-bottom: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.birthdayHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
+/* 今日壽星特殊慶祝樣式 */
+.todayCard {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 50%, #fde68a 100%);
+  border: 1.5px solid #f59e0b;
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.22);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  animation: celebrateGlow 2.5s ease-in-out infinite;
+}
+
+@keyframes celebrateGlow {
+  0% {
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);
+    transform: scale(1.01);
+  }
+  100% {
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.2);
+    transform: scale(1);
+  }
+}
+
+.todayCelebrationEmoji {
+  font-size: 2rem;
+  line-height: 1;
+  animation: bounceEmoji 1.6s infinite ease-in-out;
+}
+
+@keyframes bounceEmoji {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px) rotate(8deg);
+  }
+}
+
+.todayInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.todayTitle {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: #92400e;
+  line-height: 1.3;
+}
+
+.todaySubtitle {
+  font-size: var(--font-size-xs);
+  color: #b45309;
+  margin-top: 2px;
+}
+
+/* 7天內近期生日列表 */
+.upcomingList {
+  display: flex;
+  gap: var(--space-xs);
+  overflow-x: auto;
+  padding: 2px 0 6px 0;
+  scrollbar-width: thin;
+}
+
+.upcomingItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-full);
+  padding: 4px 12px 4px 4px;
+  min-height: 44px;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.upcomingDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.upcomingName {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+.upcomingDays {
+  font-size: 11px;
+  color: var(--color-primary);
+  font-weight: 500;
+}

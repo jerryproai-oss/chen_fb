@@ -2,18 +2,19 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Users, PenSquare, UserCircle } from 'lucide-react';
+import { BookOpen, Users, Calendar, PenSquare, UserCircle } from 'lucide-react';
 import styles from './BottomNav.module.css';
 
 const NAV_ITEMS = [
   { href: '/journal', label: '生活手札', icon: BookOpen },
   { href: '/family', label: '家庭動態', icon: Users },
+  { href: '/calendar', label: '行事曆', icon: Calendar },
   { href: '/write', label: '寫手札', icon: PenSquare },
   { href: '/profile', label: '我的', icon: UserCircle },
 ] as const;
 
 /**
- * 底部導航列 — 手機版四個 tab
+ * 底部導航列 — 手機版五個 tab
  */
 export default function BottomNav() {
   const pathname = usePathname();

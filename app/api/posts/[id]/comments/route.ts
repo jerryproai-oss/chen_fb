@@ -197,6 +197,27 @@ export const POST = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     },
   });
 
+  // ── 觸發通知（非阻塞） ─────────────────────────────
+  if (post.authorId !== user.id) {
+    const actorName = user.displayName || '有人';
+    prisma.notification
+      .create({
+        data: {
+          userId: post.authorId,
+          actorId: user.id,
+          type: 'COMMENT',
+          title: `${actorName} 在你的手札留言`,
+          body:
+            comment.bodyText.length > 100
+              ? `${comment.bodyText.slice(0, 100)}...`
+              : comment.bodyText,
+          linkUrl: `/posts/${postId}`,
+          resourceId: comment.id,
+        },
+      })
+      .catch((err) => console.error('[notification] 留言通知建立失敗:', err));
+  }
+
   // ── 稽核 ────────────────────────────────────────────
   await logAudit({
     actorId: user.id,

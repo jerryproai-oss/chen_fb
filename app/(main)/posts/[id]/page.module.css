@@ -249,6 +249,35 @@
   margin-top: var(--space-md);
   padding-top: var(--space-md);
   border-top: 1px solid var(--color-border-light);
+  flex-wrap: wrap;
+}
+
+.bookmarkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.bookmarkBtn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.bookmarkBtn.bookmarked {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background-color: rgba(139, 111, 71, 0.08);
+  font-weight: 600;
 }
 
 .editBtn {
@@ -518,3 +547,80 @@
   color: var(--color-error);
   font-size: var(--font-size-sm);
 }
+
+/* ── 里程碑與標記樣式 ──────────────────────────────────── */
+.milestoneArticle {
+  border: 2px solid #eab308;
+  box-shadow: 0 4px 16px rgba(234, 179, 8, 0.22);
+}
+
+.milestoneBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(234, 179, 8, 0.18), rgba(245, 158, 11, 0.1));
+  color: #b45309;
+  border: 1px solid rgba(234, 179, 8, 0.4);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  margin-bottom: var(--space-md);
+}
+
+.milestoneIcon {
+  font-size: 15px;
+}
+
+.milestoneText {
+  line-height: 1.4;
+}
+
+.pinnedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.locationMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--color-text-secondary);
+}
+
+.pinBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast), background-color var(--transition-fast);
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.pinBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.pinBtn.pinnedActive {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background-color: rgba(90, 122, 90, 0.1);
+  font-weight: 600;
+}
+
+.pinBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+

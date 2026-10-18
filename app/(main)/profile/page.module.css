@@ -128,6 +128,96 @@
   color: var(--color-primary);
 }
 
+/* ── 生日欄位 ─────────────────────────────────────────── */
+.birthdayRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.birthdayDisplay {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 0;
+  min-height: 44px;
+}
+
+.birthdayEditBtn {
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.birthdayEditBtn:hover {
+  color: var(--color-accent);
+}
+
+.birthdayForm {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+  flex-wrap: wrap;
+}
+
+.birthdayInput {
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  padding: 6px 10px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.birthdaySaveBtn {
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-md);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.birthdaySaveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.birthdayCancelBtn {
+  background: none;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-sm);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  min-height: 44px;
+  min-width: 44px;
+}
+
 /* Menu list */
 .menu {
   background-color: var(--color-card);

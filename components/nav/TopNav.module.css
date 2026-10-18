@@ -63,6 +63,74 @@
     background-color: rgba(90, 122, 90, 0.08);
   }
 
+  .searchBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: var(--radius-full);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+  }
+
+  .searchBtn:hover {
+    color: var(--color-primary);
+    background-color: rgba(90, 122, 90, 0.06);
+  }
+
+  .searchBtnActive {
+    color: var(--color-primary);
+    background-color: rgba(90, 122, 90, 0.08);
+  }
+
+  .bellBtn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: var(--radius-full);
+    color: var(--color-text-secondary);
+    text-decoration: none;
+    transition: color var(--transition-fast), background-color var(--transition-fast);
+  }
+
+  .bellBtn:hover {
+    color: var(--color-primary);
+    background-color: rgba(90, 122, 90, 0.06);
+  }
+
+  .bellBtnActive {
+    color: var(--color-primary);
+    background-color: rgba(90, 122, 90, 0.08);
+  }
+
+  .badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: var(--radius-full);
+    background-color: var(--color-error);
+    color: #fff;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 2px var(--color-card);
+  }
+
   .writeBtn {
     display: inline-flex;
     align-items: center;
