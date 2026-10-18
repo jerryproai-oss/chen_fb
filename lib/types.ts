@@ -256,11 +256,16 @@ export interface FamilyEventItem {
   author: { displayName: string; avatarUrl: string | null };
   title: string;
   description: string | null;
-  eventDate: string;
-  eventTime: string | null;
+  eventDate: string;        // "YYYY-MM-DD" 開始日期
+  endDate: string | null;   // "YYYY-MM-DD" 結束日期
+  eventTime: string | null; // "HH:mm" 開始時間
+  endTime: string | null;   // "HH:mm" 結束時間
   isAllDay: boolean;
+  color: string | null;
+  location: string | null;
   isRecurring: boolean;
   recurringType: string | null;
+  recurringEndDate: string | null;
 }
 
 // ── 生日 ──────────────────────────────────────────────────────

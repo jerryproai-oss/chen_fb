@@ -365,17 +365,22 @@ model AlbumItem {
 // ── Phase 6: 家庭行事曆 ───────────────────────────────────
 
 model FamilyEvent {
-  id            String    @id @default(uuid()) @db.Uuid
-  authorId      String    @map("author_id") @db.Uuid
-  title         String
-  description   String?
-  eventDate     DateTime  @map("event_date") @db.Date    // 事件日期
-  eventTime     String?   @map("event_time")             // 事件時間 (HH:mm)
-  isAllDay      Boolean   @default(true) @map("is_all_day")
-  isRecurring   Boolean   @default(false) @map("is_recurring")
-  recurringType String?   @map("recurring_type")         // YEARLY, MONTHLY, WEEKLY
-  createdAt     DateTime  @default(now()) @map("created_at")
-  updatedAt     DateTime  @updatedAt @map("updated_at")
+  id              String    @id @default(uuid()) @db.Uuid
+  authorId        String    @map("author_id") @db.Uuid
+  title           String
+  description     String?
+  eventDate       DateTime  @map("event_date") @db.Date    // 開始日期
+  endDate         DateTime? @map("end_date") @db.Date      // 結束日期（跨天事件）
+  eventTime       String?   @map("event_time")             // 開始時間 (HH:mm)
+  endTime         String?   @map("end_time")               // 結束時間 (HH:mm)
+  isAllDay        Boolean   @default(true) @map("is_all_day")
+  color           String?   @default("#5a7a5a")            // 事件顏色
+  location        String?                                   // 地點
+  isRecurring     Boolean   @default(false) @map("is_recurring")
+  recurringType   String?   @map("recurring_type")         // YEARLY, MONTHLY, WEEKLY, DAILY
+  recurringEndDate DateTime? @map("recurring_end_date") @db.Date  // 循環結束日期
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
 

@@ -8,7 +8,47 @@ const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_PATTERN = /^\d{2}:\d{2}$/;
-const VALID_RECURRING_TYPES = ['YEARLY', 'MONTHLY', 'WEEKLY'] as const;
+const VALID_RECURRING_TYPES = ['YEARLY', 'MONTHLY', 'WEEKLY', 'DAILY'] as const;
+const VALID_COLORS = [
+  '#5a7a5a', '#d50000', '#e67c73', '#f4511e', '#f6bf26', '#33b679',
+  '#039be5', '#7986cb', '#8e24aa', '#616161', '#8b6f47', '#3f51b5',
+];
+
+function formatEvent(ev: {
+  id: string;
+  authorId: string;
+  author: { displayName: string; avatarUrl: string | null };
+  title: string;
+  description: string | null;
+  eventDate: Date;
+  endDate: Date | null;
+  eventTime: string | null;
+  endTime: string | null;
+  isAllDay: boolean;
+  color: string | null;
+  location: string | null;
+  isRecurring: boolean;
+  recurringType: string | null;
+  recurringEndDate: Date | null;
+}): FamilyEventItem {
+  return {
+    id: ev.id,
+    authorId: ev.authorId,
+    author: ev.author,
+    title: ev.title,
+    description: ev.description,
+    eventDate: ev.eventDate.toISOString().split('T')[0],
+    endDate: ev.endDate ? ev.endDate.toISOString().split('T')[0] : null,
+    eventTime: ev.eventTime,
+    endTime: ev.endTime,
+    isAllDay: ev.isAllDay,
+    color: ev.color,
+    location: ev.location,
+    isRecurring: ev.isRecurring,
+    recurringType: ev.recurringType,
+    recurringEndDate: ev.recurringEndDate ? ev.recurringEndDate.toISOString().split('T')[0] : null,
+  };
+}
 
 /**
  * PATCH /api/calendar/[id]
@@ -51,11 +91,16 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
   const {
     title,
     eventDate,
+    endDate,
     description,
     eventTime,
+    endTime,
     isAllDay,
+    color,
+    location,
     isRecurring,
     recurringType,
+    recurringEndDate,
   } = body;
 
   const updateData: Record<string, unknown> = {};
@@ -81,6 +126,21 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     updateData.eventDate = parsedDate;
   }
 
+  if (endDate !== undefined) {
+    if (endDate === null || endDate === '') {
+      updateData.endDate = null;
+    } else {
+      if (typeof endDate !== 'string' || !DATE_PATTERN.test(endDate)) {
+        return NextResponse.json({ error: 'endDate 格式應為 YYYY-MM-DD' }, { status: 400 });
+      }
+      const parsed = new Date(endDate + 'T00:00:00Z');
+      if (isNaN(parsed.getTime())) {
+        return NextResponse.json({ error: '無效的結束日期' }, { status: 400 });
+      }
+      updateData.endDate = parsed;
+    }
+  }
+
   if (description !== undefined) {
     updateData.description =
       description === null || description === '' ? null : String(description).trim();
@@ -97,14 +157,47 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     }
   }
 
+  if (endTime !== undefined) {
+    if (endTime === null || endTime === '') {
+      updateData.endTime = null;
+    } else {
+      if (typeof endTime !== 'string' || !TIME_PATTERN.test(endTime)) {
+        return NextResponse.json({ error: 'endTime 格式應為 HH:mm' }, { status: 400 });
+      }
+      updateData.endTime = endTime;
+    }
+  }
+
   if (isAllDay !== undefined) {
     updateData.isAllDay = Boolean(isAllDay);
+  }
+
+  if (color !== undefined) {
+    if (color === null || color === '') {
+      updateData.color = '#5a7a5a';
+    } else if (typeof color === 'string' && VALID_COLORS.includes(color)) {
+      updateData.color = color;
+    } else {
+      return NextResponse.json({ error: '無效的事件顏色' }, { status: 400 });
+    }
+  }
+
+  if (location !== undefined) {
+    if (location === null || location === '') {
+      updateData.location = null;
+    } else {
+      if (typeof location !== 'string' || location.trim().length > 200) {
+        return NextResponse.json({ error: '地點長度不能超過 200 字' }, { status: 400 });
+      }
+      updateData.location = location.trim();
+    }
   }
 
   if (isRecurring !== undefined) {
     updateData.isRecurring = Boolean(isRecurring);
     if (!updateData.isRecurring) {
       updateData.recurringType = null;
+      updateData.recurringEndDate = null;
     }
   }
 
@@ -117,9 +210,24 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
       updateData.recurringType = recurringType;
     } else {
       return NextResponse.json(
-        { error: '循環週期類型需為 YEARLY, MONTHLY 或 WEEKLY' },
+        { error: '循環週期類型需為 YEARLY, MONTHLY, WEEKLY 或 DAILY' },
         { status: 400 },
       );
+    }
+  }
+
+  if (recurringEndDate !== undefined) {
+    if (recurringEndDate === null || recurringEndDate === '') {
+      updateData.recurringEndDate = null;
+    } else {
+      if (typeof recurringEndDate !== 'string' || !DATE_PATTERN.test(recurringEndDate)) {
+        return NextResponse.json({ error: 'recurringEndDate 格式應為 YYYY-MM-DD' }, { status: 400 });
+      }
+      const parsed = new Date(recurringEndDate + 'T00:00:00Z');
+      if (isNaN(parsed.getTime())) {
+        return NextResponse.json({ error: '無效的循環結束日期' }, { status: 400 });
+      }
+      updateData.recurringEndDate = parsed;
     }
   }
 
@@ -142,20 +250,7 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
       outcome: Outcomes.SUCCESS,
     });
 
-    const responseItem: FamilyEventItem = {
-      id: updated.id,
-      authorId: updated.authorId,
-      author: updated.author,
-      title: updated.title,
-      description: updated.description,
-      eventDate: updated.eventDate.toISOString().split('T')[0],
-      eventTime: updated.eventTime,
-      isAllDay: updated.isAllDay,
-      isRecurring: updated.isRecurring,
-      recurringType: updated.recurringType,
-    };
-
-    return NextResponse.json({ event: responseItem });
+    return NextResponse.json({ event: formatEvent(updated) });
   } catch (error) {
     console.error('[PATCH /api/calendar/[id]] 更新失敗:', error);
     await logAudit({
