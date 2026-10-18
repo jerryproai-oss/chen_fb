@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
-import { mkdir, writeFile } from 'fs/promises';
+import { mkdir, writeFile, readdir } from 'fs/promises';
 import path from 'path';
 import { prisma } from '@/lib/db/client';
 import { withAuth } from '@/lib/auth/middleware';
@@ -29,12 +28,43 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const AVATAR_ROOT = '/data/media/avatars';
 
 /**
+ * 取得使用者大頭照的檔案路徑
+ * 檔名格式: {userId}.{ext}
+ */
+async function findAvatarFile(userId: string): Promise<string | null> {
+  try {
+    const files = await readdir(AVATAR_ROOT);
+    const match = files.find((f) => f.startsWith(userId + '.'));
+    return match ? path.join(AVATAR_ROOT, match) : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * 刪除使用者舊的大頭照檔案（如果存在）
+ */
+async function removeOldAvatar(userId: string): Promise<void> {
+  try {
+    const { unlink } = await import('fs/promises');
+    const files = await readdir(AVATAR_ROOT);
+    for (const f of files) {
+      if (f.startsWith(userId + '.')) {
+        await unlink(path.join(AVATAR_ROOT, f));
+      }
+    }
+  } catch {
+    // 忽略刪除錯誤
+  }
+}
+
+/**
  * POST /api/me/avatar
  *
  * 上傳使用者大頭照。
  * multipart/form-data，欄位名稱: `file`
  *
- * 回傳：{ avatarUrl: '/api/me/avatar?v=timestamp' }
+ * 回傳：{ avatarUrl: '/api/me/avatar?userId=xxx&v=timestamp' }
  */
 export const POST = withAuth(async ({ user }, req: NextRequest) => {
   // ── 解析 formData ──────────────────────────────────
@@ -73,13 +103,13 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
     );
   }
 
-  // ── 產生存檔路徑 ──────────────────────────────────
-  const uuid = randomUUID();
+  // ── 產生存檔路徑（以 userId 命名，方便 GET 查找）───
   const ext = MIME_TO_EXT[file.type] || 'jpg';
-  const fileName = `${uuid}.${ext}`;
+  const fileName = `${user.id}.${ext}`;
   const absolutePath = path.join(AVATAR_ROOT, fileName);
-  // 存成相對路徑供 avatarUrl 使用
-  const storagePath = `avatars/${fileName}`;
+
+  // ── 刪除舊頭像 ────────────────────────────────────
+  await removeOldAvatar(user.id);
 
   // ── 寫檔 ──────────────────────────────────────────
   try {
@@ -95,11 +125,13 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
   }
 
   // ── 更新 User.avatarUrl ───────────────────────────
-  const avatarUrl = `/api/me/avatar?v=${Date.now()}`;
+  // 存入可直接使用的 API URL，讓所有 API 回傳的 avatarUrl 都能被瀏覽器載入
+  const stableUrl = `/api/me/avatar?userId=${user.id}`;
+  const avatarUrl = `${stableUrl}&v=${Date.now()}`;
   try {
     await prisma.user.update({
       where: { id: user.id },
-      data: { avatarUrl: storagePath },
+      data: { avatarUrl: stableUrl },
     });
   } catch (error) {
     console.error('[avatar] 資料庫更新失敗:', error);
@@ -124,20 +156,17 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
 /**
  * GET /api/me/avatar
  *
- * 取得目前登入使用者的大頭照圖片檔案。
- * 如果 URL 帶有 userId query param，取得該使用者的大頭照。
+ * 取得使用者的大頭照圖片檔案。
+ * 支援 ?userId=xxx 取得指定使用者的大頭照。
  */
 export const GET = withAuth(async ({ user }, req: NextRequest) => {
   const { searchParams } = new URL(req.url);
   const targetUserId = searchParams.get('userId') || user.id;
 
-  // 查詢目標使用者
-  const targetUser = await prisma.user.findUnique({
-    where: { id: targetUserId },
-    select: { avatarUrl: true },
-  });
+  // 直接從檔案系統尋找 {userId}.{ext}
+  const avatarPath = await findAvatarFile(targetUserId);
 
-  if (!targetUser?.avatarUrl) {
+  if (!avatarPath) {
     return NextResponse.json(
       { error: '找不到大頭照' },
       { status: 404 },
@@ -146,11 +175,10 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
 
   // 讀取檔案
   const { readFile } = await import('fs/promises');
-  const absolutePath = path.join('/data/media', targetUser.avatarUrl);
 
   try {
-    const buffer = await readFile(absolutePath);
-    const ext = path.extname(absolutePath).toLowerCase().slice(1);
+    const buffer = await readFile(avatarPath);
+    const ext = path.extname(avatarPath).toLowerCase().slice(1);
     const mimeMap: Record<string, string> = {
       jpg: 'image/jpeg',
       jpeg: 'image/jpeg',
