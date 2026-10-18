@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/client';
 import { withAuth } from '@/lib/auth/middleware';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
+import { getTaiwanHolidays } from '@/lib/holidays';
 import type { FamilyEventItem } from '@/lib/types';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -183,17 +184,43 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
       }
     }
 
-    // 依日期與時間排序
+    // 加入台灣國定假日
+    const holidays = getTaiwanHolidays(targetYear, targetMonth);
+    for (const h of holidays) {
+      formattedEvents.push({
+        id: `holiday_${h.date}`,
+        authorId: 'system',
+        author: { displayName: '國定假日', avatarUrl: null },
+        title: `🇹🇼 ${h.name}`,
+        description: h.description || null,
+        eventDate: h.date,
+        endDate: null,
+        eventTime: null,
+        endTime: null,
+        isAllDay: true,
+        color: '#d50000',
+        location: null,
+        isRecurring: false,
+        recurringType: null,
+        recurringEndDate: null,
+      });
+    }
+
+    // 依日期與時間排序（假日優先顯示）
     formattedEvents.sort((a, b) => {
       if (a.eventDate !== b.eventDate) {
         return a.eventDate.localeCompare(b.eventDate);
       }
+      // 假日排最前
+      const aIsHoliday = a.id.startsWith('holiday_') ? 0 : 1;
+      const bIsHoliday = b.id.startsWith('holiday_') ? 0 : 1;
+      if (aIsHoliday !== bIsHoliday) return aIsHoliday - bIsHoliday;
       if (a.isAllDay && !b.isAllDay) return -1;
       if (!a.isAllDay && b.isAllDay) return 1;
       return (a.eventTime || '').localeCompare(b.eventTime || '');
     });
 
-    return NextResponse.json({ events: formattedEvents });
+    return NextResponse.json({ events: formattedEvents, holidays });
   } catch (error) {
     console.error('[GET /api/calendar] 查詢失敗:', error);
     return NextResponse.json({ error: '無法取得行事曆事件' }, { status: 500 });

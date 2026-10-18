@@ -76,6 +76,94 @@ export default function MediaUploader({
     [],
   );
 
+  /**
+   * 圖片壓縮 — 上傳前自動減肥
+   * - 長邊超過 MAX_DIMENSION 的圖片自動縮小
+   * - JPEG/WebP 壓縮品質 0.85
+   * - GIF 不壓縮（保留動畫）
+   * - 非圖片檔案直接跳過
+   */
+  const compressImage = useCallback(
+    async (file: File): Promise<File> => {
+      // 非圖片或 GIF 不處理
+      if (!file.type.startsWith('image/') || file.type === 'image/gif') {
+        return file;
+      }
+
+      const MAX_DIMENSION = 1920;
+      const QUALITY = 0.85;
+
+      return new Promise<File>((resolve) => {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+
+          let { width, height } = img;
+
+          // 如果圖片尺寸在限制內且小於 500KB，不需壓縮
+          if (width <= MAX_DIMENSION && height <= MAX_DIMENSION && file.size < 500 * 1024) {
+            resolve(file);
+            return;
+          }
+
+          // 計算縮放比例
+          if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+            const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+            width = Math.round(width * ratio);
+            height = Math.round(height * ratio);
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(file);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // 輸出格式：原本是 PNG 且有透明通道就保持 PNG，否則轉 JPEG
+          const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+          const quality = outputType === 'image/png' ? undefined : QUALITY;
+
+          canvas.toBlob(
+            (blob) => {
+              if (!blob || blob.size >= file.size) {
+                // 壓縮後反而變大，使用原檔
+                resolve(file);
+                return;
+              }
+              const ext = outputType === 'image/png' ? '.png' : '.jpg';
+              const baseName = file.name.replace(/\.[^.]+$/, '');
+              const compressedFile = new File([blob], baseName + ext, {
+                type: outputType,
+                lastModified: Date.now(),
+              });
+              console.log(
+                `[圖片壓縮] ${file.name}: ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB (${Math.round((1 - compressedFile.size / file.size) * 100)}% 減少)`
+              );
+              resolve(compressedFile);
+            },
+            outputType,
+            quality,
+          );
+        };
+
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          resolve(file); // 失敗時使用原檔
+        };
+
+        img.src = url;
+      });
+    },
+    [],
+  );
+
   /** 上傳單一檔案 */
   const uploadFile = useCallback(
     async (file: File, tempId: string) => {
@@ -157,10 +245,14 @@ export default function MediaUploader({
         };
 
         setUploading((prev) => [...prev, uploadingItem]);
-        uploadFile(file, tempId);
+
+        // 圖片先壓縮再上傳
+        compressImage(file).then((compressed) => {
+          uploadFile(compressed, tempId);
+        });
       }
     },
-    [totalCount, validateFile, uploadFile],
+    [totalCount, validateFile, uploadFile, compressImage],
   );
 
   /** 點擊上傳區域 */
