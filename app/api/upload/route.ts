@@ -8,22 +8,63 @@ import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
 
 /** 允許的 MIME 類型 */
 const ALLOWED_MIME_TYPES = new Set([
+  // 圖片
   'image/jpeg',
   'image/png',
   'image/webp',
   'image/gif',
+  'image/heic',
+  'image/heif',
+  // 影片
+  'video/mp4',
+  'video/quicktime',      // MOV
+  'video/webm',
+  'video/x-matroska',     // MKV
+  'video/x-msvideo',      // AVI
+  'video/3gpp',           // 3GP
+  // 音訊
+  'audio/mpeg',           // MP3
+  'audio/mp4',            // M4A
+  'audio/x-m4a',          // M4A (alternative)
+  'audio/aac',
+  'audio/wav',
+  'audio/x-wav',
+  'audio/ogg',
+  'audio/flac',
+  'audio/webm',
 ]);
 
 /** MIME → 副檔名對應 */
 const MIME_TO_EXT: Record<string, string> = {
+  // 圖片
   'image/jpeg': 'jpg',
   'image/png': 'png',
   'image/webp': 'webp',
   'image/gif': 'gif',
+  'image/heic': 'heic',
+  'image/heif': 'heif',
+  // 影片
+  'video/mp4': 'mp4',
+  'video/quicktime': 'mov',
+  'video/webm': 'webm',
+  'video/x-matroska': 'mkv',
+  'video/x-msvideo': 'avi',
+  'video/3gpp': '3gp',
+  // 音訊
+  'audio/mpeg': 'mp3',
+  'audio/mp4': 'm4a',
+  'audio/x-m4a': 'm4a',
+  'audio/aac': 'aac',
+  'audio/wav': 'wav',
+  'audio/x-wav': 'wav',
+  'audio/ogg': 'ogg',
+  'audio/flac': 'flac',
+  'audio/webm': 'weba',
 };
 
-/** 單檔上限 20MB */
-const MAX_FILE_SIZE = 20 * 1024 * 1024;
+/** 單檔上限：圖片 20MB、影片/音訊 500MB */
+const MAX_FILE_SIZE_IMAGE = 20 * 1024 * 1024;
+const MAX_FILE_SIZE_MEDIA = 500 * 1024 * 1024;
 
 /** 媒體檔案根目錄 */
 const MEDIA_ROOT = '/data/media';
@@ -60,15 +101,19 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
   // ── 驗證 MIME type ────────────────────────────────
   if (!ALLOWED_MIME_TYPES.has(file.type)) {
     return NextResponse.json(
-      { error: '不支援的檔案類型，僅接受 JPEG、PNG、WebP、GIF' },
+      { error: '不支援的檔案類型，可上傳圖片（JPG/PNG/WebP/GIF）、影片（MP4/MOV/WebM）或音訊（MP3/M4A/WAV/OGG）' },
       { status: 400 },
     );
   }
 
   // ── 驗證檔案大小 ──────────────────────────────────
-  if (file.size > MAX_FILE_SIZE) {
+  const isImage = file.type.startsWith('image/');
+  const maxSize = isImage ? MAX_FILE_SIZE_IMAGE : MAX_FILE_SIZE_MEDIA;
+  const maxLabel = isImage ? '20MB' : '500MB';
+
+  if (file.size > maxSize) {
     return NextResponse.json(
-      { error: '檔案大小超過上限 20MB' },
+      { error: `檔案大小超過上限 ${maxLabel}` },
       { status: 400 },
     );
   }

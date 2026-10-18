@@ -1,16 +1,25 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { ImagePlus, X } from 'lucide-react';
+import { Upload, X, Film, Music } from 'lucide-react';
 import type { MediaItem } from '@/lib/types';
 import styles from './MediaUploader.module.css';
 
 /** 最大上傳數量 */
 const MAX_FILES = 9;
-/** 單檔最大大小 (20 MB) */
-const MAX_SIZE = 20 * 1024 * 1024;
-/** 接受的圖片類型 */
-const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif'];
+/** 單檔最大大小（圖片 20MB、影片/音訊 500MB） */
+const MAX_SIZE_IMAGE = 20 * 1024 * 1024;
+const MAX_SIZE_MEDIA = 500 * 1024 * 1024;
+/** 接受的檔案類型 */
+const ACCEPTED_TYPES = [
+  // 圖片
+  'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/heic', 'image/heif',
+  // 影片
+  'video/mp4', 'video/quicktime', 'video/webm', 'video/x-matroska', 'video/x-msvideo', 'video/3gpp',
+  // 音訊
+  'audio/mpeg', 'audio/mp4', 'audio/x-m4a', 'audio/aac', 'audio/wav', 'audio/x-wav', 'audio/ogg', 'audio/flac', 'audio/webm',
+];
+const ACCEPT_STRING = 'image/*,video/*,audio/*';
 
 interface UploadingFile {
   id: string;          // 臨時識別用
@@ -49,10 +58,13 @@ export default function MediaUploader({
   const validateFile = useCallback(
     (file: File): string | null => {
       if (!ACCEPTED_TYPES.includes(file.type)) {
-        return `「${file.name}」格式不支援，請上傳 JPG、PNG、GIF 或 WebP 圖片`;
+        return `「${file.name}」格式不支援，請上傳圖片、影片或音訊檔案`;
       }
-      if (file.size > MAX_SIZE) {
-        return `「${file.name}」超過 20MB 限制`;
+      const isImage = file.type.startsWith('image/');
+      const maxSize = isImage ? MAX_SIZE_IMAGE : MAX_SIZE_MEDIA;
+      const maxLabel = isImage ? '20MB' : '500MB';
+      if (file.size > maxSize) {
+        return `「${file.name}」超過 ${maxLabel} 限制`;
       }
       return null;
     },
@@ -97,7 +109,7 @@ export default function MediaUploader({
       const remaining = MAX_FILES - totalCount;
 
       if (remaining <= 0) {
-        setError(`最多只能上傳 ${MAX_FILES} 張圖片`);
+        setError(`最多只能上傳 ${MAX_FILES} 個媒體檔案`);
         return;
       }
 
@@ -177,10 +189,48 @@ export default function MediaUploader({
     onMediaChange(mediaIds.filter((mid) => mid !== id));
   };
 
-  /** 取得圖片 URL（優先使用 existingMedia 中的 url） */
+  /** 取得媒體 URL（優先使用 existingMedia 中的 url） */
   const getMediaUrl = (id: string): string => {
     const item = mediaMap.get(id);
     return item?.url ?? `/api/media/${id}`;
+  };
+
+  /** 取得媒體類型 */
+  const getMediaType = (id: string): 'image' | 'video' | 'audio' => {
+    const item = mediaMap.get(id);
+    if (item?.mimeType.startsWith('video/')) return 'video';
+    if (item?.mimeType.startsWith('audio/')) return 'audio';
+    return 'image';
+  };
+
+  /** 渲染預覽項目 */
+  const renderPreview = (id: string) => {
+    const type = getMediaType(id);
+    const url = getMediaUrl(id);
+    if (type === 'video') {
+      return (
+        <div className={styles.mediaPlaceholder}>
+          <Film size={24} />
+          <span>影片</span>
+        </div>
+      );
+    }
+    if (type === 'audio') {
+      return (
+        <div className={styles.mediaPlaceholder}>
+          <Music size={24} />
+          <span>音訊</span>
+        </div>
+      );
+    }
+    return (
+      <img
+        className={styles.previewImage}
+        src={url}
+        alt="已上傳的圖片"
+        loading="lazy"
+      />
+    );
   };
 
   return (
@@ -203,20 +253,15 @@ export default function MediaUploader({
       {/* 預覽網格 */}
       {(mediaIds.length > 0 || uploading.length > 0) && (
         <div className={styles.previewGrid}>
-          {/* 已上傳的圖片 */}
+          {/* 已上傳的媒體 */}
           {mediaIds.map((id) => (
             <div key={id} className={styles.previewItem}>
-              <img
-                className={styles.previewImage}
-                src={getMediaUrl(id)}
-                alt="已上傳的圖片"
-                loading="lazy"
-              />
+              {renderPreview(id)}
               <button
                 type="button"
                 className={styles.removeBtn}
                 onClick={() => handleRemove(id)}
-                aria-label="移除圖片"
+                aria-label="移除媒體"
               >
                 <X size={14} />
               </button>
@@ -258,19 +303,19 @@ export default function MediaUploader({
           }
         }}
       >
-        <ImagePlus size={28} className={styles.dropIcon} />
+        <Upload size={28} className={styles.dropIcon} />
         <span className={styles.dropText}>
-          {canUpload ? '點擊或拖放圖片到此處' : '已達上傳上限'}
+          {canUpload ? '點擊或拖放檔案到此處' : '已達上傳上限'}
         </span>
         <span className={styles.dropSubText}>
-          JPG、PNG、GIF、WebP・每張最大 20MB
+          圖片・影片・音訊，每檔最大 500MB
         </span>
       </div>
 
       <input
         ref={fileInputRef}
         type="file"
-        accept={ACCEPTED_TYPES.join(',')}
+        accept={ACCEPT_STRING}
         multiple
         className={styles.fileInput}
         onChange={handleInputChange}
@@ -278,7 +323,7 @@ export default function MediaUploader({
 
       {/* 上傳提示 */}
       <span className={styles.hint}>
-        已選 {mediaIds.length}/{MAX_FILES} 張圖片
+        已選 {mediaIds.length}/{MAX_FILES} 個媒體
       </span>
     </div>
   );

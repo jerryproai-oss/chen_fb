@@ -172,7 +172,7 @@ export default function EditPostPage({
         </div>
 
         <div className={styles.field}>
-          <label className={styles.fieldLabel}>照片</label>
+          <label className={styles.fieldLabel}>媒體</label>
           <MediaUploader
             mediaIds={mediaIds}
             onMediaChange={setMediaIds}

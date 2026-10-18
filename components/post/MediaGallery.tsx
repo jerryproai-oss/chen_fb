@@ -10,8 +10,8 @@ interface MediaGalleryProps {
 }
 
 /**
- * 圖片展示元件
- * 支援多種網格布局 (1/2/3/4+)、點擊開啟燈箱、左右切換
+ * 媒體展示元件
+ * 支援圖片、影片、音訊的多種網格布局、點擊開啟燈箱
  */
 export default function MediaGallery({ media }: MediaGalleryProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
@@ -46,7 +46,7 @@ export default function MediaGallery({ media }: MediaGalleryProps) {
             onClick={() => openLightbox(i)}
             role="button"
             tabIndex={0}
-            aria-label={`檢視圖片 ${i + 1}`}
+            aria-label={`檢視媒體 ${i + 1}`}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -54,12 +54,7 @@ export default function MediaGallery({ media }: MediaGalleryProps) {
               }
             }}
           >
-            <img
-              className={styles.gridItemImage}
-              src={item.url}
-              alt={item.filename || `圖片 ${i + 1}`}
-              loading="lazy"
-            />
+            <MediaThumb item={item} index={i} />
             {/* 最後一格顯示 +N */}
             {i === 3 && moreCount > 0 && (
               <div className={styles.moreOverlay}>+{moreCount}</div>
@@ -78,6 +73,34 @@ export default function MediaGallery({ media }: MediaGalleryProps) {
         />
       )}
     </>
+  );
+}
+
+/** 網格中的縮圖：圖片用 img、影片用帶播放圖示的縮圖、音訊用圖示 */
+function MediaThumb({ item, index }: { item: MediaItem; index: number }) {
+  if (item.mimeType.startsWith('video/')) {
+    return (
+      <div className={styles.videoThumb}>
+        <video className={styles.gridItemImage} src={item.url} muted preload="metadata" />
+        <div className={styles.playIcon}>▶</div>
+      </div>
+    );
+  }
+  if (item.mimeType.startsWith('audio/')) {
+    return (
+      <div className={styles.audioThumb}>
+        <span className={styles.audioIcon}>🎵</span>
+        <span className={styles.audioLabel}>{item.filename || `音訊 ${index + 1}`}</span>
+      </div>
+    );
+  }
+  return (
+    <img
+      className={styles.gridItemImage}
+      src={item.url}
+      alt={item.filename || `圖片 ${index + 1}`}
+      loading="lazy"
+    />
   );
 }
 
@@ -162,12 +185,28 @@ function Lightbox({ media, currentIndex, onClose, onNavigate }: LightboxProps) {
           </button>
         )}
 
-        {/* 圖片 */}
-        <img
-          className={styles.lightboxImage}
-          src={current.url}
-          alt={current.filename || `圖片 ${currentIndex + 1}`}
-        />
+        {/* 媒體內容 */}
+        {current.mimeType.startsWith('video/') ? (
+          <video
+            className={styles.lightboxImage}
+            src={current.url}
+            controls
+            autoPlay
+            playsInline
+          />
+        ) : current.mimeType.startsWith('audio/') ? (
+          <div className={styles.lightboxAudio}>
+            <span className={styles.lightboxAudioIcon}>🎵</span>
+            <span className={styles.lightboxAudioName}>{current.filename}</span>
+            <audio src={current.url} controls autoPlay style={{ width: '100%', marginTop: '16px' }} />
+          </div>
+        ) : (
+          <img
+            className={styles.lightboxImage}
+            src={current.url}
+            alt={current.filename || `圖片 ${currentIndex + 1}`}
+          />
+        )}
 
         {/* 下一張 */}
         {count > 1 && (
