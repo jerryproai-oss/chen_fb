@@ -64,6 +64,22 @@ function parseDateStr(s: string): { y: number; m: number; d: number } {
   return { y, m, d };
 }
 
+/** 格式化日期為 "2026/10/27(二)" */
+function formatFullDate(dateString: string): string {
+  const { y, m, d } = parseDateStr(dateString);
+  const date = new Date(y, m - 1, d);
+  return `${y}/${pad2(m)}/${pad2(d)}(${WEEKDAYS[date.getDay()]})`;
+}
+
+/** 計算兩個日期之間的天數差（含首尾） */
+function calcDaysBetween(startStr: string, endStr: string): number {
+  const start = parseDateStr(startStr);
+  const end = parseDateStr(endStr);
+  const startDate = new Date(start.y, start.m - 1, start.d);
+  const endDate = new Date(end.y, end.m - 1, end.d);
+  return Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+}
+
 // 取得某一週的起始日（週日為起始）
 function getWeekStart(y: number, m: number, d: number): Date {
   const date = new Date(y, m - 1, d);
@@ -1005,8 +1021,10 @@ function EventsSection({
                     <span className={styles.timeBadge}>
                       <Clock size={12} />
                       {event.isAllDay
-                        ? '全天'
-                        : `${event.eventTime || '未定時'}${event.endTime ? ' — ' + event.endTime : ''}`}
+                        ? event.endDate && event.endDate !== event.eventDate
+                          ? `${formatFullDate(event.eventDate)} 至 ${formatFullDate(event.endDate)}，共${calcDaysBetween(event.eventDate, event.endDate)}天`
+                          : `全天 · ${formatFullDate(event.eventDate)}`
+                        : `${formatFullDate(event.eventDate)} ${event.eventTime || '未定時'}${event.endTime ? ' — ' + event.endTime : ''}${event.endDate && event.endDate !== event.eventDate ? ` 至 ${formatFullDate(event.endDate)}` : ''}`}
                     </span>
                     {event.isRecurring && (
                       <span className={styles.recurringBadge}>
