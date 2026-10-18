@@ -1,0 +1,149 @@
+/* ================================================================
+   拾日 · Design System Tokens & Base Styles
+   ================================================================ */
+
+/* ── CSS Custom Properties ──────────────────────────────── */
+:root {
+  /* Palette - light mode */
+  --color-bg: #f7f5f0;
+  --color-card: #fffefa;
+  --color-text: #303b34;
+  --color-text-secondary: #6b7c6e;
+  --color-primary: #5a7a5a;
+  --color-primary-hover: #4a6a4a;
+  --color-accent: #8b6f47;
+  --color-accent-hover: #7a5f3a;
+  --color-border: #d8d4cc;
+  --color-border-light: #eae6de;
+  --color-error: #c05050;
+  --color-success: #4a8a5a;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 3px rgba(48, 59, 52, 0.06);
+  --shadow-md: 0 4px 12px rgba(48, 59, 52, 0.08);
+  --shadow-lg: 0 8px 24px rgba(48, 59, 52, 0.1);
+
+  /* Typography */
+  --font-sans: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC",
+    "Helvetica Neue", Arial, sans-serif;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+}
+
+/* ── Dark Mode ──────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #242722;
+    --color-card: #2d312b;
+    --color-text: #edece4;
+    --color-text-secondary: #a0a89a;
+    --color-primary: #7a9e7a;
+    --color-primary-hover: #8ab08a;
+    --color-accent: #b89060;
+    --color-accent-hover: #c8a070;
+    --color-border: #3e4438;
+    --color-border-light: #353a30;
+    --color-error: #e07070;
+    --color-success: #6aaa6a;
+
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* ── Reset & Base ───────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Touch Target ───────────────────────────────────────── */
+button,
+a,
+input,
+select,
+textarea,
+[role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* ── Links ──────────────────────────────────────────────── */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+/* ── Images ─────────────────────────────────────────────── */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* ── Form elements ──────────────────────────────────────── */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* ── Focus visible ──────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
