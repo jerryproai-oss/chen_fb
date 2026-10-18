@@ -29,6 +29,10 @@ export const AuditActions = {
   REACTION_SET: "REACTION_SET",
   REACTION_REMOVE: "REACTION_REMOVE",
 
+  // 媒體
+  MEDIA_UPLOAD: "MEDIA_UPLOAD",
+  MEDIA_DELETE: "MEDIA_DELETE",
+
   // 系統
   ADMIN_INIT: "ADMIN_INIT",
 } as const;
@@ -43,6 +47,7 @@ export const ResourceTypes = {
   SYSTEM: "SYSTEM",
   POST: "POST",
   COMMENT: "COMMENT",
+  MEDIA: "MEDIA",
 } as const;
 
 export type ResourceType =

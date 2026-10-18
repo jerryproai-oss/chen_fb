@@ -90,6 +90,9 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
       audiences: {
         select: { userId: true },
       },
+      media: {
+        orderBy: { sortOrder: 'asc' },
+      },
       _count: {
         select: {
           comments: { where: { deletedAt: null } },
@@ -169,6 +172,9 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
         audiences: {
           select: { userId: true },
         },
+        media: {
+          orderBy: { sortOrder: 'asc' },
+        },
         _count: {
           select: {
             comments: { where: { deletedAt: null } },
@@ -202,6 +208,16 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
       audienceUserIds: p.audiences.map((a) => a.userId),
       commentCount: p._count.comments,
       reactionCount: p._count.reactions,
+      media: p.media.map((m) => ({
+        id: m.id,
+        url: `/api/media/${m.id}`,
+        filename: m.filename,
+        mimeType: m.mimeType,
+        fileSize: m.fileSize,
+        width: m.width,
+        height: m.height,
+        sortOrder: m.sortOrder,
+      })),
       yearsAgo,
       memoryLabel: `${yearsAgo} 年前的今天`,
     };
@@ -226,6 +242,16 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
       audienceUserIds: p.audiences.map((a) => a.userId),
       commentCount: p._count.comments,
       reactionCount: p._count.reactions,
+      media: p.media.map((m) => ({
+        id: m.id,
+        url: `/api/media/${m.id}`,
+        filename: m.filename,
+        mimeType: m.mimeType,
+        fileSize: m.fileSize,
+        width: m.width,
+        height: m.height,
+        sortOrder: m.sortOrder,
+      })),
     })),
     nextCursor,
     memories,

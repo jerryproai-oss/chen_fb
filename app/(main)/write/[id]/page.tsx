@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef, use } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Visibility, PostDetail } from '@/lib/types';
+import type { Visibility, PostDetail, MediaItem } from '@/lib/types';
 import VisibilityPicker from '@/components/post/VisibilityPicker';
 import DatePicker from '@/components/post/DatePicker';
 import TextToolbar from '@/components/post/TextToolbar';
+import MediaUploader from '@/components/post/MediaUploader';
 import styles from '../page.module.css';
 
 /**
@@ -28,6 +29,8 @@ export default function EditPostPage({
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [mediaIds, setMediaIds] = useState<string[]>([]);
+  const [existingMedia, setExistingMedia] = useState<MediaItem[]>([]);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   // Load existing post data
@@ -46,6 +49,10 @@ export default function EditPostPage({
         setOriginalStatus(post.status);
         if (post.audienceUserIds) {
           setSelectedUserIds(post.audienceUserIds);
+        }
+        if (post.media && post.media.length > 0) {
+          setMediaIds(post.media.map((m: MediaItem) => m.id));
+          setExistingMedia(post.media);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : '載入失敗');
@@ -72,6 +79,7 @@ export default function EditPostPage({
         audienceUserIds: visibility === 'SELECTED' ? selectedUserIds : [],
         recordDate,
         status,
+        mediaIds,
       };
 
       const res = await fetch(`/api/posts/${id}`, {
@@ -160,6 +168,15 @@ export default function EditPostPage({
             textareaRef={bodyRef}
             body={body}
             onBodyChange={setBody}
+          />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.fieldLabel}>照片</label>
+          <MediaUploader
+            mediaIds={mediaIds}
+            onMediaChange={setMediaIds}
+            existingMedia={existingMedia}
           />
         </div>
 

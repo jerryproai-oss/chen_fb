@@ -47,6 +47,9 @@ export const GET = withAuth(async ({ user }, _req: NextRequest, routeCtx) => {
       audiences: {
         select: { userId: true },
       },
+      media: {
+        orderBy: { sortOrder: 'asc' },
+      },
       _count: {
         select: {
           comments: { where: { deletedAt: null } },
@@ -91,6 +94,16 @@ export const GET = withAuth(async ({ user }, _req: NextRequest, routeCtx) => {
       audienceUserIds,
       commentCount: post._count.comments,
       reactionCount: post._count.reactions,
+      media: post.media.map((m) => ({
+        id: m.id,
+        url: `/api/media/${m.id}`,
+        filename: m.filename,
+        mimeType: m.mimeType,
+        fileSize: m.fileSize,
+        width: m.width,
+        height: m.height,
+        sortOrder: m.sortOrder,
+      })),
     },
   });
 });
@@ -170,6 +183,7 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     visibility,
     status,
     audienceUserIds,
+    mediaIds,
   } = body as Record<string, unknown>;
 
   // ── 構建更新資料 ────────────────────────────────────
@@ -328,6 +342,64 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     }
   }
 
+  // ── 驗證 mediaIds ──────────────────────────────────
+  let validMediaIds: string[] | undefined;
+
+  if (mediaIds !== undefined) {
+    if (mediaIds === null) {
+      // null 表示清除所有媒體
+      validMediaIds = [];
+    } else if (!Array.isArray(mediaIds)) {
+      return NextResponse.json(
+        { error: 'mediaIds 必須是陣列' },
+        { status: 400 },
+      );
+    } else {
+      if (mediaIds.length > 9) {
+        return NextResponse.json(
+          { error: '每篇貼文最多 9 張圖片' },
+          { status: 400 },
+        );
+      }
+
+      for (const mid of mediaIds) {
+        if (typeof mid !== 'string' || !UUID_PATTERN.test(mid)) {
+          return NextResponse.json(
+            { error: '媒體 ID 格式不正確' },
+            { status: 400 },
+          );
+        }
+      }
+
+      validMediaIds = [...new Set(mediaIds as string[])];
+
+      if (validMediaIds.length > 0) {
+        // 驗證所有 media 都屬於當前使用者，且 postId 為 null 或已屬於此貼文
+        const ownedMedia = await prisma.postMedia.findMany({
+          where: {
+            id: { in: validMediaIds },
+            uploaderId: user.id,
+            OR: [
+              { postId: null },
+              { postId: id },
+            ],
+          },
+          select: { id: true },
+        });
+
+        const ownedIds = new Set(ownedMedia.map((m) => m.id));
+        const invalidMediaIds = validMediaIds.filter((mid) => !ownedIds.has(mid));
+
+        if (invalidMediaIds.length > 0) {
+          return NextResponse.json(
+            { error: '部分媒體不存在、不屬於您、或已被關聯至其他貼文' },
+            { status: 400 },
+          );
+        }
+      }
+    }
+  }
+
   // ── 更新貼文 ────────────────────────────────────────
   const updatedPost = await prisma.$transaction(async (tx) => {
     // 如果 visibility 改變或有新的 audienceUserIds，更新 audiences
@@ -347,6 +419,23 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
       }
     }
 
+    // 如果提供了 mediaIds，更新 media 關聯
+    if (validMediaIds !== undefined) {
+      // 先將舊的 media 解除關聯（不刪除實際檔案）
+      await tx.postMedia.updateMany({
+        where: { postId: id },
+        data: { postId: null, sortOrder: 0 },
+      });
+
+      // 關聯新的 media
+      for (let i = 0; i < validMediaIds.length; i++) {
+        await tx.postMedia.update({
+          where: { id: validMediaIds[i] },
+          data: { postId: id, sortOrder: i },
+        });
+      }
+    }
+
     return tx.post.update({
       where: { id },
       data: updateData,
@@ -360,6 +449,9 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
         },
         audiences: {
           select: { userId: true },
+        },
+        media: {
+          orderBy: { sortOrder: 'asc' },
         },
         _count: {
           select: {
@@ -399,6 +491,16 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
       audienceUserIds: updatedPost.audiences.map((a) => a.userId),
       commentCount: updatedPost._count.comments,
       reactionCount: updatedPost._count.reactions,
+      media: updatedPost.media.map((m) => ({
+        id: m.id,
+        url: `/api/media/${m.id}`,
+        filename: m.filename,
+        mimeType: m.mimeType,
+        fileSize: m.fileSize,
+        width: m.width,
+        height: m.height,
+        sortOrder: m.sortOrder,
+      })),
     },
   });
 });

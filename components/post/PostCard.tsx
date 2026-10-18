@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Lock, Users, UserCheck, MessageCircle } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
+import MediaGalleryMini from '@/components/post/MediaGalleryMini';
 import type { PostSummary, Visibility } from '@/lib/types';
 import { REACTION_EMOJI } from '@/lib/types';
 import styles from './PostCard.module.css';
@@ -79,6 +80,10 @@ export default function PostCard({ post, isOwn = false }: PostCardProps) {
         )}
         {post.bodyPlainText && (
           <p className={styles.bodyPreview}>{post.bodyPlainText}</p>
+        )}
+
+        {post.media && post.media.length > 0 && (
+          <MediaGalleryMini media={post.media} />
         )}
 
         {/* Footer */}

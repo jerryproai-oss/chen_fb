@@ -84,6 +84,9 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
       audiences: {
         select: { userId: true },
       },
+      media: {
+        orderBy: { sortOrder: 'asc' },
+      },
       _count: {
         select: {
           comments: { where: { deletedAt: null } },
@@ -116,6 +119,16 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
       audienceUserIds: p.audiences.map((a) => a.userId),
       commentCount: p._count.comments,
       reactionCount: p._count.reactions,
+      media: p.media.map((m) => ({
+        id: m.id,
+        url: `/api/media/${m.id}`,
+        filename: m.filename,
+        mimeType: m.mimeType,
+        fileSize: m.fileSize,
+        width: m.width,
+        height: m.height,
+        sortOrder: m.sortOrder,
+      })),
     })),
     nextCursor,
   });
@@ -157,6 +170,7 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
     visibility,
     status,
     audienceUserIds,
+    mediaIds,
   } = body as Record<string, unknown>;
 
   // ── 驗證 recordDate ─────────────────────────────────
@@ -289,39 +303,108 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
     }
   }
 
+  // ── 驗證 mediaIds ──────────────────────────────────
+  let validMediaIds: string[] = [];
+
+  if (mediaIds !== undefined && mediaIds !== null) {
+    if (!Array.isArray(mediaIds)) {
+      return NextResponse.json(
+        { error: 'mediaIds 必須是陣列' },
+        { status: 400 },
+      );
+    }
+
+    if (mediaIds.length > 9) {
+      return NextResponse.json(
+        { error: '每篇貼文最多 9 張圖片' },
+        { status: 400 },
+      );
+    }
+
+    for (const mid of mediaIds) {
+      if (typeof mid !== 'string' || !UUID_PATTERN.test(mid)) {
+        return NextResponse.json(
+          { error: '媒體 ID 格式不正確' },
+          { status: 400 },
+        );
+      }
+    }
+
+    validMediaIds = [...new Set(mediaIds as string[])];
+
+    // 驗證所有 media 都屬於當前使用者且 postId 為 null
+    const ownedMedia = await prisma.postMedia.findMany({
+      where: {
+        id: { in: validMediaIds },
+        uploaderId: user.id,
+        postId: null,
+      },
+      select: { id: true },
+    });
+
+    const ownedIds = new Set(ownedMedia.map((m) => m.id));
+    const invalidMediaIds = validMediaIds.filter((mid) => !ownedIds.has(mid));
+
+    if (invalidMediaIds.length > 0) {
+      return NextResponse.json(
+        { error: '部分媒體不存在、不屬於您、或已被關聯至其他貼文' },
+        { status: 400 },
+      );
+    }
+  }
+
   // ── 建立貼文 ────────────────────────────────────────
   const now = new Date();
 
-  const post = await prisma.post.create({
-    data: {
-      authorId: user.id,
-      recordDate: parsedDate,
-      title: title.trim(),
-      subtitle: subtitle ? (subtitle as string).trim() : null,
-      bodyJson: (bodyJson as string) ?? null,
-      bodyPlainText: (bodyPlainText as string) ?? null,
-      visibility: postVisibility,
-      status: postStatus,
-      publishedAt: postStatus === 'PUBLISHED' ? now : null,
-      audiences:
-        postVisibility === 'SELECTED' && validAudienceIds.length > 0
-          ? {
-              create: validAudienceIds.map((userId) => ({ userId })),
-            }
-          : undefined,
-    },
-    include: {
-      author: {
-        select: {
-          id: true,
-          displayName: true,
-          avatarUrl: true,
+  const post = await prisma.$transaction(async (tx) => {
+    const created = await tx.post.create({
+      data: {
+        authorId: user.id,
+        recordDate: parsedDate,
+        title: title.trim(),
+        subtitle: subtitle ? (subtitle as string).trim() : null,
+        bodyJson: (bodyJson as string) ?? null,
+        bodyPlainText: (bodyPlainText as string) ?? null,
+        visibility: postVisibility,
+        status: postStatus,
+        publishedAt: postStatus === 'PUBLISHED' ? now : null,
+        audiences:
+          postVisibility === 'SELECTED' && validAudienceIds.length > 0
+            ? {
+                create: validAudienceIds.map((userId) => ({ userId })),
+              }
+            : undefined,
+      },
+    });
+
+    // 關聯媒體
+    if (validMediaIds.length > 0) {
+      for (let i = 0; i < validMediaIds.length; i++) {
+        await tx.postMedia.update({
+          where: { id: validMediaIds[i] },
+          data: { postId: created.id, sortOrder: i },
+        });
+      }
+    }
+
+    return tx.post.findUniqueOrThrow({
+      where: { id: created.id },
+      include: {
+        author: {
+          select: {
+            id: true,
+            displayName: true,
+            avatarUrl: true,
+          },
+        },
+        audiences: {
+          select: { userId: true },
+        },
+        media: {
+          orderBy: { sortOrder: 'asc' },
         },
       },
-      audiences: {
-        select: { userId: true },
-      },
-    },
+    });
   });
 
   // ── 稽核 ────────────────────────────────────────────
@@ -351,8 +434,19 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,
         audienceUserIds: post.audiences.map((a) => a.userId),
+        media: post.media.map((m) => ({
+          id: m.id,
+          url: `/api/media/${m.id}`,
+          filename: m.filename,
+          mimeType: m.mimeType,
+          fileSize: m.fileSize,
+          width: m.width,
+          height: m.height,
+          sortOrder: m.sortOrder,
+        })),
       },
     },
     { status: 201 },
   );
 });
+

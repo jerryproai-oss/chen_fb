@@ -66,6 +66,7 @@ model User {
   audiences     PostAudience[]
   comments      Comment[]
   reactions     PostReaction[]
+  media         PostMedia[]
 
   @@map("users")
 }
@@ -129,6 +130,7 @@ model Post {
   audiences PostAudience[]
   comments  Comment[]
   reactions PostReaction[]
+  media     PostMedia[]
 
   @@index([authorId])
   @@index([recordDate])
@@ -136,6 +138,29 @@ model Post {
   @@index([publishedAt])
   @@index([deletedAt])
   @@map("posts")
+}
+
+// ── Phase 3: 媒體附件 ────────────────────────────────────
+
+model PostMedia {
+  id          String   @id @default(uuid()) @db.Uuid
+  postId      String?  @map("post_id") @db.Uuid
+  uploaderId  String   @map("uploader_id") @db.Uuid
+  filename    String                       // 原始檔名
+  storagePath String   @map("storage_path") // 磁碟路徑 (相對 /data/media)
+  mimeType    String   @map("mime_type")
+  fileSize    Int      @map("file_size")    // bytes
+  width       Int?                          // 圖片寬度
+  height      Int?                          // 圖片高度
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  post     Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  uploader User  @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([uploaderId])
+  @@map("post_media")
 }
 
 model PostAudience {

@@ -6,6 +6,7 @@ import type { Visibility } from '@/lib/types';
 import VisibilityPicker from '@/components/post/VisibilityPicker';
 import DatePicker from '@/components/post/DatePicker';
 import TextToolbar from '@/components/post/TextToolbar';
+import MediaUploader from '@/components/post/MediaUploader';
 import styles from './page.module.css';
 
 function todayStr(): string {
@@ -26,6 +27,7 @@ export default function WritePage() {
   const [recordDate, setRecordDate] = useState(todayStr());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [mediaIds, setMediaIds] = useState<string[]>([]);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   const canSubmit = title.trim().length > 0 && !saving;
@@ -44,6 +46,7 @@ export default function WritePage() {
         audienceUserIds: visibility === 'SELECTED' ? selectedUserIds : [],
         recordDate,
         status,
+        mediaIds: mediaIds.length > 0 ? mediaIds : undefined,
       };
 
       const res = await fetch('/api/posts', {
@@ -125,6 +128,14 @@ export default function WritePage() {
             textareaRef={bodyRef}
             body={body}
             onBodyChange={setBody}
+          />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.fieldLabel}>照片</label>
+          <MediaUploader
+            mediaIds={mediaIds}
+            onMediaChange={setMediaIds}
           />
         </div>
 

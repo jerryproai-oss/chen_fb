@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import ReactionBar from '@/components/post/ReactionBar';
+import MediaGallery from '@/components/post/MediaGallery';
 import type {
   PostDetail,
   ReactionSummary,
@@ -263,6 +264,10 @@ export default function PostDetailPage({
         {post.subtitle && <p className={styles.subtitle}>{post.subtitle}</p>}
         {post.bodyPlainText && (
           <div className={styles.body}>{post.bodyPlainText}</div>
+        )}
+
+        {post.media && post.media.length > 0 && (
+          <MediaGallery media={post.media} />
         )}
 
         {isAuthor && (

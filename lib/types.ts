@@ -15,6 +15,19 @@ export type ReactionType =
   | 'RECEIVED'
   | 'NO_PROBLEM';
 
+// ── 媒體 ──────────────────────────────────────────────────────
+
+export interface MediaItem {
+  id: string;
+  url: string;
+  filename: string;
+  mimeType: string;
+  fileSize: number;
+  width: number | null;
+  height: number | null;
+  sortOrder: number;
+}
+
 // ── 使用者 ────────────────────────────────────────────────────
 
 export interface UserProfile {
@@ -50,6 +63,7 @@ export interface PostSummary {
   audienceUserIds?: string[];
   reactionSummary?: ReactionSummary[];
   myReaction?: ReactionType | null;
+  media?: MediaItem[];
 }
 
 export interface PostDetail extends PostSummary {
