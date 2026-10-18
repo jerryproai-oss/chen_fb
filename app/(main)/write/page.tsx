@@ -6,7 +6,10 @@ import type { Visibility } from '@/lib/types';
 import VisibilityPicker from '@/components/post/VisibilityPicker';
 import DatePicker from '@/components/post/DatePicker';
 import TextToolbar from '@/components/post/TextToolbar';
+import EmojiPicker from '@/components/post/EmojiPicker';
 import MediaUploader from '@/components/post/MediaUploader';
+import PollEditor from '@/components/post/PollEditor';
+import type { PollInput } from '@/lib/types';
 import styles from './page.module.css';
 
 function todayStr(): string {
@@ -28,9 +31,35 @@ export default function WritePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [mediaIds, setMediaIds] = useState<string[]>([]);
+  const [poll, setPoll] = useState<PollInput | null>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const subtitleRef = useRef<HTMLInputElement>(null);
 
   const canSubmit = title.trim().length > 0 && !saving;
+
+  /** 在 input 的游標位置插入 emoji */
+  function insertEmojiToInput(
+    inputRef: React.RefObject<HTMLInputElement | null>,
+    value: string,
+    setter: (v: string) => void,
+    emoji: string,
+  ) {
+    const el = inputRef.current;
+    if (el) {
+      const start = el.selectionStart ?? value.length;
+      const end = el.selectionEnd ?? value.length;
+      const newVal = value.slice(0, start) + emoji + value.slice(end);
+      setter(newVal);
+      requestAnimationFrame(() => {
+        el.focus();
+        const pos = start + emoji.length;
+        el.setSelectionRange(pos, pos);
+      });
+    } else {
+      setter(value + emoji);
+    }
+  }
 
   async function handleSubmit(status: 'DRAFT' | 'PUBLISHED') {
     if (!canSubmit) return;
@@ -47,6 +76,9 @@ export default function WritePage() {
         recordDate,
         status,
         mediaIds: mediaIds.length > 0 ? mediaIds : undefined,
+        poll: poll && poll.question.trim() && poll.options.filter(o => o.text.trim()).length >= 2
+          ? poll
+          : undefined,
       };
 
       const res = await fetch('/api/posts', {
@@ -86,30 +118,42 @@ export default function WritePage() {
           <label className={styles.fieldLabel} htmlFor="title">
             標題<span className={styles.fieldRequired}>*</span>
           </label>
-          <input
-            id="title"
-            type="text"
-            className={styles.titleInput}
-            placeholder="今天發生了什麼？"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            maxLength={100}
-          />
+          <div className={styles.inputWithEmoji}>
+            <input
+              id="title"
+              ref={titleRef}
+              type="text"
+              className={styles.titleInput}
+              placeholder="今天發生了什麼？"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={100}
+            />
+            <EmojiPicker
+              onSelect={(emoji) => insertEmojiToInput(titleRef, title, setTitle, emoji)}
+            />
+          </div>
         </div>
 
         <div className={styles.field}>
           <label className={styles.fieldLabel} htmlFor="subtitle">
             副標題
           </label>
-          <input
-            id="subtitle"
-            type="text"
-            className={styles.subtitleInput}
-            placeholder="補充說明（選填）"
-            value={subtitle}
-            onChange={(e) => setSubtitle(e.target.value)}
-            maxLength={200}
-          />
+          <div className={styles.inputWithEmoji}>
+            <input
+              id="subtitle"
+              ref={subtitleRef}
+              type="text"
+              className={styles.subtitleInput}
+              placeholder="補充說明（選填）"
+              value={subtitle}
+              onChange={(e) => setSubtitle(e.target.value)}
+              maxLength={200}
+            />
+            <EmojiPicker
+              onSelect={(emoji) => insertEmojiToInput(subtitleRef, subtitle, setSubtitle, emoji)}
+            />
+          </div>
         </div>
 
         <div className={styles.field}>
@@ -137,6 +181,11 @@ export default function WritePage() {
             mediaIds={mediaIds}
             onMediaChange={setMediaIds}
           />
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.fieldLabel}>投票</label>
+          <PollEditor poll={poll} onChange={setPoll} />
         </div>
 
         <div className={styles.settingsRow}>

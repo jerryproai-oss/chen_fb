@@ -1,0 +1,300 @@
+/* ── PollEditor ─────────────────────────────────────────── */
+
+.addPollBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+  min-height: 44px;
+  width: 100%;
+  justify-content: center;
+}
+
+.addPollBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.editor {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.editorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-bg-hover);
+}
+
+.editorTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.editorActions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.toggleBtn,
+.removeBtn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  min-width: 28px;
+  min-height: 28px;
+}
+
+.toggleBtn:hover {
+  color: var(--color-text);
+}
+
+.removeBtn:hover {
+  color: var(--color-error);
+}
+
+.editorBody {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.questionInput {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  transition: border-color var(--transition-fast);
+  min-height: 44px;
+}
+
+.questionInput:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.questionInput::placeholder {
+  font-weight: 400;
+  color: var(--color-text-secondary);
+}
+
+/* Options */
+.optionsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.optionRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.optionMain {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.optionNum {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  min-width: 20px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.optionInput {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  min-height: 36px;
+  transition: border-color var(--transition-fast);
+}
+
+.optionInput:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.optionExtra,
+.optionRemove {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+}
+
+.optionExtra:hover {
+  color: var(--color-text);
+  background-color: var(--color-bg-hover);
+}
+
+.optionRemove:hover {
+  color: var(--color-error);
+}
+
+/* Extras */
+.optionExtras {
+  margin-left: 20px;
+  padding: var(--space-xs) var(--space-sm);
+  background-color: var(--color-bg-hover);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.extraField {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.extraIcon {
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.extraInput {
+  flex: 1;
+  min-width: 0;
+  padding: 4px var(--space-xs);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  min-height: 28px;
+}
+
+.extraInput:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.extraTextarea {
+  width: 100%;
+  padding: 4px var(--space-xs);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  resize: vertical;
+  min-height: 48px;
+}
+
+.extraTextarea:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+/* Add option */
+.addOptionBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px dashed var(--color-border-light);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+  min-height: 36px;
+}
+
+.addOptionBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Settings */
+.settingsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+  align-items: center;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+}
+
+.deadlineField {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.deadlineLabel {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.deadlineInput {
+  padding: 4px var(--space-xs);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-xs);
+  min-height: 36px;
+}
+
+.deadlineInput:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}

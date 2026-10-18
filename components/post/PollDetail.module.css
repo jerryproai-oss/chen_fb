@@ -1,0 +1,256 @@
+/* ── PollDetail ─────────────────────────────────────────── */
+
+.container {
+  background-color: var(--color-bg-hover);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  margin-top: var(--space-md);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+  color: var(--color-primary);
+}
+
+.question {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.deadline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-md);
+}
+
+/* Options */
+.options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.option {
+  position: relative;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  background-color: var(--color-card);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.option:hover:not(.optionExpired) {
+  border-color: var(--color-primary);
+}
+
+.optionSelected {
+  border-color: var(--color-primary);
+  background-color: rgba(90, 122, 90, 0.04);
+}
+
+.optionExpired {
+  cursor: default;
+}
+
+/* Progress bar background */
+.progressBar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background-color: rgba(90, 122, 90, 0.08);
+  border-radius: var(--radius-md);
+  transition: width 0.3s ease;
+  pointer-events: none;
+}
+
+.optionSelected .progressBar {
+  background-color: rgba(90, 122, 90, 0.15);
+}
+
+.optionContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.optionLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  flex: 1;
+  min-width: 0;
+}
+
+.optionCheckbox {
+  font-size: var(--font-size-base);
+  line-height: 1;
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+}
+
+.optionSelected .optionCheckbox {
+  color: var(--color-primary);
+}
+
+.optionInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.optionText {
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text);
+  word-break: break-word;
+}
+
+.optionDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.3;
+}
+
+.optionLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.optionLink:hover {
+  text-decoration: underline;
+}
+
+.optionRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+}
+
+.optionPercent {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-primary);
+  min-width: 36px;
+  text-align: right;
+}
+
+.optionCount {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* Option image */
+.optionImage {
+  position: relative;
+  z-index: 1;
+  margin-top: var(--space-xs);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  max-height: 120px;
+}
+
+.optionImage img {
+  width: 100%;
+  height: 100%;
+  max-height: 120px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
+/* Voters */
+.voters {
+  position: relative;
+  z-index: 1;
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.3;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: var(--space-md);
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.totalVotes {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.error {
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.voteBtn {
+  padding: var(--space-xs) var(--space-md);
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  min-height: 36px;
+}
+
+.voteBtn:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.voteBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.unvoteBtn {
+  padding: var(--space-xs) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+  min-height: 36px;
+}
+
+.unvoteBtn:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.unvoteBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

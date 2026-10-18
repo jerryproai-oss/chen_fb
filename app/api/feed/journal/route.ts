@@ -62,6 +62,9 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
       media: {
         orderBy: { sortOrder: 'asc' },
       },
+      poll: {
+        select: { id: true },
+      },
       _count: {
         select: {
           comments: { where: { deletedAt: null } },
@@ -104,6 +107,7 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
         height: m.height,
         sortOrder: m.sortOrder,
       })),
+      hasPoll: !!p.poll,
     })),
     nextCursor,
   });

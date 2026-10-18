@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { Lock, Users, UserCheck, MessageCircle, Film, Music } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
+import { stripMarkdown } from '@/lib/markdown';
+import PollCard from '@/components/post/PollCard';
 import type { PostSummary, Visibility } from '@/lib/types';
 import { REACTION_EMOJI } from '@/lib/types';
 import styles from './PostCard.module.css';
@@ -111,7 +113,7 @@ export default function PostCard({ post, isOwn = false }: PostCardProps) {
             <p className={styles.subtitle}>{post.subtitle}</p>
           )}
           {post.bodyPlainText && (() => {
-            const text = post.bodyPlainText!;
+            const text = stripMarkdown(post.bodyPlainText!);
             // 判斷是否可能超過 3 行：行數 > 3 或字數 > 80
             const lines = text.split('\n');
             const isLong = lines.length > 3 || text.length > 80;
@@ -126,6 +128,7 @@ export default function PostCard({ post, isOwn = false }: PostCardProps) {
               </div>
             );
           })()}
+          {post.hasPoll && <PollCard hasPoll />}
         </div>
 
         {/* ── 圖片網格（FB 風格：上2大+下3小） ── */}

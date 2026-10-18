@@ -64,6 +64,7 @@ export interface PostSummary {
   reactionSummary?: ReactionSummary[];
   myReaction?: ReactionType | null;
   media?: MediaItem[];
+  hasPoll?: boolean;
 }
 
 export interface PostDetail extends PostSummary {
@@ -149,3 +150,43 @@ export interface OnThisDayPost {
     displayName: string;
   };
 }
+
+// ── 投票 ──────────────────────────────────────────────────────
+
+export interface PollOptionItem {
+  id: string;
+  text: string;
+  description: string | null;
+  imageUrl: string | null;
+  linkUrl: string | null;
+  sortOrder: number;
+  voteCount: number;
+  percentage: number;
+  voters: string[];  // 投票人 displayName
+}
+
+export interface PollData {
+  id: string;
+  question: string;
+  multiSelect: boolean;
+  endsAt: string | null;
+  isExpired: boolean;
+  totalVotes: number;
+  options: PollOptionItem[];
+  myVotes: string[];  // 我投的 optionId
+}
+
+export interface PollOptionInput {
+  text: string;
+  description?: string;
+  imageMediaId?: string;
+  linkUrl?: string;
+}
+
+export interface PollInput {
+  question: string;
+  multiSelect: boolean;
+  endsAt?: string | null;
+  options: PollOptionInput[];
+}
+

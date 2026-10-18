@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { renderMarkdown } from '@/lib/markdown';
 import {
   ArrowLeft,
   Lock,
@@ -15,6 +16,7 @@ import {
 import Avatar from '@/components/ui/Avatar';
 import ReactionBar from '@/components/post/ReactionBar';
 import MediaGallery from '@/components/post/MediaGallery';
+import PollDetail from '@/components/post/PollDetail';
 import type {
   PostDetail,
   ReactionSummary,
@@ -275,11 +277,18 @@ export default function PostDetailPage({
         <h1 className={styles.title}>{post.title}</h1>
         {post.subtitle && <p className={styles.subtitle}>{post.subtitle}</p>}
         {post.bodyPlainText && (
-          <div className={styles.body}>{post.bodyPlainText}</div>
+          <div
+            className={styles.body}
+            dangerouslySetInnerHTML={{ __html: renderMarkdown(post.bodyPlainText) }}
+          />
         )}
 
         {post.media && post.media.length > 0 && (
           <MediaGallery media={post.media} />
+        )}
+
+        {post.hasPoll && (
+          <PollDetail postId={id} />
         )}
 
         {isAuthor && (

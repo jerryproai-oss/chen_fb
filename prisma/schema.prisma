@@ -67,6 +67,7 @@ model User {
   comments      Comment[]
   reactions     PostReaction[]
   media         PostMedia[]
+  pollVotes     PollVote[]
 
   @@map("users")
 }
@@ -131,6 +132,7 @@ model Post {
   comments  Comment[]
   reactions PostReaction[]
   media     PostMedia[]
+  poll      Poll?
 
   @@index([authorId])
   @@index([recordDate])
@@ -202,4 +204,49 @@ model PostReaction {
 
   @@id([postId, userId])
   @@map("post_reactions")
+}
+
+// ── Phase 5: 投票系統 ────────────────────────────────────
+
+model Poll {
+  id          String    @id @default(uuid()) @db.Uuid
+  postId      String    @unique @map("post_id") @db.Uuid
+  question    String                         // 投票主題
+  multiSelect Boolean   @default(false) @map("multi_select")
+  endsAt      DateTime? @map("ends_at")      // 截止時間（可選）
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  post    Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  options PollOption[]
+
+  @@map("polls")
+}
+
+model PollOption {
+  id          String  @id @default(uuid()) @db.Uuid
+  pollId      String  @map("poll_id") @db.Uuid
+  text        String                           // 選項文字（必填）
+  description String?                          // 說明（選填）
+  imageUrl    String? @map("image_url")        // 圖片 media URL（選填）
+  linkUrl     String? @map("link_url")         // 外部連結（選填）
+  sortOrder   Int     @default(0) @map("sort_order")
+
+  poll  Poll       @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes PollVote[]
+
+  @@index([pollId])
+  @@map("poll_options")
+}
+
+model PollVote {
+  optionId  String   @map("option_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  option PollOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([optionId, userId])
+  @@index([userId])
+  @@map("poll_votes")
 }

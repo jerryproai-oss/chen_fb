@@ -36,6 +36,10 @@ export const AuditActions = {
   // 個人資料
   PROFILE_UPDATE: "PROFILE_UPDATE",
 
+  // 投票
+  POLL_VOTE: "POLL_VOTE",
+  POLL_CREATE: "POLL_CREATE",
+
   // 系統
   ADMIN_INIT: "ADMIN_INIT",
 } as const;
@@ -51,6 +55,7 @@ export const ResourceTypes = {
   POST: "POST",
   COMMENT: "COMMENT",
   MEDIA: "MEDIA",
+  POLL: "POLL",
 } as const;
 
 export type ResourceType =

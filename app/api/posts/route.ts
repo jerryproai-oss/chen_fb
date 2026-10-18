@@ -87,6 +87,9 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
       media: {
         orderBy: { sortOrder: 'asc' },
       },
+      poll: {
+        select: { id: true },
+      },
       _count: {
         select: {
           comments: { where: { deletedAt: null } },
@@ -129,6 +132,7 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
         height: m.height,
         sortOrder: m.sortOrder,
       })),
+      hasPoll: !!p.poll,
     })),
     nextCursor,
   });
@@ -171,6 +175,7 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
     status,
     audienceUserIds,
     mediaIds,
+    poll,
   } = body as Record<string, unknown>;
 
   // ── 驗證 recordDate ─────────────────────────────────
@@ -387,6 +392,51 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
       }
     }
 
+    // 建立投票
+    if (poll && typeof poll === 'object' && !Array.isArray(poll)) {
+      const pollData = poll as Record<string, unknown>;
+      const question = pollData.question;
+      const options = pollData.options;
+      const multiSelect = pollData.multiSelect === true;
+      const endsAt = pollData.endsAt;
+
+      if (typeof question === 'string' && question.trim().length > 0
+          && Array.isArray(options) && options.length >= 2 && options.length <= 10) {
+        // 驗證每個選項至少有文字
+        const validOptions = options.filter(
+          (o: unknown) => typeof o === 'object' && o !== null
+            && typeof (o as Record<string, unknown>).text === 'string'
+            && ((o as Record<string, unknown>).text as string).trim().length > 0,
+        );
+
+        if (validOptions.length >= 2) {
+          await tx.poll.create({
+            data: {
+              postId: created.id,
+              question: question.trim(),
+              multiSelect,
+              endsAt: endsAt && typeof endsAt === 'string' ? new Date(endsAt) : null,
+              options: {
+                create: validOptions.map((o: unknown, i: number) => {
+                  const opt = o as Record<string, unknown>;
+                  return {
+                    text: (opt.text as string).trim(),
+                    description: opt.description && typeof opt.description === 'string'
+                      ? (opt.description as string).trim() : null,
+                    imageUrl: opt.imageMediaId && typeof opt.imageMediaId === 'string'
+                      ? `/api/media/${opt.imageMediaId}` : null,
+                    linkUrl: opt.linkUrl && typeof opt.linkUrl === 'string'
+                      ? (opt.linkUrl as string).trim() : null,
+                    sortOrder: i,
+                  };
+                }),
+              },
+            },
+          });
+        }
+      }
+    }
+
     return tx.post.findUniqueOrThrow({
       where: { id: created.id },
       include: {
@@ -402,6 +452,9 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
         },
         media: {
           orderBy: { sortOrder: 'asc' },
+        },
+        poll: {
+          select: { id: true },
         },
       },
     });
@@ -444,6 +497,7 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
           height: m.height,
           sortOrder: m.sortOrder,
         })),
+        hasPoll: !!post.poll,
       },
     },
     { status: 201 },
