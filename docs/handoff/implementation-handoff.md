@@ -1,28 +1,96 @@
 # 設計開發交接狀態
 
-交接日期：2026-10-18。專案：拾日家庭手札。接手環境：使用者預計以 Antigravity 中的 Claude 開發；本次未操作或驗證該工具的特定版本、選單及自動讀取規則。
+交接更新：2026-10-18 Phase 1 完成。專案：拾日家庭手札。
 
 ## 現況
 
-根目錄 D:\Vibe Coding\Codex\chen_fb。在本次盤點時只有既有產品規格，Git 尚未初始化；本次補齊文件與設計參考。沒有 package.json、Next.js app、資料庫 schema、migration、Dockerfile、正式 compose、API 或真實帳號機制。
+根目錄 `D:\Vibe Coding\Codex\chen_fb`。Git 已初始化，3 個 commit。
 
-原本互動介面存在 Codex 對話的 HTML 片段，現複製到 design-reference/family-journal.fragment.html，附實際參考截圖。它是單機記憶體示意，沒有 NAS、資料庫、網路傳送或真實模型；對話宿主可能只保存畫面選擇，不保存家庭文章。不可把 HTML／前端篩選轉成正式安全邊界。
+### Git 歷史
 
-## 已完成與尚未完成
+| Commit | 說明 |
+|--------|------|
+| `b391270` | 初始 commit — 設計文件、規格、交接 |
+| `4582ab5` | Phase 1 認證系統骨架 — 40 檔案 |
+| `7520e59` | AuthError 修復 + 負向測試 72/72 通過 |
 
-| 項目 | 交接狀態 |
-| --- | --- |
-| 需求與產品方向 | 已整理；品牌拾日仍為暫名 |
-| 暖色版型、深色版型、響應式參考 | 已有預覽及部分 Edge 無頭測試；實機與完整跨瀏覽器未驗收 |
-| 主標／次標／富文字／emoji | 預覽可操作；正式編輯器、伺服器驗證、持久化未做 |
-| 三行收放、緊湊行距 | 預覽已調整；正式 app 尚未建立 |
-| 日期時間、家庭動態內歷年今日 | 預覽已呈現，固定示意日期 2026/10/17；正式日期與權限查詢未做 |
-| 留言與九心情 | 預覽記憶體互動；多人、DB 約束、併發未做 |
-| ID＋密碼 | 只有登入畫面；未驗證、不存帳密；查看登入後畫面是明示預覽入口 |
-| 三種受眾 | UI 已有；指定家人選擇未完整持久化／多帳號過濾，需正式實作 |
-| AI | 固定範例提案、採用及復原示意；未連真實 provider |
-| 媒體 | 照片／影片占位；沒有真正上傳、存檔、轉碼或播放 |
-| GitHub／Docker／DB／DNS／NAS | 已有規劃；全部未建立或部署 |
+### 技術棧
+
+- Next.js 15.5.28 / React 19 / TypeScript 5
+- Prisma 7.10.1 + `@prisma/adapter-pg` driver adapter
+- PostgreSQL 16 (NAS Docker)
+- Vanilla CSS / Lucide React 1.59.0
+- 無 email/SMTP/OAuth/雲端服務
+
+## Phase 1 已完成 ✅
+
+### 資料庫
+
+- Prisma Schema: `User`, `Session`, `AuditEvent`
+- Migration `20261018070528_init_auth_models` 已套用至 NAS PostgreSQL
+- DB 容器 `shiri-db-1` 運行於 NAS `/volume1/docker/shiri/`
+- DB 只在 `shiri-net` (internal) 網路，不對外暴露 port
+
+### 認證核心 (6 個模組)
+
+| 檔案 | 功能 |
+|------|------|
+| `lib/auth/password.ts` | argon2id 雜湊/驗證 |
+| `lib/auth/session.ts` | DB session、SHA-256 token hash、sliding expiry |
+| `lib/auth/middleware.ts` | `requireAuth()`, `requireAdmin()`, `withAuth()`, `withAdmin()` wrapper |
+| `lib/auth/rate-limit.ts` | In-memory sliding window rate limiter |
+| `lib/policy/authorization.ts` | 權限檢查 (停用/重設/改密碼) |
+| `lib/audit.ts` | 稽核日誌 (12 種 action) |
+
+### API Routes (7 個)
+
+| 路由 | 方法 | 功能 |
+|------|------|------|
+| `/api/auth/login` | POST | 登入 + rate limit |
+| `/api/auth/logout` | POST | 登出 |
+| `/api/me` | GET | 目前使用者資訊 |
+| `/api/me/password` | PUT | 改密碼 |
+| `/api/admin/users` | GET/POST | 使用者列表/建立 |
+| `/api/admin/users/[id]` | GET/PATCH | 使用者詳情/更新 |
+| `/api/admin/users/[id]/reset-password` | POST | 管理員重設密碼 |
+
+### UI
+
+- 登入頁 (`app/(auth)/login/page.tsx`)
+- 改密碼頁 (`app/(auth)/change-password/page.tsx`)
+- LoginForm / ChangePasswordForm 元件
+- CSS-only Spinner 元件
+- PWA manifest (`public/manifest.json`)
+
+### 部署
+
+- `Dockerfile` (3-stage build)
+- `compose.yaml` (db + web services)
+- `scripts/init-admin.ts` — 互動式 CLI 建立初始管理員
+
+### 測試
+
+- `tests/acc-auth.test.ts` — ACC-01~06 整合測試
+- **72 項全部通過** (0 失敗)
+
+| 測試群組 | 項目數 | 內容 |
+|----------|--------|------|
+| ACC-01 | 9 | ID 正規化登入 |
+| ACC-02 | 11 | 不存在/錯密碼/停用/空值/超長 |
+| ACC-03 | 12 | 臨時密碼/改密碼/session 保留/過期 |
+| ACC-04 | 14 | 管理員停用/重設/session 撤銷 |
+| ACC-05 | 12 | 登出/Cookie 屬性/Session 到期 |
+| ACC-06 | 12 | 未登入存取/權限隔離 |
+| Rate Limit | 2 | 反覆失敗觸發 429 |
+
+## NAS 部署狀態
+
+- SSH: `ssh jerry@192.168.1.126` (ed25519 key)
+- 路徑: `/volume1/docker/shiri/`
+- DB 容器: `shiri-db-1` (postgres:16-alpine)，healthy
+- DB 只在內部網路 `shiri-net`，web 容器透過 `db:5432` 連線
+- `.env` 在 NAS 上 (`/volume1/docker/shiri/.env`)
+- 網域: `fb.kiseki.me` (GoDaddy DNS 待設定)
 
 ## 不能遺漏的歷次決定
 
@@ -37,31 +105,44 @@
 9. 隱私預設僅自己；家人可見不是公開網路；所有衍生內容繼承授權。
 10. AI 輔助由作者決定採用，未有真實供應商不得假裝生成。
 11. 所有影音格式是廣泛相容的目標，必須用格式矩陣與原檔／轉碼／拒絕分級處理，不承諾所有檔案都能播放。
+12. Web App 為主要形式（非原生 App），PWA 支援。
 
-## 原始大方向的範圍處理
+## 已知技術要點
 
-使用者最初以「其他跟 FB 一樣」及「比 FB 更方便、創新、專業、美觀」描述期待，後續聚焦家庭生活記錄。已細化的貼文、影音、隱私、留言、心情、回憶、AI、帳號優先完成；搜尋、相簿、匯出及通知分階段加入。
+### Prisma 7 特性
+- `PrismaClient` 需要 `@prisma/adapter-pg` driver adapter，不支援直接連線
+- `datasource` block 無 `url`，由 `prisma.config.ts` 設定
+- 需要套件: `@prisma/adapter-pg`, `pg`
 
-Messenger 私訊、好友邀請、公開社團、粉專、直播、短影音推薦、廣告、Marketplace、商業後台等未逐項定義，不默認納入第一版，也不宣稱已完成 FB 全部功能。若需要，另列需求、成本與驗收，不以此大方向無限制擴張本次開發。
+### NAS SSH 注意事項
+- PATH 必須手動設定: `export PATH=/usr/local/bin:/usr/bin:/bin:/sbin:/usr/sbin;`
+- SCP 不可用 (Synology 無 SFTP subsystem)，用 pipe 傳檔
+- PowerShell 用 `;` 不是 `&&` 串接命令
 
-## 建議開始方式
+## 已確認待開發功能 (Phase 2+)
 
-先按 AGENTS.md 再盤點現況，避免另一位 AI 已開始工作後被覆蓋。第一個可驗收切片是「本機 Docker PostgreSQL＋管理員初始化＋ID 登入＋建立家庭成員＋停用／重設／撤銷 session」，接著完成私人貼文的儲存與跨 session 隔離。沿用目前視覺設計，不重新討論已確定的導航、登入種類與部署目的地。
+| 功能 | 說明 |
+|------|------|
+| PWA 離線支援 | Service Worker + 離線草稿 |
+| Web Push 通知 | 新留言/心情通知 |
+| 相機直拍 | MediaStream API |
+| 貼文釘選 | 家庭動態置頂 |
+| 日曆檢視 | 月曆瀏覽貼文 |
+| 成員頭像 | 自訂大頭貼 |
+| 地點標記 | Geolocation API |
+| 照片裁切 | 上傳前裁切/旋轉 |
+| FB 匯入 | 匯入 Facebook 資料包 |
+| PDF 匯出 | 貼文轉 PDF 紀念冊 |
+| 儲存空間儀表板 | NAS 用量監控 |
+| 2FA 雙因素認證 | TOTP 驗證 |
+| 家庭行事曆 | 共享行程 |
+| 年度回顧 | 自動產生年度精選 |
+| 語音轉文字 | 語音輸入貼文 |
+| 貼文範本 | 快速格式範本 |
 
-先提出階段 1 的九項實作計畫，合理且沒有必要阻礙時開始本機開發；未決 NAS 型號不阻止 app/DB 端到端工作。需要使用者資料時只詢問真正阻擋下一步的項目，不一次索取密碼或私人資料，也不因未拿到網域就停下所有開發。
+## 下一步
 
-## 尚待使用者提供或核定
-
-- NAS 型號、CPU 架構、RAM、OS／Docker 版本、空間與掛載位置。
-- 網域 FQDN、代理方案、外網可達性及 GitHub 目的地。
-- 家庭人數、媒體量、最大單檔、備份目的地與保留策略。
-- AI provider／本機硬體／模型／預算與是否允許內容傳外部服務。
-- 品牌最終名稱、2/29 非閏年策略、未知檔是否封存；初始建議分別為暫用拾日、不移日、未知檔拒絕。
-
-## 規格維護與驗證狀態
-
-本次只建立交接文件及參考副本，不新增套件、資料表、正式環境設定或遠端資源。文件中的技術連結是設計參考，未在本次全面重查套件版本與最新公告；接手選型時需查官方文件。
-
-既有預覽曾檢查登入欄位規則、密碼顯示、忘記密碼提示、輸入清除、明示預覽切換，以及部分尺寸的排版與互動；這些結果不等同正式身份驗證或跨瀏覽器完成。交付包完整性與本次預覽檢查結果另記於 docs/handoff/delivery-validation.md。
-
-開發後更新本檔的已完成／未完成、執行與測試命令、資料庫影響、依賴與設定變更、已知問題、下一步。不要將舊的預覽結果搬成新系統測試結果。
+1. **部署 web 容器到 NAS** — Docker build + push
+2. **設定 Synology 反向代理** — HTTPS for fb.kiseki.me
+3. **執行 init-admin** — NAS 上建立初始管理員
+4. **Phase 2: 貼文系統** — 草稿/發布/隱私/富文字/媒體上傳
