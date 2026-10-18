@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/client';
-import { requireAdmin } from '@/lib/auth/middleware';
+import { withAdmin } from '@/lib/auth/middleware';
 import { hashPassword } from '@/lib/auth/password';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
 
@@ -51,9 +51,7 @@ function sanitizeUser(user: {
  * 列出所有使用者（管理員限定）。
  * 支援 ?status=ACTIVE|DISABLED 篩選。
  */
-export async function GET(request: NextRequest) {
-  await requireAdmin();
-
+export const GET = withAdmin(async (_ctx, request: NextRequest) => {
   const { searchParams } = new URL(request.url);
   const statusFilter = searchParams.get('status');
 
@@ -79,7 +77,7 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     users: users.map(sanitizeUser),
   });
-}
+});
 
 /**
  * POST /api/admin/users
@@ -93,9 +91,7 @@ export async function GET(request: NextRequest) {
  * - 設定臨時密碼過期時間
  * - 回傳 temporaryPassword (僅此一次)
  */
-export async function POST(request: NextRequest) {
-  const { user: admin } = await requireAdmin();
-
+export const POST = withAdmin(async ({ user: admin }, request: NextRequest) => {
   // ── 解析 & 驗證輸入 ─────────────────────────────────────
   let body: unknown;
   try {
@@ -206,4 +202,4 @@ export async function POST(request: NextRequest) {
     },
     { status: 201 },
   );
-}
+});

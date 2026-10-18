@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/client';
-import { requireAdmin } from '@/lib/auth/middleware';
+import { withAdmin } from '@/lib/auth/middleware';
 import { hashPassword } from '@/lib/auth/password';
 import { revokeAllUserSessions } from '@/lib/auth/session';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
@@ -23,13 +23,8 @@ const UUID_PATTERN =
  * - 設定臨時密碼過期時間
  * - 撤銷該使用者所有 session
  */
-export async function POST(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const { user: admin } = await requireAdmin();
-
-  const { id } = await params;
+export const POST = withAdmin(async ({ user: admin }, request: NextRequest, routeCtx) => {
+  const { id } = await routeCtx.params;
 
   if (!UUID_PATTERN.test(id)) {
     return NextResponse.json(
@@ -107,4 +102,4 @@ export async function POST(
   });
 
   return NextResponse.json({ success: true }, { status: 200 });
-}
+});

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/client';
-import { requireAdmin } from '@/lib/auth/middleware';
+import { withAdmin } from '@/lib/auth/middleware';
 import { revokeAllUserSessions } from '@/lib/auth/session';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
 import { canDisableUser } from '@/lib/policy/authorization';
@@ -47,13 +47,8 @@ const UUID_PATTERN =
  *
  * 取得單一使用者詳情（管理員限定）。
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  await requireAdmin();
-
-  const { id } = await params;
+export const GET = withAdmin(async (_ctx, _request: NextRequest, routeCtx) => {
+  const { id } = await routeCtx.params;
 
   if (!UUID_PATTERN.test(id)) {
     return NextResponse.json(
@@ -74,7 +69,7 @@ export async function GET(
   }
 
   return NextResponse.json({ user: sanitizeUser(user) });
-}
+});
 
 /**
  * PATCH /api/admin/users/[id]
@@ -85,13 +80,8 @@ export async function GET(
  * - 停用使用者時撤銷其所有 session
  * - 不能停用自己
  */
-export async function PATCH(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
-) {
-  const { user: admin } = await requireAdmin();
-
-  const { id } = await params;
+export const PATCH = withAdmin(async ({ user: admin }, request: NextRequest, routeCtx) => {
+  const { id } = await routeCtx.params;
 
   if (!UUID_PATTERN.test(id)) {
     return NextResponse.json(
@@ -189,16 +179,17 @@ export async function PATCH(
     );
   }
 
+  // ── 停用時先撤銷所有 session（在更新 status 之前）─────────
+  // 確保時序正確：先 revoke sessions，再更新 user status
+  if (status === 'DISABLED') {
+    await revokeAllUserSessions(id);
+  }
+
   // ── 更新使用者 ──────────────────────────────────────────
   const updatedUser = await prisma.user.update({
     where: { id },
     data: updateData,
   });
-
-  // ── 停用時撤銷所有 session ──────────────────────────────
-  if (status === 'DISABLED') {
-    await revokeAllUserSessions(id);
-  }
 
   // ── 稽核 ────────────────────────────────────────────────
   await logAudit({
@@ -210,4 +201,4 @@ export async function PATCH(
   });
 
   return NextResponse.json({ user: sanitizeUser(updatedUser) });
-}
+});

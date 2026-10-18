@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth/middleware';
+import { withAuth } from '@/lib/auth/middleware';
 
 /**
  * GET /api/me
@@ -7,9 +7,7 @@ import { requireAuth } from '@/lib/auth/middleware';
  * 取得目前登入使用者的基本資訊。
  * 回傳不含 passwordHash 等敏感欄位。
  */
-export async function GET() {
-  const { user } = await requireAuth();
-
+export const GET = withAuth(async ({ user }) => {
   return NextResponse.json({
     id: user.id,
     username: user.username,
@@ -19,4 +17,4 @@ export async function GET() {
     mustChangePassword: user.mustChangePassword,
     createdAt: user.createdAt,
   });
-}
+});

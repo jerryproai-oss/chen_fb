@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import type { Session, User } from '@prisma/client';
 import { COOKIE_NAME, validateSession } from '@/lib/auth/session';
 
@@ -119,4 +119,64 @@ export async function getCurrentUser(): Promise<AuthenticatedContext | null> {
   } catch {
     return null;
   }
+}
+
+// ── Route Handler Wrapper ────────────────────────────────────
+
+/**
+ * Route handler 的型別定義。
+ * Next.js App Router route handler 的第二個參數包含動態路由 params。
+ */
+type RouteContext = { params: Promise<Record<string, string>> };
+
+/**
+ * 包裝需要認證的 route handler。
+ * 自動執行 requireAuth()，並在 AuthError 時回傳正確的 HTTP status。
+ *
+ * @example
+ * ```ts
+ * export const GET = withAuth(async ({ user }, _req) => {
+ *   return NextResponse.json({ user });
+ * });
+ * ```
+ */
+export function withAuth(
+  handler: (ctx: AuthenticatedContext, req: NextRequest, routeCtx: RouteContext) => Promise<NextResponse>,
+) {
+  return async (req: NextRequest, routeCtx: RouteContext) => {
+    try {
+      const ctx = await requireAuth();
+      return await handler(ctx, req, routeCtx);
+    } catch (e) {
+      if (e instanceof AuthError) return e.response;
+      throw e;
+    }
+  };
+}
+
+/**
+ * 包裝需要管理員權限的 route handler。
+ * 自動執行 requireAdmin()，並在 AuthError 時回傳正確的 HTTP status。
+ *
+ * @example
+ * ```ts
+ * export const POST = withAdmin(async ({ user }, req) => {
+ *   const body = await req.json();
+ *   // 只有管理員能執行到這裡
+ *   return NextResponse.json({ success: true });
+ * });
+ * ```
+ */
+export function withAdmin(
+  handler: (ctx: AuthenticatedContext, req: NextRequest, routeCtx: RouteContext) => Promise<NextResponse>,
+) {
+  return async (req: NextRequest, routeCtx: RouteContext) => {
+    try {
+      const ctx = await requireAdmin();
+      return await handler(ctx, req, routeCtx);
+    } catch (e) {
+      if (e instanceof AuthError) return e.response;
+      throw e;
+    }
+  };
 }

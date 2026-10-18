@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/client';
-import { requireAuth } from '@/lib/auth/middleware';
+import { withAuth } from '@/lib/auth/middleware';
 import { verifyPassword, hashPassword } from '@/lib/auth/password';
 import { revokeAllUserSessions } from '@/lib/auth/session';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
@@ -19,10 +19,9 @@ const MAX_PASSWORD_LENGTH = 128;
  * - 更新 passwordHash、passwordVersion、passwordChangedAt
  * - 清除 mustChangePassword & temporaryPasswordExpiresAt
  * - 撤銷所有其他 session (保留目前這個)
+ * - 同步更新目前 session 的 passwordVersion
  */
-export async function PUT(request: NextRequest) {
-  const { user, session } = await requireAuth();
-
+export const PUT = withAuth(async ({ user, session }, request) => {
   // ── 解析 & 驗證輸入 ─────────────────────────────────────
   let body: unknown;
   try {
@@ -88,7 +87,7 @@ export async function PUT(request: NextRequest) {
   // ── 雜湊新密碼 & 更新 ──────────────────────────────────
   const newHash = await hashPassword(newPassword);
 
-  await prisma.user.update({
+  const updatedUser = await prisma.user.update({
     where: { id: user.id },
     data: {
       passwordHash: newHash,
@@ -102,6 +101,13 @@ export async function PUT(request: NextRequest) {
   // ── 撤銷所有其他 session ────────────────────────────────
   await revokeAllUserSessions(user.id, session.id);
 
+  // ── 同步更新目前 session 的 passwordVersion ─────────────
+  // 避免 validateSession 檢查 passwordVersion 不一致而失效
+  await prisma.session.update({
+    where: { id: session.id },
+    data: { passwordVersion: updatedUser.passwordVersion },
+  });
+
   // ── 稽核 ────────────────────────────────────────────────
   await logAudit({
     actorId: user.id,
@@ -112,4 +118,4 @@ export async function PUT(request: NextRequest) {
   });
 
   return NextResponse.json({ success: true }, { status: 200 });
-}
+});

@@ -113,3 +113,11 @@ export function recordAttempt(key: string, windowMs: number): void {
     attempts.set(key, { timestamps: [now] });
   }
 }
+
+/**
+ * 清除所有速率限制紀錄。僅供測試使用。
+ * @internal
+ */
+export function _resetForTesting(): void {
+  attempts.clear();
+}
