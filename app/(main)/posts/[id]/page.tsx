@@ -38,12 +38,20 @@ function VisibilityIcon({ visibility }: { visibility: Visibility }) {
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
-  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}/${m}/${day}`;
 }
 
 function formatDateTime(dateStr: string): string {
   const d = new Date(dateStr);
-  return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${y}/${m}/${day} ${h}:${min}`;
 }
 
 /**
@@ -249,7 +257,11 @@ export default function PostDetailPage({
           <div className={styles.authorInfo}>
             <div className={styles.authorName}>{post.author.displayName}</div>
             <div className={styles.meta}>
-              <span>{formatDate(post.recordDate)}</span>
+              <span>
+                {post.publishedAt
+                  ? formatDateTime(post.publishedAt)
+                  : formatDateTime(post.createdAt)}
+              </span>
               <span className={styles.metaIcon}>
                 <VisibilityIcon visibility={post.visibility} />
               </span>

@@ -26,9 +26,19 @@ function VisibilityIcon({ visibility }: { visibility: Visibility }) {
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
   const y = d.getFullYear();
-  const m = d.getMonth() + 1;
-  const day = d.getDate();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
   return `${y}/${m}/${day}`;
+}
+
+function formatDateTime(dateStr: string): string {
+  const d = new Date(dateStr);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${y}/${m}/${day} ${h}:${min}`;
 }
 
 /**
@@ -80,7 +90,11 @@ export default function PostCard({ post, isOwn = false }: PostCardProps) {
               {post.author.displayName}
             </div>
             <div className={styles.meta}>
-              <span>{formatDate(post.recordDate)}</span>
+              <span>
+                {post.publishedAt
+                  ? formatDateTime(post.publishedAt)
+                  : formatDateTime(post.createdAt)}
+              </span>
               <span className={styles.metaDot}>·</span>
               <span className={styles.metaIcon}>
                 <VisibilityIcon visibility={post.visibility} />
