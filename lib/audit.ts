@@ -33,6 +33,9 @@ export const AuditActions = {
   MEDIA_UPLOAD: "MEDIA_UPLOAD",
   MEDIA_DELETE: "MEDIA_DELETE",
 
+  // 個人資料
+  PROFILE_UPDATE: "PROFILE_UPDATE",
+
   // 系統
   ADMIN_INIT: "ADMIN_INIT",
 } as const;
