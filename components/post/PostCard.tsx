@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Lock, Users, UserCheck, MessageCircle } from 'lucide-react';
+import { Lock, Users, UserCheck, MessageCircle, Film, Music } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import type { PostSummary, Visibility } from '@/lib/types';
 import { REACTION_EMOJI } from '@/lib/types';
@@ -131,22 +131,38 @@ export default function PostCard({ post, isOwn = false }: PostCardProps) {
         {/* ── 圖片網格（FB 風格：上2大+下3小） ── */}
         {hasMedia && (
           <div className={`${styles.mediaGrid} ${mediaGridClass}`}>
-            {post.media!.slice(0, displayCount).map((item, i) => (
-              <div key={item.id} className={styles.mediaItem}>
-                <img
-                  className={styles.mediaImage}
-                  src={item.url}
-                  alt={item.filename || `圖片 ${i + 1}`}
-                  loading="lazy"
-                />
-                {/* 最後一張顯示 +N 覆蓋 */}
-                {i === displayCount - 1 && mediaCount > displayCount && (
-                  <div className={styles.mediaMore}>
-                    +{mediaCount - displayCount}
-                  </div>
-                )}
-              </div>
-            ))}
+            {post.media!.slice(0, displayCount).map((item, i) => {
+              const isVideo = item.mimeType?.startsWith('video/');
+              const isAudio = item.mimeType?.startsWith('audio/');
+              return (
+                <div key={item.id} className={styles.mediaItem}>
+                  {isVideo ? (
+                    <div className={styles.mediaPlaceholder}>
+                      <Film size={32} />
+                      <span>影片</span>
+                    </div>
+                  ) : isAudio ? (
+                    <div className={styles.mediaPlaceholder}>
+                      <Music size={32} />
+                      <span>音訊</span>
+                    </div>
+                  ) : (
+                    <img
+                      className={styles.mediaImage}
+                      src={item.url}
+                      alt={item.filename || `圖片 ${i + 1}`}
+                      loading="lazy"
+                    />
+                  )}
+                  {/* 最後一張顯示 +N 覆蓋 */}
+                  {i === displayCount - 1 && mediaCount > displayCount && (
+                    <div className={styles.mediaMore}>
+                      +{mediaCount - displayCount}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 

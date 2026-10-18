@@ -47,9 +47,14 @@ export default function MediaUploader({
   const [uploading, setUploading] = useState<UploadingFile[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // 追蹤本次新上傳的媒體資訊（含 mimeType），讓預覽能正確區分影片/音訊/圖片
+  const [uploadedMedia, setUploadedMedia] = useState<Map<string, MediaItem>>(new Map());
 
-  // 已上傳的媒體 map (id -> MediaItem)
-  const mediaMap = new Map(existingMedia.map((m) => [m.id, m]));
+  // 已上傳的媒體 map (id -> MediaItem)：合併 existingMedia + 本次新上傳
+  const mediaMap = new Map<string, MediaItem>([
+    ...existingMedia.map((m) => [m.id, m] as [string, MediaItem]),
+    ...uploadedMedia,
+  ]);
 
   const totalCount = mediaIds.length + uploading.length;
   const canUpload = totalCount < MAX_FILES;
@@ -89,11 +94,27 @@ export default function MediaUploader({
         }
 
         const data = await res.json();
-        const newId: string = data.media.id;
+        const mediaItem: MediaItem = {
+          id: data.media.id,
+          url: data.media.url,
+          filename: data.media.filename,
+          mimeType: data.media.mimeType,
+          fileSize: data.media.fileSize,
+          width: data.media.width,
+          height: data.media.height,
+          sortOrder: 0,
+        };
+
+        // 保存新上傳的媒體資訊（含 mimeType）
+        setUploadedMedia((prev) => {
+          const next = new Map(prev);
+          next.set(mediaItem.id, mediaItem);
+          return next;
+        });
 
         // 移除 uploading 狀態，加入 mediaIds
         setUploading((prev) => prev.filter((u) => u.id !== tempId));
-        onMediaChange([...mediaIds, newId]);
+        onMediaChange([...mediaIds, mediaItem.id]);
       } catch (err) {
         setUploading((prev) => prev.filter((u) => u.id !== tempId));
         setError(err instanceof Error ? err.message : '上傳失敗');
@@ -268,20 +289,36 @@ export default function MediaUploader({
             </div>
           ))}
 
-          {/* 上傳中的圖片 */}
-          {uploading.map((u) => (
-            <div key={u.id} className={styles.previewItem}>
-              <img
-                className={styles.previewImage}
-                src={u.previewUrl}
-                alt="上傳中"
-              />
-              <div className={styles.uploadingOverlay}>
-                <div className={styles.spinner} />
-                <span className={styles.uploadingText}>上傳中…</span>
+          {/* 上傳中的媒體 */}
+          {uploading.map((u) => {
+            const isVideo = u.file.type.startsWith('video/');
+            const isAudio = u.file.type.startsWith('audio/');
+            return (
+              <div key={u.id} className={styles.previewItem}>
+                {isVideo ? (
+                  <div className={styles.mediaPlaceholder}>
+                    <Film size={24} />
+                    <span>影片</span>
+                  </div>
+                ) : isAudio ? (
+                  <div className={styles.mediaPlaceholder}>
+                    <Music size={24} />
+                    <span>音訊</span>
+                  </div>
+                ) : (
+                  <img
+                    className={styles.previewImage}
+                    src={u.previewUrl}
+                    alt="上傳中"
+                  />
+                )}
+                <div className={styles.uploadingOverlay}>
+                  <div className={styles.spinner} />
+                  <span className={styles.uploadingText}>上傳中…</span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
