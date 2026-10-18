@@ -111,21 +111,19 @@ export default function PostCard({ post, isOwn = false }: PostCardProps) {
             <p className={styles.subtitle}>{post.subtitle}</p>
           )}
           {post.bodyPlainText && (() => {
-            const MAX_LEN = 100;
-            const isLong = post.bodyPlainText!.length > MAX_LEN;
-            const displayText = isLong
-              ? post.bodyPlainText!.slice(0, MAX_LEN).trimEnd()
-              : post.bodyPlainText!;
+            const text = post.bodyPlainText!;
+            // 判斷是否可能超過 3 行：行數 > 3 或字數 > 80
+            const lines = text.split('\n');
+            const isLong = lines.length > 3 || text.length > 80;
             return (
-              <p className={styles.bodyPreview}>
-                {displayText}
+              <div className={styles.bodyWrapper}>
+                <p className={styles.bodyPreview}>
+                  {text}
+                </p>
                 {isLong && (
-                  <>
-                    {'…… '}
-                    <span className={styles.seeMore}>查看更多</span>
-                  </>
+                  <span className={styles.seeMore}>查看更多</span>
                 )}
-              </p>
+              </div>
             );
           })()}
         </div>

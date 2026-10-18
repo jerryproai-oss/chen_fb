@@ -89,15 +89,25 @@
   margin: 0 0 4px;
 }
 
+.bodyWrapper {
+  position: relative;
+}
+
 .bodyPreview {
   font-size: var(--font-size-sm);
   line-height: 1.5;
   color: var(--color-text);
   margin: 0;
   white-space: pre-line;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .seeMore {
+  display: inline-block;
+  margin-top: 2px;
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
   font-weight: 700;
