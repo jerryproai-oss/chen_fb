@@ -24,7 +24,8 @@ build/
 prisma/*.db
 
 # Media & uploads (family content never in git)
-media/
+/media/
+!app/api/media/
 uploads/
 exports/
 backups/
