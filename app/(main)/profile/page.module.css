@@ -1,0 +1,154 @@
+/* ── Profile Page ─────────────────────────────────────────── */
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-md);
+}
+
+.header {
+  margin-bottom: var(--space-lg);
+}
+
+.pageTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+/* Profile card */
+.profileCard {
+  background-color: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border-light);
+  margin-bottom: var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.profileInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.displayName {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+.username {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.35;
+  margin-top: 2px;
+}
+
+.roleBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.roleAdmin {
+  background-color: rgba(139, 111, 71, 0.15);
+  color: var(--color-accent);
+}
+
+.roleMember {
+  background-color: rgba(90, 122, 90, 0.1);
+  color: var(--color-primary);
+}
+
+/* Menu list */
+.menu {
+  background-color: var(--color-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border-light);
+  overflow: hidden;
+  margin-bottom: var(--space-lg);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  border-bottom: 1px solid var(--color-border-light);
+  transition: background-color var(--transition-fast);
+  min-height: 44px;
+}
+
+.menuItem:last-child {
+  border-bottom: none;
+}
+
+.menuItem:hover {
+  background-color: rgba(90, 122, 90, 0.04);
+}
+
+.menuItemIcon {
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.menuItemLabel {
+  flex: 1;
+}
+
+.menuItemArrow {
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+/* Logout */
+.logoutSection {
+  text-align: center;
+}
+
+.logoutBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-xl);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.logoutBtn:hover {
+  background-color: rgba(192, 80, 80, 0.08);
+}
+
+/* Loading */
+.loader {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}

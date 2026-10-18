@@ -20,6 +20,29 @@ enum UserStatus {
   DISABLED
 }
 
+enum Visibility {
+  PRIVATE   // 僅自己
+  FAMILY    // 家人可見
+  SELECTED  // 指定家人
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum ReactionType {
+  LIKE        // 讚
+  LOVE        // 愛心
+  CARE        // 抱抱
+  LAUGH       // 大笑
+  WOW         // 驚訝
+  SAD         // 難過
+  ANGRY       // 生氣
+  RECEIVED    // 收到
+  NO_PROBLEM  // 沒問題
+}
+
 // ── Models ────────────────────────────────────────────────
 
 model User {
@@ -39,6 +62,10 @@ model User {
   updatedAt                  DateTime    @updatedAt @map("updated_at")
 
   sessions Session[]
+  posts         Post[]
+  audiences     PostAudience[]
+  comments      Comment[]
+  reactions     PostReaction[]
 
   @@map("users")
 }
@@ -78,4 +105,76 @@ model AuditEvent {
   @@index([resourceType, resourceId])
   @@index([createdAt])
   @@map("audit_events")
+}
+
+// ── Phase 2: 貼文系統 ────────────────────────────────────
+
+model Post {
+  id            String      @id @default(uuid()) @db.Uuid
+  authorId      String      @map("author_id") @db.Uuid
+  recordDate    DateTime    @map("record_date") @db.Date
+  title         String
+  subtitle      String?
+  bodyJson      String?     @map("body_json")       // 結構化內容（未來富文字）
+  bodyPlainText String?     @map("body_plain_text")  // 純文字，用於搜尋與預覽
+  visibility    Visibility  @default(PRIVATE)
+  status        PostStatus  @default(DRAFT)
+  version       Int         @default(1)
+  publishedAt   DateTime?   @map("published_at")
+  deletedAt     DateTime?   @map("deleted_at")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  author    User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  audiences PostAudience[]
+  comments  Comment[]
+  reactions PostReaction[]
+
+  @@index([authorId])
+  @@index([recordDate])
+  @@index([visibility, status])
+  @@index([publishedAt])
+  @@index([deletedAt])
+  @@map("posts")
+}
+
+model PostAudience {
+  postId String @map("post_id") @db.Uuid
+  userId String @map("user_id") @db.Uuid
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+  @@map("post_audiences")
+}
+
+model Comment {
+  id        String    @id @default(uuid()) @db.Uuid
+  postId    String    @map("post_id") @db.Uuid
+  authorId  String    @map("author_id") @db.Uuid
+  bodyText  String    @map("body_text")
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  post   Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([authorId])
+  @@map("comments")
+}
+
+model PostReaction {
+  postId    String       @map("post_id") @db.Uuid
+  userId    String       @map("user_id") @db.Uuid
+  type      ReactionType
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([postId, userId])
+  @@map("post_reactions")
 }

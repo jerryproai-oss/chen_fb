@@ -1,0 +1,92 @@
+/* ── Journal Page ──────────────────────────────────────────── */
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-md);
+}
+
+.header {
+  margin-bottom: var(--space-lg);
+}
+
+.pageTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+.pageSubtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.35;
+  margin-top: var(--space-xs);
+}
+
+/* Post list */
+.postList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-md);
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  margin-bottom: var(--space-md);
+}
+
+.emptyTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.25;
+  margin-bottom: var(--space-sm);
+}
+
+.emptyText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  margin-bottom: var(--space-lg);
+}
+
+.emptyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-lg);
+  border-radius: var(--radius-md);
+  background-color: var(--color-primary);
+  color: #fff;
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  transition: background-color var(--transition-fast);
+  min-height: 44px;
+}
+
+.emptyBtn:hover {
+  background-color: var(--color-primary-hover);
+  color: #fff;
+}
+
+/* Loading */
+.loader {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-lg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* Sentinel for infinite scroll */
+.sentinel {
+  height: 1px;
+}

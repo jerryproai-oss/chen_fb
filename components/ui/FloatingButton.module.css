@@ -1,0 +1,36 @@
+/* ── Floating Action Button ────────────────────────────────── */
+
+.fab {
+  position: fixed;
+  bottom: calc(72px + var(--space-md) + env(safe-area-inset-bottom, 0px));
+  right: var(--space-md);
+  z-index: 90;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-lg);
+  transition: background-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.fab:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
+/* 桌機不需要浮動按鈕（TopNav 有寫手札入口） */
+@media (min-width: 768px) {
+  .fab {
+    display: none;
+  }
+}

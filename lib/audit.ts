@@ -20,6 +20,15 @@ export const AuditActions = {
   SESSION_REVOKE: "SESSION_REVOKE",
   SESSION_REVOKE_ALL: "SESSION_REVOKE_ALL",
 
+  // 貼文系統
+  POST_CREATE: "POST_CREATE",
+  POST_UPDATE: "POST_UPDATE",
+  POST_DELETE: "POST_DELETE",
+  COMMENT_CREATE: "COMMENT_CREATE",
+  COMMENT_DELETE: "COMMENT_DELETE",
+  REACTION_SET: "REACTION_SET",
+  REACTION_REMOVE: "REACTION_REMOVE",
+
   // 系統
   ADMIN_INIT: "ADMIN_INIT",
 } as const;
@@ -32,6 +41,8 @@ export const ResourceTypes = {
   USER: "USER",
   SESSION: "SESSION",
   SYSTEM: "SYSTEM",
+  POST: "POST",
+  COMMENT: "COMMENT",
 } as const;
 
 export type ResourceType =

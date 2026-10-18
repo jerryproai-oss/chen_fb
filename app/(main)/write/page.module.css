@@ -1,0 +1,207 @@
+/* ── Write Page ────────────────────────────────────────────── */
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-md);
+}
+
+.header {
+  margin-bottom: var(--space-lg);
+}
+
+.pageTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.fieldLabel {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.35;
+}
+
+.fieldRequired {
+  color: var(--color-error);
+  margin-left: 2px;
+}
+
+.titleInput {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  line-height: 1.25;
+  transition: border-color var(--transition-fast);
+  min-height: 44px;
+}
+
+.titleInput:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.titleInput::placeholder {
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+.subtitleInput {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
+  transition: border-color var(--transition-fast);
+  min-height: 44px;
+}
+
+.subtitleInput:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.subtitleInput::placeholder {
+  color: var(--color-text-secondary);
+}
+
+.bodyTextarea {
+  width: 100%;
+  min-height: 200px;
+  padding: var(--space-md);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: var(--font-size-base);
+  line-height: 1.6;
+  resize: vertical;
+  transition: border-color var(--transition-fast);
+}
+
+.bodyTextarea:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.bodyTextarea::placeholder {
+  color: var(--color-text-secondary);
+}
+
+/* Settings row */
+.settingsRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 480px) {
+  .settingsRow {
+    flex-direction: row;
+    gap: var(--space-lg);
+  }
+
+  .settingsRow > * {
+    flex: 1;
+  }
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.draftBtn {
+  padding: var(--space-sm) var(--space-lg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-card);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--transition-fast),
+    background-color var(--transition-fast);
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.draftBtn:hover {
+  border-color: var(--color-primary);
+}
+
+.draftBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.publishBtn {
+  padding: var(--space-sm) var(--space-lg);
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.publishBtn:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.publishBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Error */
+.error {
+  padding: var(--space-sm) var(--space-md);
+  background-color: rgba(192, 80, 80, 0.1);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+}
+
+/* Loading overlay */
+.loadingOverlay {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--space-2xl);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}

@@ -1,0 +1,126 @@
+/* ── PostCard ──────────────────────────────────────────────── */
+
+.card {
+  background-color: var(--color-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--transition-normal);
+  border: 1px solid var(--color-border-light);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Header: avatar + name + date + visibility */
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.authorInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.authorName {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.35;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.35;
+}
+
+.metaIcon {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Draft badge */
+.draftBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-accent);
+  color: #fff;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+/* Content */
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-text);
+  margin-bottom: var(--space-xs);
+}
+
+.subtitle {
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-xs);
+}
+
+.bodyPreview {
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  color: var(--color-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: var(--space-sm);
+}
+
+/* Footer: reactions + comments */
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-border-light);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.reactions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.reactionEmoji {
+  font-size: var(--font-size-sm);
+}
+
+.reactionCount {
+  margin-left: var(--space-xs);
+}
+
+.commentCount {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}

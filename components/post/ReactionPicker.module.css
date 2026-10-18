@@ -1,0 +1,59 @@
+/* ── ReactionPicker ────────────────────────────────────────── */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background-color: transparent;
+}
+
+.picker {
+  position: absolute;
+  bottom: calc(100% + var(--space-sm));
+  right: 0;
+  z-index: 201;
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-sm);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xs);
+  min-width: 200px;
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--space-sm);
+  border: none;
+  background: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.option:hover {
+  background-color: rgba(90, 122, 90, 0.08);
+}
+
+.optionSelected {
+  background-color: rgba(90, 122, 90, 0.14);
+}
+
+.optionEmoji {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.optionLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.25;
+  white-space: nowrap;
+}

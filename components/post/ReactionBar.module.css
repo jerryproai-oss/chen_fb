@@ -1,0 +1,65 @@
+/* ── ReactionBar ───────────────────────────────────────────── */
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-light);
+  background-color: var(--color-bg);
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
+  cursor: pointer;
+  transition: border-color var(--transition-fast),
+    background-color var(--transition-fast);
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.chip:hover {
+  border-color: var(--color-primary);
+}
+
+.chipActive {
+  border-color: var(--color-primary);
+  background-color: rgba(90, 122, 90, 0.1);
+}
+
+.chipEmoji {
+  font-size: var(--font-size-base);
+}
+
+.chipCount {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.addBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  border: 1px dashed var(--color-border);
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: border-color var(--transition-fast),
+    color var(--transition-fast);
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.addBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}

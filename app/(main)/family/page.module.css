@@ -1,0 +1,122 @@
+/* ── Family Feed Page ─────────────────────────────────────── */
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: var(--space-md);
+}
+
+.header {
+  margin-bottom: var(--space-lg);
+}
+
+.pageTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.25;
+}
+
+.pageSubtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.35;
+  margin-top: var(--space-xs);
+}
+
+/* On This Day */
+.onThisDay {
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md);
+  background-color: var(--color-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+}
+
+.onThisDayHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-accent);
+  line-height: 1.35;
+}
+
+.onThisDayList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.onThisDayItem {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  text-decoration: none;
+  color: var(--color-text);
+  padding: var(--space-xs) 0;
+  transition: color var(--transition-fast);
+  min-height: 44px;
+}
+
+.onThisDayItem:hover {
+  color: var(--color-primary);
+}
+
+.onThisDayYear {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.onThisDayTitle {
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
+}
+
+/* Post list */
+.postList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: var(--space-2xl) var(--space-md);
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  margin-bottom: var(--space-md);
+}
+
+.emptyTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.25;
+  margin-bottom: var(--space-sm);
+}
+
+.emptyText {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* Loading */
+.loader {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-lg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+.sentinel {
+  height: 1px;
+}
