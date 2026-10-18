@@ -93,11 +93,6 @@
   font-size: var(--font-size-sm);
   line-height: 1.5;
   color: var(--color-text);
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
   margin: 0;
   white-space: pre-line;
 }
@@ -105,8 +100,7 @@
 .seeMore {
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
-  font-weight: 500;
-  margin-left: 2px;
+  font-weight: 700;
 }
 
 /* ── 圖片網格：共用 ───────────────────────────────────── */

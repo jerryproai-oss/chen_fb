@@ -96,9 +96,24 @@ export default function PostCard({ post, isOwn = false }: PostCardProps) {
           {post.subtitle && (
             <p className={styles.subtitle}>{post.subtitle}</p>
           )}
-          {post.bodyPlainText && (
-            <p className={styles.bodyPreview}>{post.bodyPlainText}</p>
-          )}
+          {post.bodyPlainText && (() => {
+            const MAX_LEN = 100;
+            const isLong = post.bodyPlainText!.length > MAX_LEN;
+            const displayText = isLong
+              ? post.bodyPlainText!.slice(0, MAX_LEN).trimEnd()
+              : post.bodyPlainText!;
+            return (
+              <p className={styles.bodyPreview}>
+                {displayText}
+                {isLong && (
+                  <>
+                    {'…… '}
+                    <span className={styles.seeMore}>查看更多</span>
+                  </>
+                )}
+              </p>
+            );
+          })()}
         </div>
 
         {/* ── 圖片網格（FB 風格：上2大+下3小） ── */}
