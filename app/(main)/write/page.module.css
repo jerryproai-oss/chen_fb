@@ -4,6 +4,7 @@
   max-width: 640px;
   margin: 0 auto;
   padding: var(--space-md);
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
 }
 
 .header {
