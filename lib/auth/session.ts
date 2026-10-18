@@ -176,8 +176,22 @@ export async function revokeAllUserSessions(
 // ── Cookie 工具函數 ──────────────────────────────────────────
 
 /**
+ * 判斷 cookie 是否應設定 Secure flag。
+ * - 環境變數 COOKIE_SECURE=false 可強制關閉（反向代理尚未設定 HTTPS 時）
+ * - 環境變數 COOKIE_SECURE=true 可強制開啟
+ * - 未設定時，依據 APP_ORIGIN 是否為 https:// 判斷
+ */
+function isSecureCookie(): boolean {
+  const envValue = process.env.COOKIE_SECURE;
+  if (envValue === 'false' || envValue === '0') return false;
+  if (envValue === 'true' || envValue === '1') return true;
+  // 依據 APP_ORIGIN 自動判斷
+  return process.env.APP_ORIGIN?.startsWith('https://') ?? false;
+}
+
+/**
  * 產生設定 session cookie 的選項物件。
- * 設計為 httpOnly、secure、sameSite=lax。
+ * 設計為 httpOnly、secure（依環境）、sameSite=lax。
  *
  * @param token - 原始 session token
  * @returns 可直接傳給 cookies().set() 的參數物件
@@ -187,7 +201,7 @@ export function setSessionCookie(token: string) {
     name: COOKIE_NAME,
     value: token,
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecureCookie(),
     sameSite: 'lax' as const,
     path: '/',
     maxAge: SESSION_MAX_SECONDS,
@@ -204,9 +218,10 @@ export function deleteSessionCookie() {
     name: COOKIE_NAME,
     value: '',
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: isSecureCookie(),
     sameSite: 'lax' as const,
     path: '/',
     maxAge: 0,
   };
 }
+
