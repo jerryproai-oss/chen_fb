@@ -17,7 +17,7 @@ export default function RootLayout({
       <body>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var s=localStorage.getItem('shiri-font-size');if(s&&['small','medium','large'].includes(s)){document.documentElement.setAttribute('data-font-size',s)}}catch(e){}}())`,
+            __html: `(function(){try{var s=localStorage.getItem('shiri-font-size');if(s&&['small','medium','large'].includes(s)){document.documentElement.setAttribute('data-font-size',s)}var t=localStorage.getItem('shiri-theme');if(t&&['facebook','instagram','twitter','sakura','dark'].includes(t)){document.documentElement.setAttribute('data-theme',t)}}catch(e){}}())`,
           }}
         />
         {children}

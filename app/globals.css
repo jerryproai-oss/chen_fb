@@ -53,9 +53,9 @@
   --transition-normal: 250ms ease;
 }
 
-/* ── Dark Mode ──────────────────────────────────────────── */
+/* ── Dark Mode (系統偏好) ─────────────────────────────── */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme]) {
     --color-bg: #242722;
     --color-card: #2d312b;
     --color-text: #edece4;
@@ -73,6 +73,106 @@
     --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
     --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
   }
+}
+
+/* ── Theme: Facebook ─────────────────────────────────── */
+[data-theme="facebook"] {
+  --color-bg: #f0f2f5;
+  --color-card: #ffffff;
+  --color-text: #1c1e21;
+  --color-text-secondary: #65676b;
+  --color-primary: #1877f2;
+  --color-primary-hover: #166fe5;
+  --color-accent: #42b72a;
+  --color-accent-hover: #36a420;
+  --color-border: #dadde1;
+  --color-border-light: #e4e6eb;
+  --color-error: #fa3e3e;
+  --color-success: #42b72a;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* ── Theme: Instagram ────────────────────────────────── */
+[data-theme="instagram"] {
+  --color-bg: #fafafa;
+  --color-card: #ffffff;
+  --color-text: #262626;
+  --color-text-secondary: #8e8e8e;
+  --color-primary: #e1306c;
+  --color-primary-hover: #c13584;
+  --color-accent: #f77737;
+  --color-accent-hover: #fd1d1d;
+  --color-border: #dbdbdb;
+  --color-border-light: #efefef;
+  --color-error: #ed4956;
+  --color-success: #78c257;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Theme: Twitter / X ──────────────────────────────── */
+[data-theme="twitter"] {
+  --color-bg: #f7f9fa;
+  --color-card: #ffffff;
+  --color-text: #0f1419;
+  --color-text-secondary: #536471;
+  --color-primary: #1d9bf0;
+  --color-primary-hover: #1a8cd8;
+  --color-accent: #794bc4;
+  --color-accent-hover: #6c3fb5;
+  --color-border: #eff3f4;
+  --color-border-light: #eff3f4;
+  --color-error: #f4212e;
+  --color-success: #00ba7c;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Theme: 櫻花 ─────────────────────────────────────── */
+[data-theme="sakura"] {
+  --color-bg: #fdf2f4;
+  --color-card: #fff8f9;
+  --color-text: #4a2c3d;
+  --color-text-secondary: #8c6b7d;
+  --color-primary: #d4708f;
+  --color-primary-hover: #c4607f;
+  --color-accent: #e8a0b0;
+  --color-accent-hover: #d890a0;
+  --color-border: #f0d0d8;
+  --color-border-light: #f8e4e8;
+  --color-error: #d44060;
+  --color-success: #6aaa7a;
+
+  --shadow-sm: 0 1px 3px rgba(180, 80, 120, 0.08);
+  --shadow-md: 0 4px 12px rgba(180, 80, 120, 0.08);
+  --shadow-lg: 0 8px 24px rgba(180, 80, 120, 0.1);
+}
+
+/* ── Theme: 深色 ─────────────────────────────────────── */
+[data-theme="dark"] {
+  --color-bg: #1a1a2e;
+  --color-card: #22223a;
+  --color-text: #e8e8f0;
+  --color-text-secondary: #9999aa;
+  --color-primary: #6c8cff;
+  --color-primary-hover: #5a7af0;
+  --color-accent: #f0a060;
+  --color-accent-hover: #e09050;
+  --color-border: #333350;
+  --color-border-light: #2a2a44;
+  --color-error: #ff6b6b;
+  --color-success: #5ac88f;
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 /* ── Reset & Base ───────────────────────────────────────── */

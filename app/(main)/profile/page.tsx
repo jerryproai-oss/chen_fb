@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import FontSizeSwitcher from '@/components/ui/FontSizeSwitcher';
+import ThemeSwitcher from '@/components/ui/ThemeSwitcher';
 import type { UserProfile } from '@/lib/types';
 import styles from './page.module.css';
 
@@ -290,6 +291,7 @@ export default function ProfilePage() {
         )}
 
         <FontSizeSwitcher />
+        <ThemeSwitcher />
       </div>
 
       {/* Logout */}
