@@ -122,6 +122,9 @@ export const GET = withAuth(
         tags: {
           include: { tag: true },
         },
+        reactions: {
+          select: { type: true, userId: true },
+        },
         _count: {
           select: {
             comments: { where: { deletedAt: null } },
@@ -160,6 +163,13 @@ export const GET = withAuth(
         audienceUserIds: p.audiences.map((a) => a.userId),
         commentCount: p._count.comments,
         reactionCount: p._count.reactions,
+        reactionSummary: Object.entries(
+          p.reactions.reduce<Record<string, number>>((acc, r) => {
+            acc[r.type] = (acc[r.type] || 0) + 1;
+            return acc;
+          }, {}),
+        ).map(([type, count]) => ({ type, count })),
+        myReaction: p.reactions.find((r) => r.userId === user.id)?.type ?? null,
         media: p.media.map((m) => ({
           id: m.id,
           url: `/api/media/${m.id}`,

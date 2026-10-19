@@ -108,6 +108,9 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
           poll: {
             select: { id: true },
           },
+          reactions: {
+            select: { type: true, userId: true },
+          },
           _count: {
             select: {
               comments: { where: { deletedAt: null } },
@@ -151,6 +154,13 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
       audienceUserIds: b.post.audiences.map((a) => a.userId),
       commentCount: b.post._count.comments,
       reactionCount: b.post._count.reactions,
+      reactionSummary: Object.entries(
+        b.post.reactions.reduce<Record<string, number>>((acc, r) => {
+          acc[r.type] = (acc[r.type] || 0) + 1;
+          return acc;
+        }, {}),
+      ).map(([type, count]) => ({ type, count })),
+      myReaction: b.post.reactions.find((r) => r.userId === user.id)?.type ?? null,
       media: b.post.media.map((m) => ({
         id: m.id,
         url: `/api/media/${m.id}`,
