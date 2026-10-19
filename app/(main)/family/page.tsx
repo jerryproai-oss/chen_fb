@@ -6,6 +6,7 @@ import { Calendar } from 'lucide-react';
 import PostCard from '@/components/post/PostCard';
 import MediaPool from '@/components/post/MediaPool';
 import StoryBar from '@/components/story/StoryBar';
+import MediaShowcase from '@/components/post/MediaShowcase';
 import BirthdayBanner from '@/components/family/BirthdayBanner';
 import type { PostSummary } from '@/lib/types';
 import styles from './page.module.css';
@@ -117,6 +118,9 @@ export default function FamilyPage() {
         <>
           {/* 限時動態 */}
           <StoryBar />
+
+          {/* 媒體展示 */}
+          <MediaShowcase scope="family" />
 
           {/* 生日提醒 */}
           <BirthdayBanner />

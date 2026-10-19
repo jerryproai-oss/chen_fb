@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { PenSquare } from 'lucide-react';
 import PostCard from '@/components/post/PostCard';
 import MediaPool from '@/components/post/MediaPool';
+import MediaShowcase from '@/components/post/MediaShowcase';
 import type { PostSummary } from '@/lib/types';
 import styles from './page.module.css';
 
@@ -97,6 +98,9 @@ export default function JournalPage() {
 
       {activeTab === 'posts' ? (
         <>
+          {/* 媒體展示 */}
+          <MediaShowcase scope="journal" />
+
           {initialLoad && loading ? (
             <div className={styles.loader}>載入中…</div>
           ) : posts.length === 0 ? (
