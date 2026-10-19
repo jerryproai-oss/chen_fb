@@ -188,9 +188,9 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
     const holidays = getTaiwanHolidays(targetYear, targetMonth);
     for (const h of holidays) {
       // 依類型設定顏色與圖示
-      const colorMap = { holiday: '#d50000', compensatory: '#f4511e', memorial: '#7986cb' };
-      const emojiMap = { holiday: '🇹🇼', compensatory: '🔄', memorial: '📌' };
-      const labelMap = { holiday: '國定假日', compensatory: '彈性放假', memorial: '紀念日' };
+      const colorMap: Record<string, string> = { holiday: '#d50000', compensatory: '#f4511e', memorial: '#7986cb', international: '#33b679', folk: '#e67c73' };
+      const emojiMap: Record<string, string> = { holiday: '🇹🇼', compensatory: '🔄', memorial: '📌', international: '🌍', folk: '🏮' };
+      const labelMap: Record<string, string> = { holiday: '國定假日', compensatory: '彈性放假', memorial: '紀念日', international: '國際節日', folk: '民俗節日' };
 
       formattedEvents.push({
         id: `holiday_${h.date}_${h.type}`,
