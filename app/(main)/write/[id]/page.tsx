@@ -12,6 +12,7 @@ import EmojiPicker from '@/components/post/EmojiPicker';
 import MediaUploader from '@/components/post/MediaUploader';
 import PollEditor from '@/components/post/PollEditor';
 import styles from '../page.module.css';
+import PageHeader from '@/components/ui/PageHeader';
 
 /**
  * 編輯手札頁面 — 載入現有貼文資料進行編輯
@@ -163,11 +164,15 @@ export default function EditPostPage({
     );
   }
 
+  const handleCancel = () => {
+    if (window.confirm('確定要離開嗎？未儲存的變更將會遺失。')) {
+      router.back();
+    }
+  };
+
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.pageTitle}>編輯手札</h1>
-      </div>
+      <PageHeader title="編輯手札" onBack={handleCancel} />
 
       <div className={styles.form}>
         {error && <div className={styles.error}>{error}</div>}

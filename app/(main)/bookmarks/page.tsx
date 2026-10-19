@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { Bookmark } from 'lucide-react';
 import PostCard from '@/components/post/PostCard';
+import PageHeader from '@/components/ui/PageHeader';
 import type { PostSummary } from '@/lib/types';
 import styles from './page.module.css';
 
@@ -74,10 +75,7 @@ export default function BookmarksPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.pageTitle}>我的收藏</h1>
-        <p className={styles.pageSubtitle}>珍藏的生活手札與回憶</p>
-      </div>
+      <PageHeader title="我的收藏" />
 
       {initialLoad && loading ? (
         <div className={styles.loader}>載入中…</div>

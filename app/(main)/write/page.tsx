@@ -11,6 +11,7 @@ import TextToolbar from '@/components/post/TextToolbar';
 import EmojiPicker from '@/components/post/EmojiPicker';
 import MediaUploader from '@/components/post/MediaUploader';
 import PollEditor from '@/components/post/PollEditor';
+import PageHeader from '@/components/ui/PageHeader';
 import styles from './page.module.css';
 
 function todayStr(): string {
@@ -40,6 +41,18 @@ export default function WritePage() {
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const subtitleRef = useRef<HTMLInputElement>(null);
+
+  const isDirty = !!(title.trim() || body.trim() || subtitle.trim());
+
+  const handleCancel = () => {
+    if (isDirty) {
+      if (window.confirm('確定要離開嗎？未儲存的內容將會遺失。')) {
+        router.back();
+      }
+    } else {
+      router.back();
+    }
+  };
 
   const canSubmit = title.trim().length > 0 && !saving;
 
@@ -116,9 +129,7 @@ export default function WritePage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.pageTitle}>寫手札</h1>
-      </div>
+      <PageHeader title="寫手札" onBack={handleCancel} />
 
       <div className={styles.form}>
         {error && <div className={styles.error}>{error}</div>}

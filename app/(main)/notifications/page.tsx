@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Bell, CheckCheck, MessageSquare, Heart, Sparkles } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
+import PageHeader from '@/components/ui/PageHeader';
 import type { NotificationItem } from '@/lib/types';
 import styles from './page.module.css';
 
@@ -165,20 +166,22 @@ export default function NotificationsPage() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <h1 className={styles.pageTitle}>通知</h1>
-        {notifications.length > 0 && (
-          <button
-            type="button"
-            className={styles.markAllBtn}
-            onClick={handleMarkAllAsRead}
-            disabled={markingAll || unreadCount === 0}
-          >
-            <CheckCheck size={16} />
-            {markingAll ? '處理中…' : '全部標記已讀'}
-          </button>
-        )}
-      </header>
+      <PageHeader
+        title="通知"
+        rightAction={
+          notifications.length > 0 ? (
+            <button
+              type="button"
+              className={styles.markAllBtn}
+              onClick={handleMarkAllAsRead}
+              disabled={markingAll || unreadCount === 0}
+            >
+              <CheckCheck size={16} />
+              {markingAll ? '處理中…' : '全部標記已讀'}
+            </button>
+          ) : undefined
+        }
+      />
 
       {initialLoad && loading ? (
         <div className={styles.loader}>載入中…</div>
