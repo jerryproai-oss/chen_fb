@@ -280,8 +280,14 @@
   }
 }
 
-/* ── 互動列 ──────────────────────────────────────────── */
-.footer {
+/* ── 統計列 ──────────────────────────────────────────── */
+.statsLink {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.statsRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -289,9 +295,10 @@
   border-top: 1px solid var(--color-border-light);
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
+  min-height: 32px;
 }
 
-.reactions {
+.statsLeft {
   display: flex;
   align-items: center;
   gap: 2px;
@@ -307,10 +314,69 @@
   font-size: var(--font-size-xs);
 }
 
-.commentCount {
+.statsComment {
   display: flex;
   align-items: center;
   gap: 4px;
+  color: var(--color-text-secondary);
+}
+
+/* ── 互動按鈕列（讚 · 留言） ────────────────────────── */
+.actionBar {
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.actionBtnWrapper {
+  flex: 1;
+  position: relative;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 44px;
+  padding: 6px 0;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), color var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.actionBtn:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.actionBtn:active {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.actionBtnActive {
+  color: var(--color-primary);
+}
+
+.actionEmoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Picker 定位錨點 */
+.pickerAnchor {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 201;
 }
 
 /* ── 里程碑卡片樣式 ──────────────────────────────────── */

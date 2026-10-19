@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { Lock, Users, UserCheck, MessageCircle, Film, Music, Bookmark } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Lock, Users, UserCheck, MessageCircle, Film, Music, Bookmark, ThumbsUp } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import { stripMarkdown } from '@/lib/markdown';
 import PollCard from '@/components/post/PollCard';
-import type { PostSummary, Visibility } from '@/lib/types';
+import ReactionPicker from '@/components/post/ReactionPicker';
+import type { PostSummary, Visibility, ReactionType, ReactionSummary } from '@/lib/types';
 import { REACTION_EMOJI } from '@/lib/types';
 import styles from './PostCard.module.css';
 
@@ -50,18 +52,29 @@ function formatDateTime(dateStr: string): string {
 
 /**
  * 貼文卡片 — FB 風格排版
- * 結構：作者列 → 文字內容 → 圖片網格（上2大+下3小） → 互動列
+ * 結構：作者列 → 文字內容 → 圖片網格（上2大+下3小） → 統計列 → 互動按鈕列
  */
 export default function PostCard({
   post,
   isOwn = false,
   onBookmarkToggle,
 }: PostCardProps) {
+  const router = useRouter();
   const [bookmarked, setBookmarked] = useState(post.isBookmarked ?? false);
+  const [myReaction, setMyReaction] = useState<ReactionType | null>(post.myReaction ?? null);
+  const [reactionSummary, setReactionSummary] = useState<ReactionSummary[]>(post.reactionSummary ?? []);
+  const [showPicker, setShowPicker] = useState(false);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const didLongPress = useRef(false);
 
   useEffect(() => {
     setBookmarked(post.isBookmarked ?? false);
   }, [post.isBookmarked]);
+
+  useEffect(() => {
+    setMyReaction(post.myReaction ?? null);
+    setReactionSummary(post.reactionSummary ?? []);
+  }, [post.myReaction, post.reactionSummary]);
 
   const handleBookmarkClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -84,16 +97,110 @@ export default function PostCard({
     }
   };
 
+  // ── 反應相關 ──────────────────────────────────
+  const applyReaction = useCallback(async (type: ReactionType | null) => {
+    const prev = myReaction;
+    setMyReaction(type);
+
+    // Optimistic update
+    setReactionSummary((old) => {
+      const updated = old.map((r) => ({ ...r }));
+      if (prev) {
+        const idx = updated.findIndex((r) => r.type === prev);
+        if (idx >= 0) updated[idx] = { ...updated[idx], count: updated[idx].count - 1 };
+      }
+      if (type) {
+        const idx = updated.findIndex((r) => r.type === type);
+        if (idx >= 0) {
+          updated[idx] = { ...updated[idx], count: updated[idx].count + 1 };
+        } else {
+          updated.push({ type, count: 1 });
+        }
+      }
+      return updated;
+    });
+
+    try {
+      if (type) {
+        await fetch(`/api/posts/${post.id}/reactions`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type }),
+        });
+      } else {
+        await fetch(`/api/posts/${post.id}/reactions`, { method: 'DELETE' });
+      }
+    } catch {
+      setMyReaction(prev);
+      setReactionSummary(post.reactionSummary ?? []);
+    }
+  }, [myReaction, post.id, post.reactionSummary]);
+
+  /** 點擊讚按鈕：toggle LIKE / 取消現有反應 */
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (didLongPress.current) {
+      didLongPress.current = false;
+      return;
+    }
+    if (myReaction) {
+      applyReaction(null);
+    } else {
+      applyReaction('LIKE');
+    }
+  };
+
+  /** 長按讚按鈕：顯示反應選單 */
+  const handlePointerDown = (e: React.PointerEvent) => {
+    didLongPress.current = false;
+    longPressTimer.current = setTimeout(() => {
+      didLongPress.current = true;
+      setShowPicker(true);
+    }, 500);
+  };
+
+  const handlePointerUp = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const handlePointerLeave = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const handlePickerSelect = (type: ReactionType) => {
+    if (myReaction === type) {
+      applyReaction(null);
+    } else {
+      applyReaction(type);
+    }
+    setShowPicker(false);
+  };
+
+  /** 點擊留言按鈕：跳轉到貼文詳情頁 */
+  const handleCommentClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    router.push(`/posts/${post.id}#comments`);
+  };
+
   const isDraft = post.status === 'DRAFT';
   const hasMedia = post.media && post.media.length > 0;
   const mediaCount = post.media?.length ?? 0;
 
   // 取前 3 種不重複的 emoji 作為摘要
-  const topReactions = (post.reactionSummary ?? [])
+  const topReactions = reactionSummary
     .filter((r) => r.count > 0)
+    .sort((a, b) => b.count - a.count)
     .slice(0, 3);
 
-  const totalReactions = (post.reactionSummary ?? []).reduce(
+  const totalReactions = reactionSummary.reduce(
     (sum, r) => sum + r.count,
     0,
   );
@@ -112,6 +219,12 @@ export default function PostCard({
           : mediaCount === 4
             ? styles.mediaGrid4
             : styles.mediaGrid5plus;
+
+  // 讚按鈕文字 & emoji
+  const likeEmoji = myReaction ? REACTION_EMOJI[myReaction] : null;
+  const likeLabel = myReaction
+    ? (myReaction === 'LIKE' ? '讚' : REACTION_EMOJI[myReaction])
+    : '讚';
 
   return (
     <article
@@ -239,16 +352,22 @@ export default function PostCard({
             })}
           </div>
         )}
+      </Link>
 
-        {/* ── 互動列 ────────────────────────── */}
-        {(totalReactions > 0 || post.commentCount > 0) && (
-          <div className={styles.footer}>
-            <div className={styles.reactions}>
-              {topReactions.map((r) => (
-                <span key={r.type} className={styles.reactionEmoji}>
-                  {REACTION_EMOJI[r.type]}
-                </span>
-              ))}
+      {/* ── 統計列（始終顯示） ──────────────── */}
+      {(totalReactions > 0 || post.commentCount > 0) && (
+        <Link href={`/posts/${post.id}`} className={styles.statsLink}>
+          <div className={styles.statsRow}>
+            <div className={styles.statsLeft}>
+              {topReactions.length > 0 && (
+                <>
+                  {topReactions.map((r) => (
+                    <span key={r.type} className={styles.reactionEmoji}>
+                      {REACTION_EMOJI[r.type]}
+                    </span>
+                  ))}
+                </>
+              )}
               {totalReactions > 0 && (
                 <span className={styles.reactionCount}>
                   {totalReactions}
@@ -256,14 +375,53 @@ export default function PostCard({
               )}
             </div>
             {post.commentCount > 0 && (
-              <span className={styles.commentCount}>
-                <MessageCircle size={14} />
+              <span className={styles.statsComment}>
                 {post.commentCount} 則留言
               </span>
             )}
           </div>
-        )}
-      </Link>
+        </Link>
+      )}
+
+      {/* ── 互動按鈕列 ────────────────────── */}
+      <div className={styles.actionBar}>
+        <div className={styles.actionBtnWrapper}>
+          <button
+            type="button"
+            className={`${styles.actionBtn} ${myReaction ? styles.actionBtnActive : ''}`}
+            onClick={handleLikeClick}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            onPointerLeave={handlePointerLeave}
+            aria-label={myReaction ? '取消反應' : '按讚'}
+          >
+            {likeEmoji ? (
+              <span className={styles.actionEmoji}>{likeEmoji}</span>
+            ) : (
+              <ThumbsUp size={18} />
+            )}
+            <span>{likeLabel}</span>
+          </button>
+          {showPicker && (
+            <div className={styles.pickerAnchor}>
+              <ReactionPicker
+                selected={myReaction}
+                onSelect={handlePickerSelect}
+                onClose={() => setShowPicker(false)}
+              />
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          className={styles.actionBtn}
+          onClick={handleCommentClick}
+          aria-label="留言"
+        >
+          <MessageCircle size={18} />
+          <span>留言</span>
+        </button>
+      </div>
     </article>
   );
 }
