@@ -338,7 +338,7 @@ export default function CalendarPage() {
     nextMonthCells.push({ day: i, date: dateStr(nextYear, nextMonth, i) });
   }
 
-  // 建立日期→事件的 map
+  // 建立日期→事件的 map（用於週視圖、日視圖、選取日期列表）
   const eventsByDate = useMemo(() => {
     const map: Record<string, FamilyEventItem[]> = {};
     for (const ev of events) {
@@ -347,6 +347,115 @@ export default function CalendarPage() {
     }
     return map;
   }, [events]);
+
+  // ── 月視圖：多天事件橫跨計算（Google Calendar 風格） ────
+  const allCells = useMemo(() => [...prevMonthCells, ...currentMonthCells, ...nextMonthCells], [prevMonthCells, currentMonthCells, nextMonthCells]);
+  const weeks = useMemo(() => {
+    const w: { day: number; date: string }[][] = [];
+    for (let i = 0; i < allCells.length; i += 7) {
+      w.push(allCells.slice(i, i + 7));
+    }
+    return w;
+  }, [allCells]);
+
+  // 多天事件的每週 segment
+  interface EventSegment {
+    event: FamilyEventItem;
+    startCol: number; // 0-6 (週日=0)
+    span: number;     // 跨幾格
+    isStart: boolean; // 是否為事件的起始日
+    isEnd: boolean;   // 是否為事件的結束日
+    row: number;      // 在事件層中的垂直位置
+  }
+
+  const { weekSegments, singleEventsByDate } = useMemo(() => {
+    const dateToCol = new Map<string, { weekIdx: number; col: number }>();
+    weeks.forEach((week, weekIdx) => {
+      week.forEach((cell, col) => {
+        dateToCol.set(cell.date, { weekIdx, col });
+      });
+    });
+
+    // 分離：多天事件 vs 單日事件
+    const multiDayEvents: FamilyEventItem[] = [];
+    const singleMap: Record<string, FamilyEventItem[]> = {};
+
+    for (const ev of events) {
+      const isMultiDay = ev.endDate && ev.endDate !== ev.eventDate;
+      if (isMultiDay) {
+        multiDayEvents.push(ev);
+      } else {
+        if (!singleMap[ev.eventDate]) singleMap[ev.eventDate] = [];
+        singleMap[ev.eventDate].push(ev);
+      }
+    }
+
+    // 為每週計算多天事件 segments
+    const segMap: Record<number, EventSegment[]> = {};
+    weeks.forEach((_, i) => { segMap[i] = []; });
+
+    for (const ev of multiDayEvents) {
+      const evStart = ev.eventDate;
+      const evEnd = ev.endDate!;
+      const startInfo = dateToCol.get(evStart);
+      const endInfo = dateToCol.get(evEnd);
+      if (!startInfo) continue;
+
+      // 事件可能跨多週
+      const firstWeek = startInfo.weekIdx;
+      const lastWeek = endInfo ? endInfo.weekIdx : weeks.length - 1;
+
+      for (let wi = firstWeek; wi <= Math.min(lastWeek, weeks.length - 1); wi++) {
+        const weekStart = weeks[wi][0].date;
+        const weekEnd = weeks[wi][6].date;
+
+        const segStartDate = evStart > weekStart ? evStart : weekStart;
+        const segEndDate = evEnd < weekEnd ? evEnd : weekEnd;
+
+        const segStartInfo = dateToCol.get(segStartDate);
+        const segEndInfo = dateToCol.get(segEndDate);
+        if (!segStartInfo || !segEndInfo) continue;
+
+        segMap[wi].push({
+          event: ev,
+          startCol: segStartInfo.col,
+          span: segEndInfo.col - segStartInfo.col + 1,
+          isStart: segStartDate === evStart,
+          isEnd: segEndDate === evEnd,
+          row: 0, // 稍後分配
+        });
+      }
+    }
+
+    // 分配 row（避免重疊）— 類似 Google Calendar 的貪婪演算法
+    for (const wi of Object.keys(segMap)) {
+      const segs = segMap[Number(wi)];
+      // 依 startCol 排序，同位置則長的優先
+      segs.sort((a, b) => a.startCol - b.startCol || b.span - a.span);
+      const rows: number[] = []; // rows[col] = 已佔用到的最大 row
+      for (const seg of segs) {
+        // 找到第一個可用 row
+        let row = 0;
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          let conflict = false;
+          for (const other of segs) {
+            if (other === seg) continue;
+            if (other.row === row &&
+              !(other.startCol + other.span <= seg.startCol || seg.startCol + seg.span <= other.startCol)) {
+              conflict = true;
+              break;
+            }
+          }
+          if (!conflict) break;
+          row++;
+        }
+        seg.row = row;
+      }
+    }
+
+    return { weekSegments: segMap, singleEventsByDate: singleMap };
+  }, [events, weeks]);
 
   const dayEvents = eventsByDate[selectedDate] || [];
 
@@ -443,85 +552,99 @@ export default function CalendarPage() {
                   ))}
                 </div>
 
-                <div className={styles.daysGrid}>
-                  {/* 上個月補齊 */}
-                  {prevMonthCells.map((cell) => (
-                    <div
-                      key={`prev-${cell.day}`}
-                      className={`${styles.dayCell} ${styles.dayDisabled}`}
-                      onClick={() => {
-                        setSelectedDate(cell.date);
-                        // 也切到對應月份
-                        const { y, m } = parseDateStr(cell.date);
-                        setCurrentYear(y);
-                        setCurrentMonth(m);
-                      }}
-                    >
-                      <span className={styles.dayNumber}>{cell.day}</span>
-                    </div>
-                  ))}
-
-                  {/* 當月日期 */}
-                  {currentMonthCells.map((cell) => {
-                    const isToday = cell.date === today;
-                    const isSelected = cell.date === selectedDate;
-                    const cellEvents = eventsByDate[cell.date] || [];
-                    const maxShow = 2;
+                <div className={styles.monthWeeks}>
+                  {weeks.map((week, weekIdx) => {
+                    const segs = weekSegments[weekIdx] || [];
+                    const maxRow = segs.length > 0 ? Math.max(...segs.map(s => s.row)) + 1 : 0;
+                    const segLayerHeight = maxRow * 20; // 每個 segment row 高 20px
 
                     return (
-                      <div
-                        key={cell.date}
-                        className={styles.dayCell}
-                        onClick={() => setSelectedDate(cell.date)}
-                      >
-                        <span
-                          className={`${styles.dayNumber} ${isToday ? styles.dayNumberToday : ''} ${
-                            isSelected && !isToday ? styles.dayNumberSelected : ''
-                          }`}
-                        >
-                          {cell.day}
-                        </span>
-                        <div className={styles.dayCellEvents}>
-                          {cellEvents.slice(0, maxShow).map((ev) => (
-                            <div
-                              key={ev.id}
-                              className={styles.eventChip}
-                              style={{ backgroundColor: ev.color || '#5a7a5a' }}
-                              title={ev.title}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedDate(cell.date);
-                                handleOpenEditModal(ev);
-                              }}
-                            >
-                              {!ev.isAllDay && ev.eventTime ? `${ev.eventTime} ` : ''}{ev.title}
-                            </div>
-                          ))}
-                          {cellEvents.length > maxShow && (
-                            <div className={styles.moreChip}>
-                              +{cellEvents.length - maxShow} 更多
-                            </div>
-                          )}
+                      <div key={weekIdx} className={styles.weekRow}>
+                        {/* 多天事件橫跨層 */}
+                        {segLayerHeight > 0 && (
+                          <div className={styles.weekSegmentLayer} style={{ height: segLayerHeight }}>
+                            {segs.map((seg, segIdx) => (
+                              <div
+                                key={`${seg.event.id}-${segIdx}`}
+                                className={`${styles.spanBar} ${seg.isStart ? styles.spanBarStart : ''} ${seg.isEnd ? styles.spanBarEnd : ''}`}
+                                style={{
+                                  backgroundColor: seg.event.color || '#5a7a5a',
+                                  left: `${(seg.startCol / 7) * 100}%`,
+                                  width: `${(seg.span / 7) * 100}%`,
+                                  top: seg.row * 20,
+                                }}
+                                title={seg.event.title}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedDate(seg.event.eventDate);
+                                  handleOpenEditModal(seg.event);
+                                }}
+                              >
+                                {seg.isStart ? seg.event.title : `${seg.event.title}`}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* 日期格子 */}
+                        <div className={styles.weekDayCells}>
+                          {week.map((cell) => {
+                            const { m } = parseDateStr(cell.date);
+                            const isCurrentMonth = m === currentMonth;
+                            const isToday = cell.date === today;
+                            const isSelected = cell.date === selectedDate;
+                            const singleEvents = singleEventsByDate[cell.date] || [];
+                            const maxShow = maxRow > 0 ? 1 : 2;
+
+                            return (
+                              <div
+                                key={cell.date}
+                                className={`${styles.dayCell} ${!isCurrentMonth ? styles.dayDisabled : ''}`}
+                                onClick={() => {
+                                  setSelectedDate(cell.date);
+                                  if (!isCurrentMonth) {
+                                    const { y, m: cm } = parseDateStr(cell.date);
+                                    setCurrentYear(y);
+                                    setCurrentMonth(cm);
+                                  }
+                                }}
+                              >
+                                <span
+                                  className={`${styles.dayNumber} ${isToday ? styles.dayNumberToday : ''} ${
+                                    isSelected && !isToday ? styles.dayNumberSelected : ''
+                                  }`}
+                                >
+                                  {cell.day}
+                                </span>
+                                <div className={styles.dayCellEvents}>
+                                  {singleEvents.slice(0, maxShow).map((ev) => (
+                                    <div
+                                      key={ev.id}
+                                      className={styles.eventChip}
+                                      style={{ backgroundColor: ev.color || '#5a7a5a' }}
+                                      title={ev.title}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedDate(cell.date);
+                                        handleOpenEditModal(ev);
+                                      }}
+                                    >
+                                      {!ev.isAllDay && ev.eventTime ? `${ev.eventTime} ` : ''}{ev.title}
+                                    </div>
+                                  ))}
+                                  {singleEvents.length > maxShow && (
+                                    <div className={styles.moreChip}>
+                                      +{singleEvents.length - maxShow} 更多
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     );
                   })}
-
-                  {/* 下個月補齊 */}
-                  {nextMonthCells.map((cell) => (
-                    <div
-                      key={`next-${cell.day}`}
-                      className={`${styles.dayCell} ${styles.dayDisabled}`}
-                      onClick={() => {
-                        setSelectedDate(cell.date);
-                        const { y, m } = parseDateStr(cell.date);
-                        setCurrentYear(y);
-                        setCurrentMonth(m);
-                      }}
-                    >
-                      <span className={styles.dayNumber}>{cell.day}</span>
-                    </div>
-                  ))}
                 </div>
               </div>
 

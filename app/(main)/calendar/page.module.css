@@ -174,6 +174,62 @@
   grid-template-columns: repeat(7, 1fr);
 }
 
+/* ── Month Weeks — 多天事件橫跨結構 ─────────────────────── */
+
+.monthWeeks {
+  /* 取代 .daysGrid 在月視圖中的角色 */
+}
+
+.weekRow {
+  position: relative;
+}
+
+.weekSegmentLayer {
+  position: relative;
+  pointer-events: none;
+  padding: 0 1px;
+  z-index: 2;
+}
+
+.spanBar {
+  position: absolute;
+  height: 18px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 0 4px;
+  cursor: pointer;
+  pointer-events: auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 18px;
+  box-sizing: border-box;
+  transition: opacity var(--transition-fast);
+}
+
+.spanBar:hover {
+  opacity: 0.85;
+}
+
+.spanBarStart {
+  border-radius: 4px 0 0 4px;
+  padding-left: 6px;
+}
+
+.spanBarEnd {
+  border-radius: 0 4px 4px 0;
+}
+
+.spanBarStart.spanBarEnd {
+  border-radius: 4px;
+}
+
+.weekDayCells {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
 /* ── Day Cell (Month View) ────────────────────────────────── */
 
 .dayCell {
@@ -974,6 +1030,17 @@
     font-size: 9px;
     padding: 0 3px;
     min-height: 14px;
+  }
+
+  .spanBar {
+    font-size: 9px;
+    height: 15px;
+    line-height: 15px;
+    padding: 0 3px;
+  }
+
+  .weekSegmentLayer {
+    /* 行高也要縮小：segLayerHeight 由 JS 計算，但每 row 從 20→16 */
   }
 
   .weekTimeGrid,
