@@ -184,21 +184,26 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
       }
     }
 
-    // 加入台灣國定假日
+    // 加入台灣國定假日、彈性放假、紀念日
     const holidays = getTaiwanHolidays(targetYear, targetMonth);
     for (const h of holidays) {
+      // 依類型設定顏色與圖示
+      const colorMap = { holiday: '#d50000', compensatory: '#f4511e', memorial: '#7986cb' };
+      const emojiMap = { holiday: '🇹🇼', compensatory: '🔄', memorial: '📌' };
+      const labelMap = { holiday: '國定假日', compensatory: '彈性放假', memorial: '紀念日' };
+
       formattedEvents.push({
-        id: `holiday_${h.date}`,
+        id: `holiday_${h.date}_${h.type}`,
         authorId: 'system',
-        author: { displayName: '國定假日', avatarUrl: null },
-        title: `🇹🇼 ${h.name}`,
+        author: { displayName: labelMap[h.type], avatarUrl: null },
+        title: `${emojiMap[h.type]} ${h.name}`,
         description: h.description || null,
         eventDate: h.date,
         endDate: null,
         eventTime: null,
         endTime: null,
         isAllDay: true,
-        color: '#d50000',
+        color: colorMap[h.type],
         location: null,
         isRecurring: false,
         recurringType: null,
