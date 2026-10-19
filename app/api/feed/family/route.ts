@@ -69,6 +69,7 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
   const posts = await prisma.post.findMany({
     where: visibilityCondition,
     orderBy: [
+      { pinnedAt: { sort: 'desc', nulls: 'last' } },
       { publishedAt: 'desc' },
       { createdAt: 'desc' },
     ],
