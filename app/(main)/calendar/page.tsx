@@ -594,7 +594,7 @@ export default function CalendarPage() {
                             const isToday = cell.date === today;
                             const isSelected = cell.date === selectedDate;
                             const singleEvents = singleEventsByDate[cell.date] || [];
-                            const maxShow = maxRow > 0 ? 1 : 2;
+                            const maxShow = maxRow > 0 ? 2 : 3;
 
                             return (
                               <div

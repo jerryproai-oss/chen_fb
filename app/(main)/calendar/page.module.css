@@ -234,7 +234,7 @@
 
 .dayCell {
   position: relative;
-  min-height: 80px;
+  min-height: 100px;
   border-right: 1px solid var(--color-border-light);
   border-bottom: 1px solid var(--color-border-light);
   padding: 2px;
@@ -1023,7 +1023,7 @@
   }
 
   .dayCell {
-    min-height: 56px;
+    min-height: 72px;
   }
 
   .eventChip {
