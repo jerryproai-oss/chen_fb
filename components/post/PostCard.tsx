@@ -119,16 +119,25 @@ export default function PostCard({
     });
 
     try {
+      let res: Response;
       if (type) {
-        await fetch(`/api/posts/${post.id}/reactions`, {
+        res = await fetch(`/api/posts/${post.id}/reactions`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type }),
         });
       } else {
-        await fetch(`/api/posts/${post.id}/reactions`, { method: 'DELETE' });
+        res = await fetch(`/api/posts/${post.id}/reactions`, { method: 'DELETE' });
       }
-    } catch {
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        console.error('[reaction] API 回應錯誤:', res.status, errBody);
+        // 回滾
+        setMyReaction(prev);
+        setReactionSummary(post.reactionSummary ?? []);
+      }
+    } catch (err) {
+      console.error('[reaction] 網路錯誤:', err);
       setMyReaction(prev);
       setReactionSummary(post.reactionSummary ?? []);
     }
