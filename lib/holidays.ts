@@ -26,6 +26,9 @@ function h(month: number, day: number, name: string, type: TaiwanHoliday['type']
 }
 
 // ── 每年固定日期的假日與紀念日 ─────────────────────────────
+// 注意：2025年修正《紀念日及節日實施辦法》後，
+// 教師節(9/28)、光復節(10/25)、行憲紀念日(12/25) 由紀念日升格為國定假日
+// 這些節日的處理依年份放在 YEARLY_HOLIDAYS 中
 
 const FIXED_HOLIDAYS = [
   h(1, 1, '元旦（開國紀念日）'),
@@ -33,11 +36,8 @@ const FIXED_HOLIDAYS = [
   h(3, 29, '青年節', 'memorial'),
   h(4, 4, '兒童節'),
   h(5, 1, '勞動節'),
-  h(9, 28, '教師節', 'memorial'),
   h(10, 10, '國慶日'),
-  h(10, 25, '台灣光復節', 'memorial'),
   h(11, 12, '國父誕辰紀念日', 'memorial'),
-  h(12, 25, '行憲紀念日', 'memorial'),
 ];
 
 // ── 國際節日（固定日期） ─────────────────────────────────────
@@ -145,7 +145,9 @@ function computeEaster(year: number): { month: number; day: number } | null {
   return { month, day };
 }
 
-// ── 每年不同的農曆假日 + 彈性放假/補假 ────────────────────
+// ── 每年不同的農曆假日 + 補假 + 紀念日升格 ──────────────────
+// 2025年修法後：教師節/光復節/行憲紀念日 由紀念日升格為國定假日
+// 2026年起：廢除彈性放假+補班，改為週末遇假日一律前/後工作日補假
 
 const YEARLY_HOLIDAYS: Record<number, { month: number; day: number; name: string; type: TaiwanHoliday['type'] }[]> = {
   2024: [
@@ -154,7 +156,7 @@ const YEARLY_HOLIDAYS: Record<number, { month: number; day: number; name: string
     h(2, 9, '春節（初一）'),
     h(2, 10, '春節（初二）'),
     h(2, 11, '春節（初三）'),
-    h(2, 12, '春節彈性放假'),
+    h(2, 12, '春節彈性放假', 'compensatory'),
     // 清明
     h(4, 4, '清明節'),
     h(4, 5, '清明節彈性放假', 'compensatory'),
@@ -162,6 +164,10 @@ const YEARLY_HOLIDAYS: Record<number, { month: number; day: number; name: string
     h(6, 10, '端午節'),
     // 中秋
     h(9, 17, '中秋節'),
+    // 2024年：教師節/光復節/行憲紀念日仍為紀念日（不放假）
+    h(9, 28, '教師節', 'memorial'),
+    h(10, 25, '台灣光復節', 'memorial'),
+    h(12, 25, '行憲紀念日', 'memorial'),
     // 民俗節日
     h(2, 24, '元宵節', 'folk'),
     h(8, 10, '七夕情人節', 'folk'),
@@ -187,10 +193,18 @@ const YEARLY_HOLIDAYS: Record<number, { month: number; day: number; name: string
     // 端午
     h(5, 30, '端午節彈性放假', 'compensatory'),
     h(5, 31, '端午節'),
+    // 2025年修法後：教師節/光復節升格為國定假日
+    h(9, 28, '教師節（孔子誕辰紀念日）'),
+    h(9, 29, '教師節補假', 'compensatory'),
     // 中秋
     h(10, 6, '中秋節'),
     // 國慶
     h(10, 9, '國慶日彈性放假', 'compensatory'),
+    // 光復節
+    h(10, 24, '光復節補假', 'compensatory'),
+    h(10, 25, '台灣光復節'),
+    // 行憲紀念日
+    h(12, 25, '行憲紀念日'),
     // 民俗節日
     h(2, 12, '元宵節', 'folk'),
     h(8, 29, '七夕情人節', 'folk'),
@@ -199,28 +213,32 @@ const YEARLY_HOLIDAYS: Record<number, { month: number; day: number; name: string
     h(12, 21, '冬至', 'folk'),
   ],
   2026: [
-    // 元旦連假
-    h(1, 2, '元旦彈性放假', 'compensatory'),
-    // 春節
-    h(2, 14, '春節補班日（補2/19）', 'compensatory'),
+    // === 2026年起無補班制度 ===
+    // 春節（含小年夜）
+    h(2, 15, '小年夜'),
     h(2, 16, '除夕'),
     h(2, 17, '春節（初一）'),
     h(2, 18, '春節（初二）'),
     h(2, 19, '春節（初三）'),
-    h(2, 20, '春節彈性放假', 'compensatory'),
     // 228
-    h(2, 27, '228彈性放假', 'compensatory'),
+    h(2, 27, '228補假', 'compensatory'),
     // 清明+兒童節
-    h(4, 3, '兒童節/清明彈性放假', 'compensatory'),
+    h(4, 3, '兒童節補假', 'compensatory'),
     h(4, 5, '清明節'),
     h(4, 6, '清明節補假', 'compensatory'),
     // 端午
-    h(6, 18, '端午節彈性放假', 'compensatory'),
     h(6, 19, '端午節'),
     // 中秋
     h(9, 25, '中秋節'),
+    // 教師節
+    h(9, 28, '教師節（孔子誕辰紀念日）'),
     // 國慶
-    h(10, 9, '國慶日彈性放假', 'compensatory'),
+    h(10, 9, '國慶日補假', 'compensatory'),
+    // 光復節
+    h(10, 25, '台灣光復節'),
+    h(10, 26, '光復節補假', 'compensatory'),
+    // 行憲紀念日
+    h(12, 25, '行憲紀念日'),
     // 民俗節日
     h(3, 3, '元宵節', 'folk'),
     h(8, 19, '七夕情人節', 'folk'),
@@ -234,8 +252,6 @@ const YEARLY_HOLIDAYS: Record<number, { month: number; day: number; name: string
     h(2, 6, '春節（初一）'),
     h(2, 7, '春節（初二）'),
     h(2, 8, '春節（初三）'),
-    h(2, 9, '春節彈性放假', 'compensatory'),
-    h(2, 10, '春節彈性放假', 'compensatory'),
     // 228
     h(3, 1, '228補假', 'compensatory'),
     // 清明+兒童節
@@ -245,8 +261,15 @@ const YEARLY_HOLIDAYS: Record<number, { month: number; day: number; name: string
     h(6, 9, '端午節'),
     // 中秋
     h(9, 15, '中秋節'),
+    // 教師節
+    h(9, 28, '教師節（孔子誕辰紀念日）'),
     // 國慶
     h(10, 11, '國慶日補假', 'compensatory'),
+    // 光復節
+    h(10, 25, '台灣光復節'),
+    // 行憲紀念日
+    h(12, 25, '行憲紀念日'),
+    h(12, 26, '行憲紀念日補假', 'compensatory'),
     // 民俗節日
     h(2, 20, '元宵節', 'folk'),
     h(8, 8, '七夕情人節', 'folk'),
@@ -262,17 +285,23 @@ const YEARLY_HOLIDAYS: Record<number, { month: number; day: number; name: string
     h(1, 28, '春節（初三）'),
     // 228
     h(2, 28, '和平紀念日'),
-    h(2, 29, '228彈性放假', 'compensatory'),
+    h(2, 29, '228補假', 'compensatory'),
     // 清明+兒童節
+    h(4, 3, '兒童節補假', 'compensatory'),
     h(4, 4, '清明節'),
-    h(4, 3, '兒童節/清明彈性放假', 'compensatory'),
     // 端午
     h(5, 28, '端午節'),
-    h(5, 29, '端午節彈性放假', 'compensatory'),
+    h(5, 29, '端午節補假', 'compensatory'),
+    // 教師節
+    h(9, 28, '教師節（孔子誕辰紀念日）'),
     // 中秋
     h(10, 3, '中秋節'),
     // 國慶
-    h(10, 9, '國慶日彈性放假', 'compensatory'),
+    h(10, 9, '國慶日補假', 'compensatory'),
+    // 光復節
+    h(10, 25, '台灣光復節'),
+    // 行憲紀念日
+    h(12, 25, '行憲紀念日'),
     // 民俗節日
     h(2, 9, '元宵節', 'folk'),
     h(8, 26, '七夕情人節', 'folk'),
@@ -286,20 +315,25 @@ const YEARLY_HOLIDAYS: Record<number, { month: number; day: number; name: string
     h(2, 13, '春節（初一）'),
     h(2, 14, '春節（初二）'),
     h(2, 15, '春節（初三）'),
-    h(2, 16, '春節彈性放假', 'compensatory'),
     // 228
-    h(2, 27, '228彈性放假', 'compensatory'),
+    h(2, 27, '228補假', 'compensatory'),
     // 清明+兒童節
+    h(4, 3, '兒童節補假', 'compensatory'),
     h(4, 4, '清明節'),
-    h(4, 3, '兒童節/清明彈性放假', 'compensatory'),
     // 端午
     h(6, 16, '端午節'),
-    h(6, 18, '端午節彈性放假', 'compensatory'),
+    h(6, 18, '端午節補假', 'compensatory'),
+    // 教師節
+    h(9, 28, '教師節（孔子誕辰紀念日）'),
     // 中秋
     h(9, 22, '中秋節'),
-    h(9, 24, '中秋節彈性放假', 'compensatory'),
+    h(9, 24, '中秋節補假', 'compensatory'),
     // 國慶
     h(10, 11, '國慶日補假', 'compensatory'),
+    // 光復節
+    h(10, 25, '台灣光復節'),
+    // 行憲紀念日
+    h(12, 25, '行憲紀念日'),
     // 民俗節日
     h(2, 27, '元宵節', 'folk'),
     h(8, 16, '七夕情人節', 'folk'),
@@ -313,7 +347,6 @@ const YEARLY_HOLIDAYS: Record<number, { month: number; day: number; name: string
     h(2, 3, '春節（初一）'),
     h(2, 4, '春節（初二）'),
     h(2, 5, '春節（初三）'),
-    h(2, 6, '春節彈性放假', 'compensatory'),
     // 228
     h(2, 28, '和平紀念日'),
     // 清明+兒童節
@@ -323,8 +356,16 @@ const YEARLY_HOLIDAYS: Record<number, { month: number; day: number; name: string
     h(6, 5, '端午節'),
     // 中秋
     h(9, 12, '中秋節'),
+    // 教師節
+    h(9, 28, '教師節（孔子誕辰紀念日）'),
+    h(9, 29, '教師節補假', 'compensatory'),
     // 國慶
     h(10, 11, '國慶日補假', 'compensatory'),
+    // 光復節
+    h(10, 25, '台灣光復節'),
+    h(10, 26, '光復節補假', 'compensatory'),
+    // 行憲紀念日
+    h(12, 25, '行憲紀念日'),
     // 民俗節日
     h(2, 17, '元宵節', 'folk'),
     h(8, 6, '七夕情人節', 'folk'),
