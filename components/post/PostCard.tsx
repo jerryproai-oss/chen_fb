@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Lock, Users, UserCheck, MessageCircle, Film, Music, Bookmark, ThumbsUp } from 'lucide-react';
+import { Lock, Users, UserCheck, MessageCircle, Film, Music, Bookmark, ThumbsUp, SmilePlus } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import { stripMarkdown } from '@/lib/markdown';
 import PollCard from '@/components/post/PollCard';
@@ -64,8 +64,6 @@ export default function PostCard({
   const [myReaction, setMyReaction] = useState<ReactionType | null>(post.myReaction ?? null);
   const [reactionSummary, setReactionSummary] = useState<ReactionSummary[]>(post.reactionSummary ?? []);
   const [showPicker, setShowPicker] = useState(false);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const didLongPress = useRef(false);
 
   useEffect(() => {
     setBookmarked(post.isBookmarked ?? false);
@@ -140,37 +138,10 @@ export default function PostCard({
   const handleLikeClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (didLongPress.current) {
-      didLongPress.current = false;
-      return;
-    }
     if (myReaction) {
       applyReaction(null);
     } else {
       applyReaction('LIKE');
-    }
-  };
-
-  /** 長按讚按鈕：顯示反應選單 */
-  const handlePointerDown = (e: React.PointerEvent) => {
-    didLongPress.current = false;
-    longPressTimer.current = setTimeout(() => {
-      didLongPress.current = true;
-      setShowPicker(true);
-    }, 500);
-  };
-
-  const handlePointerUp = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  };
-
-  const handlePointerLeave = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
     }
   };
 
@@ -390,9 +361,6 @@ export default function PostCard({
             type="button"
             className={`${styles.actionBtn} ${myReaction ? styles.actionBtnActive : ''}`}
             onClick={handleLikeClick}
-            onPointerDown={handlePointerDown}
-            onPointerUp={handlePointerUp}
-            onPointerLeave={handlePointerLeave}
             aria-label={myReaction ? '取消反應' : '按讚'}
           >
             {likeEmoji ? (
@@ -401,6 +369,16 @@ export default function PostCard({
               <ThumbsUp size={18} />
             )}
             <span>{likeLabel}</span>
+          </button>
+        </div>
+        <div className={styles.actionBtnWrapper}>
+          <button
+            type="button"
+            className={`${styles.actionBtn} ${styles.actionBtnEmoji}`}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowPicker(!showPicker); }}
+            aria-label="選擇心情"
+          >
+            <SmilePlus size={18} />
           </button>
           {showPicker && (
             <div className={styles.pickerAnchor}>

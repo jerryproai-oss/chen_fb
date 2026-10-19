@@ -198,13 +198,23 @@ export const PUT = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
   // ── 觸發通知（非阻塞） ─────────────────────────────
   if (post.authorId !== user.id) {
     const actorName = user.displayName || '有人';
+    const emojiMap: Record<string, string> = {
+      LIKE: '👍', LOVE: '❤️', CARE: '🤗', LAUGH: '😂',
+      WOW: '😮', SAD: '😢', ANGRY: '😡', RECEIVED: '✅', NO_PROBLEM: '👌',
+    };
+    const labelMap: Record<string, string> = {
+      LIKE: '按讚', LOVE: '表達愛心', CARE: '給予擁抱', LAUGH: '覺得好笑',
+      WOW: '感到驚訝', SAD: '覺得難過', ANGRY: '覺得生氣', RECEIVED: '表示收到', NO_PROBLEM: '表示沒問題',
+    };
+    const emoji = emojiMap[type] || '👍';
+    const label = labelMap[type] || '做了回應';
     prisma.notification
       .create({
         data: {
           userId: post.authorId,
           actorId: user.id,
           type: 'REACTION',
-          title: `${actorName} 對你的手札做了回應`,
+          title: `${actorName} ${emoji} ${label}`,
           linkUrl: `/posts/${postId}`,
           resourceId: postId,
         },
