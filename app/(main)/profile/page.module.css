@@ -128,6 +128,31 @@
   color: var(--color-primary);
 }
 
+/* Badge row — role + vault icon */
+.badgeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+}
+
+.vaultBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-full);
+  background-color: rgba(139, 111, 71, 0.1);
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: background-color var(--transition-fast);
+}
+
+.vaultBadge:hover {
+  background-color: rgba(139, 111, 71, 0.2);
+}
+
 /* ── 生日欄位 ─────────────────────────────────────────── */
 .birthdayRow {
   display: flex;

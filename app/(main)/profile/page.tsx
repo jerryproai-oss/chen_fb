@@ -244,11 +244,16 @@ export default function ProfilePage() {
             </div>
           )}
 
-          <span
-            className={`${styles.roleBadge} ${user.role === 'ADMIN' ? styles.roleAdmin : styles.roleMember}`}
-          >
-            {user.role === 'ADMIN' ? '👑 管理員' : '👤 成員'}
-          </span>
+          <div className={styles.badgeRow}>
+            <span
+              className={`${styles.roleBadge} ${user.role === 'ADMIN' ? styles.roleAdmin : styles.roleMember}`}
+            >
+              {user.role === 'ADMIN' ? '👑 管理員' : '👤 成員'}
+            </span>
+            <Link href="/vault" className={styles.vaultBadge} title="特別區">
+              <Lock size={13} />
+            </Link>
+          </div>
         </div>
       </div>
 
