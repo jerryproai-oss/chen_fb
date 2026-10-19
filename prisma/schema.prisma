@@ -75,6 +75,8 @@ model User {
   albums        Album[]
   familyEvents  FamilyEvent[]
   stories       Story[]
+  vaultPin      VaultPin?
+  vaultItems    VaultItem[]
 
   @@map("users")
 }
@@ -405,4 +407,48 @@ model Story {
   @@index([authorId])
   @@index([expiresAt])
   @@map("stories")
+}
+
+// ── Phase 8: 特別區 (Vault) ────────────────────────────────
+
+model VaultPin {
+  userId    String   @id @map("user_id") @db.Uuid
+  pinHash   String   @map("pin_hash")
+  salt      String                              // PBKDF2 salt for key derivation
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("vault_pins")
+}
+
+model VaultItem {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  titleEnc     String   @map("title_enc")
+  contentEnc   String   @map("content_enc")
+  category     String   @default("NOTE")
+  iv           String
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  attachments VaultAttachment[]
+
+  @@index([userId, updatedAt(sort: Desc)])
+  @@map("vault_items")
+}
+
+model VaultAttachment {
+  id        String   @id @default(uuid()) @db.Uuid
+  itemId    String   @map("item_id") @db.Uuid
+  filename  String
+  mimeType  String   @map("mime_type")
+  fileSize  Int      @map("file_size")
+  pathEnc   String   @map("path_enc")
+  iv        String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  item VaultItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  @@map("vault_attachments")
 }

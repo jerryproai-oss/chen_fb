@@ -11,6 +11,7 @@ import {
   Shield,
   Camera,
   Bookmark,
+  Lock,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import FontSizeSwitcher from '@/components/ui/FontSizeSwitcher';
@@ -289,6 +290,16 @@ export default function ProfilePage() {
             </span>
           </Link>
         )}
+
+        <Link href="/vault" className={styles.menuItem}>
+          <span className={styles.menuItemIcon}>
+            <Lock size={18} />
+          </span>
+          <span className={styles.menuItemLabel}>特別區</span>
+          <span className={styles.menuItemArrow}>
+            <ChevronRight size={18} />
+          </span>
+        </Link>
 
         <FontSizeSwitcher />
         <ThemeSwitcher />
