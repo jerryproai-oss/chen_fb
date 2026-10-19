@@ -9,7 +9,7 @@ import { stripMarkdown } from '@/lib/markdown';
 import PollCard from '@/components/post/PollCard';
 import ReactionPicker from '@/components/post/ReactionPicker';
 import type { PostSummary, Visibility, ReactionType, ReactionSummary } from '@/lib/types';
-import { REACTION_EMOJI } from '@/lib/types';
+import { REACTION_EMOJI, REACTION_LABEL } from '@/lib/types';
 import styles from './PostCard.module.css';
 
 interface PostCardProps {
@@ -194,7 +194,7 @@ export default function PostCard({
   // 讚按鈕文字 & emoji
   const likeEmoji = myReaction ? REACTION_EMOJI[myReaction] : null;
   const likeLabel = myReaction
-    ? (myReaction === 'LIKE' ? '讚' : REACTION_EMOJI[myReaction])
+    ? (myReaction === 'LIKE' ? '讚' : REACTION_LABEL[myReaction])
     : '讚';
 
   return (
