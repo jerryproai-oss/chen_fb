@@ -66,7 +66,7 @@
 - ✅ 項目 CRUD（名稱/內容/附件）
 - ✅ 5 分鐘自動鎖定
 - ✅ 共享保險庫（家庭成員共同維護）
-- ✅ 改 PIN API 已阻止（501），待重新加密設計
+- ✅ 改 PIN（客戶端重新加密全部項目 → 交易寫入）
 
 ### 安全修正（c63568d）
 - ✅ R01: 新貼文預設改為 PRIVATE
@@ -97,7 +97,6 @@
 ## 已知限制 / 待完成
 
 ### 安全
-- R04: Vault 改 PIN 需完整重新加密流程（目前 API 返回 501）
 - R05: Vault 相關 table 缺少正式 migration（目前用 db push 建立）
 - R02: compose.yaml 需確認 NAS 實際媒體掛載（已加 media-data volume）
 

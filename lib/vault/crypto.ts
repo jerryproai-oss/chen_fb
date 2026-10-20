@@ -72,6 +72,12 @@ export async function decrypt(
 
 // ── Helpers ──
 
+/** Generate random salt (16 bytes → 32 hex chars) for PBKDF2 key derivation */
+export function generateSalt(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 function bufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
   const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
   let binary = '';

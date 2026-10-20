@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import {
   Lock, Plus, KeyRound, FileText, Package,
   Trash2, ChevronLeft, Search, Copy, Eye, EyeOff,
-  Users, UserPlus, UserMinus, Shield,
+  Users, UserPlus, UserMinus, Shield, Settings,
 } from 'lucide-react';
-import { deriveKey, decrypt, encrypt } from '@/lib/vault/crypto';
+import { deriveKey, decrypt, encrypt, generateSalt } from '@/lib/vault/crypto';
 import { getVaultKey, clearVaultKey } from '@/lib/vault/keystore';
 import Avatar from '@/components/ui/Avatar';
 import styles from './page.module.css';
@@ -80,6 +80,15 @@ export default function VaultListPage() {
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [addingMember, setAddingMember] = useState(false);
+
+  // 更改密碼相關
+  const [showChangePinPanel, setShowChangePinPanel] = useState(false);
+  const [oldPinInput, setOldPinInput] = useState('');
+  const [newPinInput, setNewPinInput] = useState('');
+  const [confirmNewPin, setConfirmNewPin] = useState('');
+  const [showPinFields, setShowPinFields] = useState(false);
+  const [changingPin, setChangingPin] = useState(false);
+  const [changePinProgress, setChangePinProgress] = useState('');
 
   const getVaultToken = useCallback(() => sessionStorage.getItem('vault-token'), []);
   const getSalt = useCallback(() => sessionStorage.getItem('vault-salt'), []);
@@ -258,6 +267,110 @@ export default function VaultListPage() {
     }
   };
 
+  // PIN 驗證規則
+  const validatePinInput = (p: string): string | null => {
+    if (p.length < 6) return '至少需要 6 個字元';
+    if (p.length > 20) return '最多 20 個字元';
+    if (!/[a-z]/.test(p)) return '需包含至少一個小寫英文字母';
+    if (!/[A-Z]/.test(p)) return '需包含至少一個大寫英文字母';
+    if (!/[0-9]/.test(p)) return '需包含至少一個數字';
+    return null;
+  };
+
+  // 更改密碼
+  const handleChangePin = async () => {
+    // 前端驗證
+    if (!oldPinInput) { setError('請輸入目前密碼'); return; }
+    const newPinErr = validatePinInput(newPinInput);
+    if (newPinErr) { setError(newPinErr); return; }
+    if (newPinInput !== confirmNewPin) { setError('新密碼兩次輸入不一致'); return; }
+    if (oldPinInput === newPinInput) { setError('新密碼不能與目前密碼相同'); return; }
+
+    const token = getVaultToken();
+    const key = cryptoKeyRef.current;
+    if (!token || !key) { router.replace('/vault'); return; }
+
+    setChangingPin(true);
+    setError('');
+
+    try {
+      // 1. 取得所有加密項目
+      setChangePinProgress('取得項目資料…');
+      const itemsRes = await fetch('/api/vault/items', {
+        headers: { 'x-vault-token': token },
+      });
+      if (!itemsRes.ok) throw new Error('無法取得項目資料');
+      const itemsData = await itemsRes.json();
+      const encryptedItems = itemsData.items as VaultItem[];
+
+      // 2. 用舊 key 解密所有項目
+      setChangePinProgress(`解密 ${encryptedItems.length} 個項目…`);
+      const decryptedPairs: Array<{ id: string; title: string; content: string }> = [];
+      for (const item of encryptedItems) {
+        const ivParts = item.iv.split('|');
+        const titleIv = ivParts[0];
+        const contentIv = ivParts.length > 1 ? ivParts[1] : ivParts[0];
+        const title = await decrypt(key, item.titleEnc, titleIv);
+        const content = await decrypt(key, item.contentEnc, contentIv);
+        decryptedPairs.push({ id: item.id, title, content });
+      }
+
+      // 3. 用新 PIN derive 新 key
+      setChangePinProgress('產生新金鑰…');
+      const newSalt = generateSalt();
+      const newKey = await deriveKey(newPinInput, newSalt);
+
+      // 4. 用新 key 重新加密所有項目
+      setChangePinProgress(`重新加密 ${decryptedPairs.length} 個項目…`);
+      const reEncryptedItems: Array<{ id: string; titleEnc: string; contentEnc: string; iv: string }> = [];
+      for (const pair of decryptedPairs) {
+        const { ciphertext: titleEnc, iv: titleIv } = await encrypt(newKey, pair.title);
+        const { ciphertext: contentEnc, iv: contentIv } = await encrypt(newKey, pair.content);
+        reEncryptedItems.push({
+          id: pair.id,
+          titleEnc,
+          contentEnc,
+          iv: titleIv + '|' + contentIv,
+        });
+      }
+
+      // 5. 提交到 API
+      setChangePinProgress('更新密碼…');
+      const res = await fetch('/api/vault/pin', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          oldPin: oldPinInput,
+          newPin: newPinInput,
+          newSalt,
+          reEncryptedItems,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || '更改密碼失敗');
+      }
+
+      // 6. 更新本地狀態
+      cryptoKeyRef.current = newKey;
+      sessionStorage.setItem('vault-salt', newSalt);
+
+      // 清空表單
+      setOldPinInput('');
+      setNewPinInput('');
+      setConfirmNewPin('');
+      setShowChangePinPanel(false);
+      setChangePinProgress('');
+      alert('密碼已更改成功！');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '更改密碼失敗');
+    } finally {
+      setChangingPin(false);
+      setChangePinProgress('');
+    }
+  };
+
   const handleAdd = async () => {
     if (!newTitle.trim()) return;
     const token = getVaultToken();
@@ -402,14 +515,24 @@ export default function VaultListPage() {
         <div className={styles.headerActions}>
           {/* 成員管理按鈕 — 僅自己的保險庫且非共享檢視時顯示 */}
           {!isSharedVault && !vaultOwnerId && (
-            <button
-              className={styles.memberBtn}
-              onClick={handleToggleMemberPanel}
-              type="button"
-              title="共享管理"
-            >
-              <Users size={18} />
-            </button>
+            <>
+              <button
+                className={styles.memberBtn}
+                onClick={() => { setShowChangePinPanel(!showChangePinPanel); setShowMemberPanel(false); }}
+                type="button"
+                title="更改密碼"
+              >
+                <Settings size={18} />
+              </button>
+              <button
+                className={styles.memberBtn}
+                onClick={handleToggleMemberPanel}
+                type="button"
+                title="共享管理"
+              >
+                <Users size={18} />
+              </button>
+            </>
           )}
           <button className={styles.lockBtn} onClick={handleLock} type="button" title="上鎖">
             <Lock size={18} />
@@ -421,6 +544,92 @@ export default function VaultListPage() {
         <div className={styles.errorBanner}>
           {error}
           <button type="button" onClick={() => setError('')} className={styles.errorClose}>✕</button>
+        </div>
+      )}
+
+      {/* 更改密碼面板 */}
+      {showChangePinPanel && (
+        <div className={styles.memberPanel}>
+          <div className={styles.memberPanelHeader}>
+            <Settings size={16} />
+            <span>更改特別區密碼</span>
+          </div>
+          <div className={styles.changePinForm}>
+            <div className={styles.changePinField}>
+              <label className={styles.changePinLabel}>目前密碼</label>
+              <input
+                type={showPinFields ? 'text' : 'password'}
+                className={styles.changePinInput}
+                value={oldPinInput}
+                onChange={(e) => setOldPinInput(e.target.value)}
+                placeholder="輸入目前密碼"
+                autoComplete="off"
+                maxLength={20}
+                disabled={changingPin}
+              />
+            </div>
+            <div className={styles.changePinField}>
+              <label className={styles.changePinLabel}>新密碼</label>
+              <input
+                type={showPinFields ? 'text' : 'password'}
+                className={styles.changePinInput}
+                value={newPinInput}
+                onChange={(e) => setNewPinInput(e.target.value)}
+                placeholder="大小寫英文+數字，至少6位"
+                autoComplete="off"
+                maxLength={20}
+                disabled={changingPin}
+              />
+            </div>
+            <div className={styles.changePinField}>
+              <label className={styles.changePinLabel}>確認新密碼</label>
+              <input
+                type={showPinFields ? 'text' : 'password'}
+                className={styles.changePinInput}
+                value={confirmNewPin}
+                onChange={(e) => setConfirmNewPin(e.target.value)}
+                placeholder="再次輸入新密碼"
+                autoComplete="off"
+                maxLength={20}
+                disabled={changingPin}
+              />
+            </div>
+            <label className={styles.changePinShowToggle}>
+              <input
+                type="checkbox"
+                checked={showPinFields}
+                onChange={(e) => setShowPinFields(e.target.checked)}
+              />
+              <span>顯示密碼</span>
+            </label>
+            {changePinProgress && (
+              <p className={styles.changePinProgress}>{changePinProgress}</p>
+            )}
+            <div className={styles.changePinActions}>
+              <button
+                type="button"
+                className={styles.formCancelBtn}
+                onClick={() => {
+                  setShowChangePinPanel(false);
+                  setOldPinInput('');
+                  setNewPinInput('');
+                  setConfirmNewPin('');
+                  setChangePinProgress('');
+                }}
+                disabled={changingPin}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className={styles.formSaveBtn}
+                onClick={handleChangePin}
+                disabled={changingPin || !oldPinInput || !newPinInput || !confirmNewPin}
+              >
+                {changingPin ? '處理中…' : '確認更改'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

@@ -528,3 +528,74 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+
+/* ── 更改密碼面板 ─────────────────────────────────────── */
+
+.changePinForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+}
+
+.changePinField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.changePinLabel {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.changePinInput {
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 44px;
+}
+
+.changePinInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light, rgba(90, 122, 90, 0.15));
+}
+
+.changePinInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.changePinShowToggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.changePinShowToggle input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+}
+
+.changePinProgress {
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  margin: 0;
+  text-align: center;
+}
+
+.changePinActions {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: flex-end;
+  margin-top: var(--space-xs);
+}
