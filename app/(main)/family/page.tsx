@@ -35,6 +35,7 @@ export default function FamilyPage() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [onThisDay, setOnThisDay] = useState<MemoryPost[]>([]);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -52,12 +53,16 @@ export default function FamilyPage() {
       );
       setCursor(data.nextCursor);
       setHasMore(data.nextCursor !== null);
+      setLoadError(false);
       // 歷年今日只在第一次載入時設定
       if (!cursorParam && data.memories) {
         setOnThisDay(data.memories);
       }
     } catch (err) {
       console.error('Failed to load family feed:', err);
+      if (!cursorParam) {
+        setLoadError(true);
+      }
     } finally {
       setLoading(false);
       setInitialLoad(false);
@@ -137,13 +142,16 @@ export default function FamilyPage() {
                   <Link
                     key={item.id}
                     href={`/posts/${item.id}`}
-                    className={styles.onThisDayItem}
+                    className={styles.onThisDayCard}
                   >
-                    <span className={styles.onThisDayYear}>
+                    <span className={styles.onThisDayLabel}>
                       {item.memoryLabel}
                     </span>
                     <span className={styles.onThisDayTitle}>
-                      {item.author.displayName}：{item.title}
+                      {item.title}
+                    </span>
+                    <span className={styles.onThisDayAuthor}>
+                      — {item.author.displayName}
                     </span>
                   </Link>
                 ))}
@@ -154,6 +162,21 @@ export default function FamilyPage() {
           {/* Feed */}
           {initialLoad && loading ? (
             <div className={styles.loader}>載入中…</div>
+          ) : loadError ? (
+            <div className={styles.empty}>
+              <div className={styles.emptyIcon}>⚠️</div>
+              <h2 className={styles.emptyTitle}>載入失敗</h2>
+              <p className={styles.emptyText}>
+                無法取得家庭動態，請檢查網路連線後重試。
+              </p>
+              <button
+                type="button"
+                className={styles.retryBtn}
+                onClick={() => { setLoadError(false); setInitialLoad(true); fetchPosts(); }}
+              >
+                重新載入
+              </button>
+            </div>
           ) : posts.length === 0 ? (
             <div className={styles.empty}>
               <div className={styles.emptyIcon}>👨‍👩‍👧‍👦</div>

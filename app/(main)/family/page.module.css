@@ -47,33 +47,44 @@
 .onThisDayList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
 }
 
-.onThisDayItem {
+.onThisDayCard {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-sm);
+  flex-direction: column;
+  gap: 2px;
   text-decoration: none;
   color: var(--color-text);
-  padding: var(--space-xs) 0;
-  transition: color var(--transition-fast);
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+  background-color: rgba(139, 111, 71, 0.04);
+  border: 1px solid var(--color-border-light);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
   min-height: 44px;
 }
 
-.onThisDayItem:hover {
-  color: var(--color-primary);
+.onThisDayCard:hover {
+  background-color: rgba(139, 111, 71, 0.08);
+  border-color: var(--color-accent);
 }
 
-.onThisDayYear {
+.onThisDayLabel {
   font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  white-space: nowrap;
+  color: var(--color-accent);
+  font-weight: 600;
 }
 
 .onThisDayTitle {
   font-size: var(--font-size-sm);
-  line-height: 1.35;
+  line-height: 1.4;
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.onThisDayAuthor {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
 }
 
 /* Post list */
@@ -106,6 +117,27 @@
   font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   line-height: 1.4;
+}
+
+.retryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: var(--space-md);
+  padding: var(--space-sm) var(--space-lg);
+  min-height: 44px;
+  border: none;
+  border-radius: var(--radius-md);
+  background-color: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.retryBtn:hover {
+  opacity: 0.9;
 }
 
 /* Loading */
