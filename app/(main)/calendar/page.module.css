@@ -285,6 +285,29 @@
   font-weight: 700;
 }
 
+/* ── 農曆日期 ─────────────────────────────────────────────── */
+
+.dayTopRow {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 24px;
+}
+
+.lunarDay {
+  font-size: 9px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.2;
+}
+
+.lunarFirstDay {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
 .dayCellEvents {
   display: flex;
   flex-direction: column;
@@ -1024,6 +1047,10 @@
 
   .dayCell {
     min-height: 72px;
+  }
+
+  .lunarDay {
+    font-size: 8px;
   }
 
   .eventChip {

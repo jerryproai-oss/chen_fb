@@ -15,6 +15,7 @@ import {
   Check,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
+import { solarToLunar } from '@/lib/lunar';
 import type { FamilyEventItem, UserProfile } from '@/lib/types';
 import styles from './page.module.css';
 
@@ -45,6 +46,25 @@ const RECURRING_LABELS: Record<string, string> = {
 };
 
 type ViewMode = 'month' | 'week' | 'day';
+
+/** 取得農曆文字標籤：初一時顯示月名，其餘顯示日名 */
+function getLunarLabel(dateString: string): { text: string; isFirstDay: boolean } | null {
+  const { y, m, d } = parseDateStr(dateString);
+  const lunar = solarToLunar(y, m, d);
+  if (!lunar) return null;
+  if (lunar.day === 1) {
+    return { text: lunar.monthName, isFirstDay: true };
+  }
+  return { text: lunar.dayName, isFirstDay: false };
+}
+
+/** 取得完整農曆日期描述 */
+function getLunarFullText(dateString: string): string {
+  const { y, m, d } = parseDateStr(dateString);
+  const lunar = solarToLunar(y, m, d);
+  if (!lunar) return '';
+  return `${lunar.yearName} ${lunar.monthName}${lunar.dayName}`;
+}
 
 function pad2(n: number): string {
   return String(n).padStart(2, '0');
@@ -199,7 +219,9 @@ export default function CalendarPage() {
     } else {
       const { y, m, d } = parseDateStr(selectedDate);
       const date = new Date(y, m - 1, d);
-      return `${y}年${m}月${d}日 ${WEEKDAYS[date.getDay()]}`;
+      const lunarText = getLunarFullText(selectedDate);
+      const base = `${y}年${m}月${d}日 ${WEEKDAYS[date.getDay()]}`;
+      return lunarText ? `${base}　${lunarText}` : base;
     }
   }, [viewMode, currentYear, currentMonth, selectedDate]);
 
@@ -463,7 +485,9 @@ export default function CalendarPage() {
   const selectedDateTitle = useMemo(() => {
     const { y, m, d } = parseDateStr(selectedDate);
     const date = new Date(y, m - 1, d);
-    return `${y}年${m}月${d}日（${WEEKDAYS[date.getDay()]}）`;
+    const lunarText = getLunarFullText(selectedDate);
+    const base = `${y}年${m}月${d}日（${WEEKDAYS[date.getDay()]}）`;
+    return lunarText ? `${base} ${lunarText}` : base;
   }, [selectedDate]);
 
   // ── 週視圖資料 ────────────────────────────────────────────
@@ -595,6 +619,7 @@ export default function CalendarPage() {
                             const isSelected = cell.date === selectedDate;
                             const singleEvents = singleEventsByDate[cell.date] || [];
                             const maxShow = maxRow > 0 ? 2 : 3;
+                            const lunarLabel = getLunarLabel(cell.date);
 
                             return (
                               <div
@@ -609,13 +634,20 @@ export default function CalendarPage() {
                                   }
                                 }}
                               >
-                                <span
-                                  className={`${styles.dayNumber} ${isToday ? styles.dayNumberToday : ''} ${
-                                    isSelected && !isToday ? styles.dayNumberSelected : ''
-                                  }`}
-                                >
-                                  {cell.day}
-                                </span>
+                                <div className={styles.dayTopRow}>
+                                  <span
+                                    className={`${styles.dayNumber} ${isToday ? styles.dayNumberToday : ''} ${
+                                      isSelected && !isToday ? styles.dayNumberSelected : ''
+                                    }`}
+                                  >
+                                    {cell.day}
+                                  </span>
+                                  {lunarLabel && (
+                                    <span className={`${styles.lunarDay} ${lunarLabel.isFirstDay ? styles.lunarFirstDay : ''}`}>
+                                      {lunarLabel.text}
+                                    </span>
+                                  )}
+                                </div>
                                 <div className={styles.dayCellEvents}>
                                   {singleEvents.slice(0, maxShow).map((ev) => (
                                     <div
