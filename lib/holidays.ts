@@ -195,23 +195,69 @@ function getLunarFestivals(year: number): HEntry[] {
 
   const festivals: HEntry[] = [];
 
-  // 除夕：前一年農曆十二月最後一天（三十或廿九）
-  const chuxi30 = lunarToSolar(year - 1, 12, 30);
-  const chuxi29 = lunarToSolar(year - 1, 12, 29);
-  // 如果三十日存在且合理（年份正確），用三十；否則用廿九
-  const chuxi = chuxi30 && chuxi30.year <= year ? chuxi30 : chuxi29;
-  if (chuxi) {
-    festivals.push(h(chuxi.month, chuxi.day, '除夕'));
-  }
-
-  // 春節初一～初三
+  // 春節初一
   const chunjie = lunarToSolar(year, 1, 1);
   if (chunjie) {
+    // 除夕：春節前一天（最簡單且正確，避免月末天數溢位問題）
+    const chuxiDate = new Date(chunjie.year, chunjie.month - 1, chunjie.day - 1);
+    festivals.push(h(chuxiDate.getMonth() + 1, chuxiDate.getDate(), '除夕'));
+
+    // 小年夜：除夕前一天
+    const xiaoDate = new Date(chunjie.year, chunjie.month - 1, chunjie.day - 2);
+    festivals.push(h(xiaoDate.getMonth() + 1, xiaoDate.getDate(), '小年夜', 'folk'));
+
+    // 春節初一～初三
     festivals.push(h(chunjie.month, chunjie.day, '春節（初一）'));
     const d2 = new Date(chunjie.year, chunjie.month - 1, chunjie.day + 1);
     festivals.push(h(d2.getMonth() + 1, d2.getDate(), '春節（初二）'));
     const d3 = new Date(chunjie.year, chunjie.month - 1, chunjie.day + 2);
     festivals.push(h(d3.getMonth() + 1, d3.getDate(), '春節（初三）'));
+
+    // 春節補假：初一～初三中落在週末的，自動計算補假
+    // 2026 起「只補假、不補班」
+    if (year >= 2026) {
+      const holidayDates = [
+        { name: '除夕', date: chuxiDate },
+        { name: '春節（初一）', date: new Date(chunjie.year, chunjie.month - 1, chunjie.day) },
+        { name: '春節（初二）', date: new Date(chunjie.year, chunjie.month - 1, chunjie.day + 1) },
+        { name: '春節（初三）', date: new Date(chunjie.year, chunjie.month - 1, chunjie.day + 2) },
+      ];
+
+      // 找出落在週末的假日
+      const weekendHolidays = holidayDates.filter(hd => {
+        const dow = hd.date.getDay();
+        return dow === 0 || dow === 6;
+      });
+
+      // 補假安排：在假期區間的最後一天之後，依序往後加工作日
+      if (weekendHolidays.length > 0) {
+        const lastHoliday = holidayDates[holidayDates.length - 1].date;
+        // 收集所有假日日期（含週末本身）以避免重疊
+        const allHolidaySet = new Set(
+          holidayDates.map(hd => hd.date.getTime())
+        );
+
+        let compensatoryDate = new Date(lastHoliday);
+        for (let i = 0; i < weekendHolidays.length; i++) {
+          // 往後找下一個工作日
+          compensatoryDate = new Date(compensatoryDate.getTime() + 86400000);
+          while (
+            compensatoryDate.getDay() === 0 ||
+            compensatoryDate.getDay() === 6 ||
+            allHolidaySet.has(compensatoryDate.getTime())
+          ) {
+            compensatoryDate = new Date(compensatoryDate.getTime() + 86400000);
+          }
+          allHolidaySet.add(compensatoryDate.getTime());
+          festivals.push(h(
+            compensatoryDate.getMonth() + 1,
+            compensatoryDate.getDate(),
+            `${weekendHolidays[i].name}補假`,
+            'compensatory',
+          ));
+        }
+      }
+    }
   }
 
   // 元宵節：正月十五
@@ -220,7 +266,20 @@ function getLunarFestivals(year: number): HEntry[] {
 
   // 端午節：五月初五
   const duanwu = lunarToSolar(year, 5, 5);
-  if (duanwu) festivals.push(h(duanwu.month, duanwu.day, '端午節'));
+  if (duanwu) {
+    festivals.push(h(duanwu.month, duanwu.day, '端午節'));
+    // 端午補假
+    if (year >= 2026) {
+      const duanwuDate = new Date(duanwu.year, duanwu.month - 1, duanwu.day);
+      const dow = duanwuDate.getDay();
+      if (dow === 6) {
+        festivals.push(h(duanwu.month, duanwu.day - 1, '端午節補假', 'compensatory'));
+      } else if (dow === 0) {
+        const next = new Date(duanwuDate.getTime() + 86400000);
+        festivals.push(h(next.getMonth() + 1, next.getDate(), '端午節補假', 'compensatory'));
+      }
+    }
+  }
 
   // 七夕：七月初七
   const qixi = lunarToSolar(year, 7, 7);
@@ -232,7 +291,20 @@ function getLunarFestivals(year: number): HEntry[] {
 
   // 中秋節：八月十五
   const zhongqiu = lunarToSolar(year, 8, 15);
-  if (zhongqiu) festivals.push(h(zhongqiu.month, zhongqiu.day, '中秋節'));
+  if (zhongqiu) {
+    festivals.push(h(zhongqiu.month, zhongqiu.day, '中秋節'));
+    // 中秋補假
+    if (year >= 2026) {
+      const zhongqiuDate = new Date(zhongqiu.year, zhongqiu.month - 1, zhongqiu.day);
+      const dow = zhongqiuDate.getDay();
+      if (dow === 6) {
+        festivals.push(h(zhongqiu.month, zhongqiu.day - 1, '中秋節補假', 'compensatory'));
+      } else if (dow === 0) {
+        const next = new Date(zhongqiuDate.getTime() + 86400000);
+        festivals.push(h(next.getMonth() + 1, next.getDate(), '中秋節補假', 'compensatory'));
+      }
+    }
+  }
 
   // 重陽節：九月初九
   const chongyang = lunarToSolar(year, 9, 9);
