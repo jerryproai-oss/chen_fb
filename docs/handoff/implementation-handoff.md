@@ -1,148 +1,119 @@
-# 設計開發交接狀態
+# 拾日（Shiri）開發交接狀態
 
-交接更新：2026-10-18 Phase 1 完成。專案：拾日家庭手札。
+交接更新：2026-10-20。專案：拾日家庭手札。
 
 ## 現況
 
-根目錄 `D:\Vibe Coding\Codex\chen_fb`。Git 已初始化，3 個 commit。
+根目錄 `D:\Vibe Coding\Codex\chen_fb`。生產環境：`fb.kiseki.me`（Synology DS920+ NAS Docker）。
 
-### Git 歷史
+### Git 歷史（近期）
 
 | Commit | 說明 |
 |--------|------|
-| `b391270` | 初始 commit — 設計文件、規格、交接 |
-| `4582ab5` | Phase 1 認證系統骨架 — 40 檔案 |
-| `7520e59` | AuthError 修復 + 負向測試 72/72 通過 |
+| `ef04ea9` | fix: #3 回憶卡片化 + #4 載入失敗提示與重試 |
+| `abcb52c` | feat: R08/R10 三行展開收合、影片Range串流、投票編輯載入 |
+| `d781a6b` | fix: 修正除夕日期bug + 春節/端午/中秋自動補假 |
+| `0f756bf` | refactor: 重整台灣節日資料（修正清明/冬至公式至2035） |
+| `73862dc` | feat: 行事曆加入農曆（農民曆）顯示 |
+| `6faa845` | feat: 共享保險庫功能 + 家庭成員 API |
+| `c63568d` | fix: 全面修正程式審查 P1（R01-R07, R09, R11） |
 
 ### 技術棧
 
-- Next.js 15.5.28 / React 19 / TypeScript 5
-- Prisma 7.10.1 + `@prisma/adapter-pg` driver adapter
-- PostgreSQL 16 (NAS Docker)
-- Vanilla CSS / Lucide React 1.59.0
+- Next.js 15 / React 19 / TypeScript 5
+- Prisma 7 + `@prisma/adapter-pg`
+- PostgreSQL 16 (Docker `postgres:16-alpine`)
+- CSS Modules（無 Tailwind）/ Lucide React
 - 無 email/SMTP/OAuth/雲端服務
-
-## Phase 1 已完成 ✅
-
-### 資料庫
-
-- Prisma Schema: `User`, `Session`, `AuditEvent`
-- Migration `20261018070528_init_auth_models` 已套用至 NAS PostgreSQL
-- DB 容器 `shiri-db-1` 運行於 NAS `/volume1/docker/shiri/`
-- DB 只在 `shiri-net` (internal) 網路，不對外暴露 port
-
-### 認證核心 (6 個模組)
-
-| 檔案 | 功能 |
-|------|------|
-| `lib/auth/password.ts` | argon2id 雜湊/驗證 |
-| `lib/auth/session.ts` | DB session、SHA-256 token hash、sliding expiry |
-| `lib/auth/middleware.ts` | `requireAuth()`, `requireAdmin()`, `withAuth()`, `withAdmin()` wrapper |
-| `lib/auth/rate-limit.ts` | In-memory sliding window rate limiter |
-| `lib/policy/authorization.ts` | 權限檢查 (停用/重設/改密碼) |
-| `lib/audit.ts` | 稽核日誌 (12 種 action) |
-
-### API Routes (7 個)
-
-| 路由 | 方法 | 功能 |
-|------|------|------|
-| `/api/auth/login` | POST | 登入 + rate limit |
-| `/api/auth/logout` | POST | 登出 |
-| `/api/me` | GET | 目前使用者資訊 |
-| `/api/me/password` | PUT | 改密碼 |
-| `/api/admin/users` | GET/POST | 使用者列表/建立 |
-| `/api/admin/users/[id]` | GET/PATCH | 使用者詳情/更新 |
-| `/api/admin/users/[id]/reset-password` | POST | 管理員重設密碼 |
-
-### UI
-
-- 登入頁 (`app/(auth)/login/page.tsx`)
-- 改密碼頁 (`app/(auth)/change-password/page.tsx`)
-- LoginForm / ChangePasswordForm 元件
-- CSS-only Spinner 元件
-- PWA manifest (`public/manifest.json`)
 
 ### 部署
 
-- `Dockerfile` (3-stage build)
-- `compose.yaml` (db + web services)
-- `scripts/init-admin.ts` — 互動式 CLI 建立初始管理員
+- **SSH**: `jerry@100.98.220.53`（Tailscale）
+- **Git remote `nas`**: `jerry@100.98.220.53:/volume1/docker/shiri/repo.git`
+- **部署指令**: push → pull → `docker compose build web` → `docker compose up -d web`
+- **DB**: `shiri-db` (postgres:16-alpine)，port 25432 **不對外暴露**
+- **Volumes**: `db-data`（資料庫）、`media-data`（媒體檔案）
+- **DB schema 變更**: 使用直接 SQL（`prisma db push` 在生產不可用）
 
-### 測試
+## 已完成功能
 
-- `tests/acc-auth.test.ts` — ACC-01~06 整合測試
-- **72 項全部通過** (0 失敗)
+### 核心
+- ✅ 認證系統（登入/登出/改密碼/首次改密碼強制）
+- ✅ 家庭成員管理（管理員建立/停用/重設密碼）
+- ✅ 貼文 CRUD（標題/副標/內文/受眾/日期/地點/背景色/里程碑）
+- ✅ 媒體上傳與顯示（圖片/影片/音訊，FB 風格網格，Range 串流）
+- ✅ 投票功能（建立/投票/結果/多選/截止時間/編輯載入）
+- ✅ 反應系統（7 種 emoji 反應 + 樂觀更新）
+- ✅ 留言系統（巢狀回覆/刪除/即時計數）
+- ✅ 收藏功能
+- ✅ 搜尋（全文/標籤/作者）
+- ✅ 標籤系統
+- ✅ 限時動態（StoryBar）
 
-| 測試群組 | 項目數 | 內容 |
-|----------|--------|------|
-| ACC-01 | 9 | ID 正規化登入 |
-| ACC-02 | 11 | 不存在/錯密碼/停用/空值/超長 |
-| ACC-03 | 12 | 臨時密碼/改密碼/session 保留/過期 |
-| ACC-04 | 14 | 管理員停用/重設/session 撤銷 |
-| ACC-05 | 12 | 登出/Cookie 屬性/Session 到期 |
-| ACC-06 | 12 | 未登入存取/權限隔離 |
-| Rate Limit | 2 | 反覆失敗觸發 429 |
+### 行事曆
+- ✅ 家庭事件 CRUD（單次/循環/跨天/顏色）
+- ✅ 月/週/日視圖
+- ✅ 農曆（農民曆）顯示（2024-2035 查表法）
+- ✅ 台灣國定假日/補假/紀念日/國際節日/民俗節日/節氣
+- ✅ 農曆節日自動推算（除夕/春節/端午/中秋等）
+- ✅ 春節/端午/中秋週末自動補假（2026 起）
+- ✅ 清明/冬至天文近似公式（已驗證 2024-2035）
+- ✅ 補假資料涵蓋 2024-2035
 
-## NAS 部署狀態
+### 特別區（Vault）
+- ✅ PIN 加密（AES-256-GCM + PBKDF2 客戶端加密）
+- ✅ 項目 CRUD（名稱/內容/附件）
+- ✅ 5 分鐘自動鎖定
+- ✅ 共享保險庫（家庭成員共同維護）
+- ✅ 改 PIN API 已阻止（501），待重新加密設計
 
-- SSH: `ssh jerry@192.168.1.126` (ed25519 key)
-- 路徑: `/volume1/docker/shiri/`
-- DB 容器: `shiri-db-1` (postgres:16-alpine)，healthy
-- DB 只在內部網路 `shiri-net`，web 容器透過 `db:5432` 連線
-- `.env` 在 NAS 上 (`/volume1/docker/shiri/.env`)
-- 網域: `fb.kiseki.me` (GoDaddy DNS 待設定)
+### 安全修正（c63568d）
+- ✅ R01: 新貼文預設改為 PRIVATE
+- ✅ R03: 首次改密碼後端強制限制（restrictedAuth）
+- ✅ R06: 貼文版本樂觀鎖（expectedVersion + 409 Conflict）
+- ✅ R07: 唯一管理員不可自我降權/停用
+- ✅ R09: 時區統一 Asia/Taipei
+- ✅ R11: Vault session 只存 token+salt（非原始 PIN）
 
-## 不能遺漏的歷次決定
+### P2 修正
+- ✅ R08: 媒體 Range/206 串流（不再全檔進記憶體）
+- ✅ R10: PostCard 三行預覽原地展開/收合（ResizeObserver）
+- ✅ #3: 歷年今日改為卡片式呈現
+- ✅ #4: 載入失敗區分提示 + 重試按鈕
 
-1. 私人家庭系統、家中與外出使用、不公開註冊。
-2. 程式碼 GitHub，正式執行 NAS Docker，自架開源 PostgreSQL；家庭內容不進 Git。
-3. 使用者自行設定網域 DNS 與對外連接；家人直接透過 HTTPS 登入，VPN 不再是必要條件。
-4. 純 ID＋密碼、管理員建立／重設；沒有 email、信箱驗證、SMTP、OAuth。
-5. 個人入口生活手札；主要導航只有生活手札與家庭動態；歷年今日直接在動態出現。
-6. 不重視讚數；九種心情必含收到與沒問題，與留言／文字 emoji 分開。
-7. 貼文主標、次標、內文、局部格式與 emoji；主標／次標可留空。
-8. 內文緊湊，最多三行預覽後可展開／收合；貼文及留言都有日期與時間。
-9. 隱私預設僅自己；家人可見不是公開網路；所有衍生內容繼承授權。
-10. AI 輔助由作者決定採用，未有真實供應商不得假裝生成。
-11. 所有影音格式是廣泛相容的目標，必須用格式矩陣與原檔／轉碼／拒絕分級處理，不承諾所有檔案都能播放。
-12. Web App 為主要形式（非原生 App），PWA 支援。
+## 已知限制 / 待完成
 
-## 已知技術要點
+### 安全
+- R04: Vault 改 PIN 需完整重新加密流程（目前 API 返回 501）
+- R05: Vault 相關 table 缺少正式 migration（目前用 db push 建立）
+- CSRF: 寫入請求缺 Origin/CSRF 驗證（SameSite=Lax 部分保護）
+- R02: compose.yaml 需確認 NAS 實際媒體掛載（已加 media-data volume）
 
-### Prisma 7 特性
-- `PrismaClient` 需要 `@prisma/adapter-pg` driver adapter，不支援直接連線
-- `datasource` block 無 `url`，由 `prisma.config.ts` 設定
-- 需要套件: `@prisma/adapter-pg`, `pg`
+### 功能
+- 寫作體驗: 標題仍強制必填、缺少自動儲存/草稿恢復
+- 回憶: 仍為獨立區塊，未整合進動態流
+- AI 功能: 尚無實際 AI provider 整合
 
-### NAS SSH 注意事項
-- PATH 必須手動設定: `export PATH=/usr/local/bin:/usr/bin:/bin:/sbin:/usr/sbin;`
-- SCP 不可用 (Synology 無 SFTP subsystem)，用 pipe 傳檔
-- PowerShell 用 `;` 不是 `&&` 串接命令
+### 基礎設施
+- ESLint 未設定（初始化問答未完成）
+- 隔離測試環境未建立
+- README 需更新實際啟動/測試/部署流程
+- .env.example 需補上 Compose 需要的變數
 
-## 已確認待開發功能 (Phase 2+)
+## 主要檔案路徑
 
-| 功能 | 說明 |
+| 類別 | 路徑 |
 |------|------|
-| PWA 離線支援 | Service Worker + 離線草稿 |
-| Web Push 通知 | 新留言/心情通知 |
-| 相機直拍 | MediaStream API |
-| 貼文釘選 | 家庭動態置頂 |
-| 日曆檢視 | 月曆瀏覽貼文 |
-| 成員頭像 | 自訂大頭貼 |
-| 地點標記 | Geolocation API |
-| 照片裁切 | 上傳前裁切/旋轉 |
-| FB 匯入 | 匯入 Facebook 資料包 |
-| PDF 匯出 | 貼文轉 PDF 紀念冊 |
-| 儲存空間儀表板 | NAS 用量監控 |
-| 2FA 雙因素認證 | TOTP 驗證 |
-| 家庭行事曆 | 共享行程 |
-| 年度回顧 | 自動產生年度精選 |
-| 語音轉文字 | 語音輸入貼文 |
-| 貼文範本 | 快速格式範本 |
-
-## 下一步
-
-1. **部署 web 容器到 NAS** — Docker build + push
-2. **設定 Synology 反向代理** — HTTPS for fb.kiseki.me
-3. **執行 init-admin** — NAS 上建立初始管理員
-4. **Phase 2: 貼文系統** — 草稿/發布/隱私/富文字/媒體上傳
+| 行事曆頁面 | `app/(main)/calendar/page.tsx` |
+| 行事曆 API | `app/api/calendar/route.ts` |
+| 節日資料 | `lib/holidays.ts` |
+| 農曆轉換 | `lib/lunar.ts` |
+| Vault 頁面 | `app/(main)/vault/page.tsx`, `vault/list/page.tsx` |
+| Vault API | `app/api/vault/{status,pin,unlock,items,members}/route.ts` |
+| Vault 加密 | `lib/vault/crypto.ts` |
+| 認證中介 | `lib/auth/middleware.ts` |
+| 貼文卡片 | `components/post/PostCard.tsx` |
+| 媒體 API | `app/api/media/[id]/route.ts` |
+| 家庭動態 | `app/(main)/family/page.tsx` |
+| 編輯頁面 | `app/(main)/write/[id]/page.tsx` |
+| Prisma Schema | `prisma/schema.prisma` |
