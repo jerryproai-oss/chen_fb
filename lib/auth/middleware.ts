@@ -150,6 +150,66 @@ export async function getCurrentUser(): Promise<AuthenticatedContext | null> {
   }
 }
 
+// ── CSRF Origin 驗證 ─────────────────────────────────────────
+
+/** 需要 Origin 驗證的 HTTP 方法（會修改資料的操作） */
+const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+/**
+ * 驗證請求的 Origin 是否合法。
+ * 對 POST/PUT/PATCH/DELETE 檢查 Origin（或 Referer）header
+ * 是否與 APP_ORIGIN 同源，以防範 CSRF 攻擊。
+ *
+ * @returns 驗證失敗時回傳 NextResponse（403），成功時回傳 null
+ */
+export function validateOrigin(req: NextRequest): NextResponse | null {
+  if (!MUTATING_METHODS.has(req.method)) return null;
+
+  const appOrigin = process.env.APP_ORIGIN;
+  if (!appOrigin) return null; // 未設定 APP_ORIGIN 時跳過（開發環境）
+
+  const origin = req.headers.get('origin');
+  const referer = req.headers.get('referer');
+
+  // 優先檢查 Origin header
+  if (origin) {
+    if (origin !== appOrigin) {
+      return NextResponse.json(
+        { error: '請求來源不合法' },
+        { status: 403 },
+      );
+    }
+    return null;
+  }
+
+  // Origin 不存在時檢查 Referer
+  if (referer) {
+    try {
+      const refererUrl = new URL(referer);
+      const expectedUrl = new URL(appOrigin);
+      if (refererUrl.origin !== expectedUrl.origin) {
+        return NextResponse.json(
+          { error: '請求來源不合法' },
+          { status: 403 },
+        );
+      }
+      return null;
+    } catch {
+      return NextResponse.json(
+        { error: '無效的 Referer' },
+        { status: 403 },
+      );
+    }
+  }
+
+  // Origin 與 Referer 都不存在 — 拒絕修改型請求
+  // 正常瀏覽器的 POST/PUT/PATCH/DELETE 一定會帶 Origin
+  return NextResponse.json(
+    { error: '缺少來源標頭' },
+    { status: 403 },
+  );
+}
+
 // ── Route Handler Wrapper ────────────────────────────────────
 
 /**
@@ -174,6 +234,10 @@ export function withAuth(
 ) {
   return async (req: NextRequest, routeCtx: RouteContext) => {
     try {
+      // CSRF Origin 驗證
+      const originError = validateOrigin(req);
+      if (originError) return originError;
+
       const ctx = await requireAuth();
       return await handler(ctx, req, routeCtx);
     } catch (e) {
@@ -201,6 +265,10 @@ export function withAdmin(
 ) {
   return async (req: NextRequest, routeCtx: RouteContext) => {
     try {
+      // CSRF Origin 驗證
+      const originError = validateOrigin(req);
+      if (originError) return originError;
+
       const ctx = await requireAdmin();
       return await handler(ctx, req, routeCtx);
     } catch (e) {
@@ -227,6 +295,10 @@ export function withAuthAllowRestricted(
 ) {
   return async (req: NextRequest, routeCtx: RouteContext) => {
     try {
+      // CSRF Origin 驗證
+      const originError = validateOrigin(req);
+      if (originError) return originError;
+
       const ctx = await requireAuthAllowRestricted();
       return await handler(ctx, req, routeCtx);
     } catch (e) {

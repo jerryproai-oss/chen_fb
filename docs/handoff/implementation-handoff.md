@@ -1,6 +1,6 @@
 # 拾日（Shiri）開發交接狀態
 
-交接更新：2026-10-20。專案：拾日家庭手札。
+交接更新：2026-10-20（第二次）。專案：拾日家庭手札。
 
 ## 現況
 
@@ -10,6 +10,7 @@
 
 | Commit | 說明 |
 |--------|------|
+| `17534e5` | feat(#2): 標題改選填、自動儲存草稿 |
 | `ef04ea9` | fix: #3 回憶卡片化 + #4 載入失敗提示與重試 |
 | `abcb52c` | feat: R08/R10 三行展開收合、影片Range串流、投票編輯載入 |
 | `d781a6b` | fix: 修正除夕日期bug + 春節/端午/中秋自動補假 |
@@ -81,16 +82,26 @@
 - ✅ #3: 歷年今日改為卡片式呈現
 - ✅ #4: 載入失敗區分提示 + 重試按鈕
 
+### 寫作體驗 (#2)
+- ✅ 標題改選填（標題+內容+媒體至少需要一項）
+- ✅ 空標題自動補為「無標題」（API 端）
+- ✅ localStorage 自動儲存草稿（每 10 秒）
+- ✅ 初始載入恢復草稿、提交成功後清除
+
+### CSRF 保護 (#1)
+- ✅ Origin/Referer 驗證（所有修改型 API：POST/PUT/PATCH/DELETE）
+- ✅ `withAuth`/`withAdmin`/`withAuthAllowRestricted` wrapper 內建保護
+- ✅ 登出 API 也加入 Origin 驗證
+- ✅ 搭配 SameSite=Lax + httpOnly cookie 雙重防護
+
 ## 已知限制 / 待完成
 
 ### 安全
 - R04: Vault 改 PIN 需完整重新加密流程（目前 API 返回 501）
 - R05: Vault 相關 table 缺少正式 migration（目前用 db push 建立）
-- CSRF: 寫入請求缺 Origin/CSRF 驗證（SameSite=Lax 部分保護）
 - R02: compose.yaml 需確認 NAS 實際媒體掛載（已加 media-data volume）
 
 ### 功能
-- 寫作體驗: 標題仍強制必填、缺少自動儲存/草稿恢復
 - 回憶: 仍為獨立區塊，未整合進動態流
 - AI 功能: 尚無實際 AI provider 整合
 

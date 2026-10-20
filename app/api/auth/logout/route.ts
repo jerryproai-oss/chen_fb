@@ -5,6 +5,7 @@ import {
   revokeSession,
   deleteSessionCookie,
 } from '@/lib/auth/session';
+import { validateOrigin } from '@/lib/auth/middleware';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
 
 /**
@@ -16,6 +17,9 @@ import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
  * - 未登入也回 200，不洩漏使用者狀態
  */
 export async function POST(request: NextRequest) {
+  // CSRF Origin 驗證
+  const originError = validateOrigin(request);
+  if (originError) return originError;
   const token = request.cookies.get(COOKIE_NAME)?.value;
 
   if (token) {
