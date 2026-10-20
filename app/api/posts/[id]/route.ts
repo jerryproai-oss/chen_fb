@@ -205,6 +205,7 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     bgColor,
     isMilestone,
     milestoneType,
+    expectedVersion,
   } = body as Record<string, unknown>;
 
   // ── 構建更新資料 ────────────────────────────────────
@@ -488,7 +489,9 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
   }
 
   // ── 更新貼文 ────────────────────────────────────────
-  const updatedPost = await prisma.$transaction(async (tx) => {
+  let updatedPost;
+  try {
+    updatedPost = await prisma.$transaction(async (tx) => {
     // 如果 visibility 改變或有新的 audienceUserIds，更新 audiences
     const needUpdateAudiences =
       (visibility !== undefined && effectiveVisibility !== existingPost.visibility) ||
@@ -531,8 +534,14 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
 
     await syncPostTags(tx, id, textForTags, user.id);
 
+    // 樂觀鎖定：如果提供了 expectedVersion，確認版本一致
+    const whereCondition: Record<string, unknown> = { id };
+    if (typeof expectedVersion === 'number') {
+      whereCondition.version = expectedVersion;
+    }
+
     return tx.post.update({
-      where: { id },
+      where: whereCondition as { id: string; version?: number },
       data: updateData,
       include: {
         author: {
@@ -560,6 +569,21 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
       },
     });
   });
+  } catch (err) {
+    // 樂觀鎖定衝突：版本不符時 Prisma 會拋出 P2025
+    if (
+      typeof err === 'object' &&
+      err !== null &&
+      'code' in err &&
+      (err as { code: string }).code === 'P2025'
+    ) {
+      return NextResponse.json(
+        { error: '此貼文已被其他人修改，請重新載入後再試' },
+        { status: 409 },
+      );
+    }
+    throw err;
+  }
 
   // ── 稽核 ────────────────────────────────────────────
   await logAudit({

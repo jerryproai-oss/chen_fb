@@ -104,6 +104,7 @@ export const PRESET_BG_COLORS = [
 
 export interface PostDetail extends PostSummary {
   bodyJson: string | null;
+  version?: number;
   audiences?: { userId: string; user: { id: string; displayName: string } }[];
 }
 

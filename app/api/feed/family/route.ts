@@ -121,10 +121,11 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
   const nextCursor = hasMore ? resultPosts[resultPosts.length - 1].id : null;
 
   // ── 歷年今日 ────────────────────────────────────────
-  const now = new Date();
-  const todayMonth = now.getMonth() + 1; // 1-12
-  const todayDay = now.getDate();
-  const currentYear = now.getFullYear();
+  // 使用 Asia/Taipei 時區計算今天的月日
+  const nowTW = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+  const todayMonth = nowTW.getMonth() + 1; // 1-12
+  const todayDay = nowTW.getDate();
+  const currentYear = nowTW.getFullYear();
 
   // 查找 recordDate 月日與今天相同、年份不同的可見貼文
   // 使用 Prisma 原始查詢來精確比對月和日

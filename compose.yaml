@@ -36,9 +36,12 @@ services:
     networks:
       - shiri-net
       - default
+    volumes:
+      - media-data:/data/media
 
 volumes:
   db-data:
+  media-data:
 
 networks:
   shiri-net:

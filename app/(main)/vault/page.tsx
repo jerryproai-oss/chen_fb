@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Lock, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { deriveKey } from '@/lib/vault/crypto';
+import { setVaultKey } from '@/lib/vault/keystore';
 import styles from './page.module.css';
 
 /**
@@ -73,10 +75,12 @@ export default function VaultPage() {
       });
       if (unlockRes.ok) {
         const unlockData = await unlockRes.json();
+        // 衍生加密金鑰存入記憶體（不存 PIN 到 sessionStorage）
+        const key = await deriveKey(pin, data.salt);
+        setVaultKey(key);
         sessionStorage.setItem('vault-token', unlockData.token);
         sessionStorage.setItem('vault-salt', data.salt);
         sessionStorage.setItem('vault-expires', String(unlockData.expiresAt));
-        sessionStorage.setItem('vault-pin', pin);
         router.push('/vault/list');
       }
     } catch {
@@ -105,10 +109,12 @@ export default function VaultPage() {
         return;
       }
       const data = await res.json();
+      // 衍生加密金鑰存入記憶體（不存 PIN 到 sessionStorage）
+      const key = await deriveKey(pin, data.salt);
+      setVaultKey(key);
       sessionStorage.setItem('vault-token', data.token);
       sessionStorage.setItem('vault-salt', data.salt);
       sessionStorage.setItem('vault-expires', String(data.expiresAt));
-      sessionStorage.setItem('vault-pin', pin);
       router.push('/vault/list');
     } catch {
       setError('網路錯誤，請稍後再試');

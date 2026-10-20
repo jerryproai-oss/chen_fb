@@ -15,8 +15,15 @@ import PageHeader from '@/components/ui/PageHeader';
 import styles from './page.module.css';
 
 function todayStr(): string {
+  // 使用 Asia/Taipei 時區取得今日日期，避免 UTC 凌晨跑到前一天
   const d = new Date();
-  return d.toISOString().split('T')[0];
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  return formatter.format(d); // yyyy-mm-dd
 }
 
 /**
@@ -27,7 +34,7 @@ export default function WritePage() {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [body, setBody] = useState('');
-  const [visibility, setVisibility] = useState<Visibility>('FAMILY');
+  const [visibility, setVisibility] = useState<Visibility>('PRIVATE');
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [recordDate, setRecordDate] = useState(todayStr());
   const [saving, setSaving] = useState(false);

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/client';
-import { withAuth } from '@/lib/auth/middleware';
+import { withAuth, withAuthAllowRestricted } from '@/lib/auth/middleware';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -11,7 +11,7 @@ const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
  * 取得目前登入使用者的基本資訊。
  * 回傳不含 passwordHash 等敏感欄位。
  */
-export const GET = withAuth(async ({ user }) => {
+export const GET = withAuthAllowRestricted(async ({ user }) => {
   return NextResponse.json({
     id: user.id,
     username: user.username,

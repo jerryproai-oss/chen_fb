@@ -41,6 +41,7 @@ export default function EditPostPage({
   const [bgColor, setBgColor] = useState<string | null>(null);
   const [isMilestone, setIsMilestone] = useState(false);
   const [milestoneType, setMilestoneType] = useState<string>('紀念日');
+  const [version, setVersion] = useState<number | null>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const subtitleRef = useRef<HTMLInputElement>(null);
@@ -101,6 +102,9 @@ export default function EditPostPage({
         if (post.milestoneType) {
           setMilestoneType(post.milestoneType);
         }
+        if (typeof post.version === 'number') {
+          setVersion(post.version);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : '載入失敗');
       } finally {
@@ -118,7 +122,7 @@ export default function EditPostPage({
     setError('');
 
     try {
-      const payload = {
+      const payload: Record<string, unknown> = {
         title: title.trim(),
         subtitle: subtitle.trim() || null,
         bodyPlainText: body.trim() || null,
@@ -133,6 +137,10 @@ export default function EditPostPage({
         milestoneType: isMilestone ? milestoneType : null,
       };
 
+      if (version !== null) {
+        payload.expectedVersion = version;
+      }
+
       const res = await fetch(`/api/posts/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -141,6 +149,11 @@ export default function EditPostPage({
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
+        if (res.status === 409) {
+          alert('此貼文已被其他人修改，請重新載入頁面後再試。');
+          setError(data.error || '版本衝突');
+          return;
+        }
         throw new Error(data.error || '儲存失敗');
       }
 

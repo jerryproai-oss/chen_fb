@@ -7,6 +7,7 @@ import {
   Trash2, ChevronLeft, Search, Copy, Eye, EyeOff,
 } from 'lucide-react';
 import { deriveKey, decrypt, encrypt } from '@/lib/vault/crypto';
+import { getVaultKey, clearVaultKey } from '@/lib/vault/keystore';
 import styles from './page.module.css';
 
 type VaultItem = {
@@ -82,21 +83,11 @@ export default function VaultListPage() {
 
         const data = await res.json();
 
-        // Derive key from PIN stored in memory (we use salt from session)
-        // The PIN was already used; we need to get it from sessionStorage
-        // Actually we derive from the stored PIN during unlock — key should be cached
-        // For now, we'll store the key in sessionStorage as a workaround
-        // Actually, we can't store CryptoKey in sessionStorage.
-        // The correct approach: re-derive from PIN. But we don't store PIN.
-        // Solution: store the PIN temporarily in sessionStorage (encrypted or hashed)
-        // Better: re-derive key using the PIN that's temporarily held
-        
-        // Get the PIN from sessionStorage (stored during unlock)
-        const pin = sessionStorage.getItem('vault-pin');
-        if (!pin) { router.replace('/vault'); return; }
-
+        // 從記憶體取得已衍生的加密金鑰（不再從 sessionStorage 讀 PIN）
         if (!cryptoKeyRef.current) {
-          cryptoKeyRef.current = await deriveKey(pin, salt);
+          const memKey = getVaultKey();
+          if (!memKey) { router.replace('/vault'); return; }
+          cryptoKeyRef.current = memKey;
         }
         const key = cryptoKeyRef.current;
 
@@ -155,7 +146,7 @@ export default function VaultListPage() {
     sessionStorage.removeItem('vault-token');
     sessionStorage.removeItem('vault-salt');
     sessionStorage.removeItem('vault-expires');
-    sessionStorage.removeItem('vault-pin');
+    clearVaultKey();
     cryptoKeyRef.current = null;
     router.replace('/vault');
   };

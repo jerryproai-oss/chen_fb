@@ -146,6 +146,19 @@ export const PATCH = withAdmin(async ({ user: admin }, request: NextRequest, rou
       );
     }
     updateData.role = role;
+
+    // 防止唯一管理員自我降權
+    if (role === 'MEMBER') {
+      const adminCount = await prisma.user.count({
+        where: { role: 'ADMIN', status: 'ACTIVE' },
+      });
+      if (adminCount <= 1 && targetUser.role === 'ADMIN') {
+        return NextResponse.json(
+          { error: '不能降權唯一的管理員，請先指定另一位管理員' },
+          { status: 403 },
+        );
+      }
+    }
   }
 
   // ── 驗證 status ────────────────────────────────────────
@@ -165,6 +178,19 @@ export const PATCH = withAdmin(async ({ user: admin }, request: NextRequest, rou
           { error: '不能停用自己的帳號' },
           { status: 403 },
         );
+      }
+
+      // 防止停用唯一的管理員
+      if (targetUser.role === 'ADMIN') {
+        const adminCount = await prisma.user.count({
+          where: { role: 'ADMIN', status: 'ACTIVE' },
+        });
+        if (adminCount <= 1) {
+          return NextResponse.json(
+            { error: '不能停用唯一的管理員，請先指定另一位管理員' },
+            { status: 403 },
+          );
+        }
       }
     }
 

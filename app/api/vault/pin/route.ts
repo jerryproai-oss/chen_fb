@@ -42,33 +42,12 @@ export const POST = withAuth(async ({ user }, req) => {
   return NextResponse.json({ success: true, salt });
 });
 
-// PUT — 更改 PIN
-export const PUT = withAuth(async ({ user }, req) => {
-  const body = await req.json();
-  const { oldPin, newPin } = body;
-
-  if (!oldPin || !newPin) {
-    return NextResponse.json({ error: '請提供舊密碼與新密碼' }, { status: 400 });
-  }
-
-  const err = validatePin(newPin);
-  if (err) return NextResponse.json({ error: err }, { status: 400 });
-
-  const record = await prisma.vaultPin.findUnique({ where: { userId: user.id } });
-  if (!record) {
-    return NextResponse.json({ error: '尚未設定密碼' }, { status: 404 });
-  }
-
-  const valid = await bcrypt.compare(oldPin, record.pinHash);
-  if (!valid) {
-    return NextResponse.json({ error: '舊密碼錯誤' }, { status: 401 });
-  }
-
-  const pinHash = await bcrypt.hash(newPin, 12);
-  await prisma.vaultPin.update({
-    where: { userId: user.id },
-    data: { pinHash },
-  });
-
-  return NextResponse.json({ success: true });
+// PUT — 更改 PIN（暫時停用）
+// 目前加密金鑰直接由 PIN+salt 推導，改 PIN 後既有內容無法解密。
+// 需實作資料重新加密流程後才能啟用此 API。
+export const PUT = withAuth(async () => {
+  return NextResponse.json(
+    { error: '目前暫不支援更改特別區密碼，此功能開發中' },
+    { status: 501 },
+  );
 });

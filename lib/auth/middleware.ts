@@ -63,6 +63,35 @@ export async function requireAuth(): Promise<AuthenticatedContext> {
     throw new AuthError(401, '登入已過期，請重新登入');
   }
 
+  // 強制要求更改密碼的使用者先變更密碼
+  if (result.user.mustChangePassword) {
+    throw new AuthError(403, '請先更改密碼');
+  }
+
+  return result;
+}
+
+/**
+ * 驗證當前請求的身份，但不檢查 mustChangePassword。
+ * 適用於更改密碼、登出、取得個人資訊等必須在密碼變更前可存取的端點。
+ *
+ * @returns 已驗證的使用者與 session
+ * @throws {AuthError} 401 — 未登入或 session 已失效
+ */
+export async function requireAuthAllowRestricted(): Promise<AuthenticatedContext> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(COOKIE_NAME)?.value;
+
+  if (!token) {
+    throw new AuthError(401, '未登入');
+  }
+
+  const result = await validateSession(token);
+
+  if (!result) {
+    throw new AuthError(401, '登入已過期，請重新登入');
+  }
+
   return result;
 }
 
@@ -173,6 +202,32 @@ export function withAdmin(
   return async (req: NextRequest, routeCtx: RouteContext) => {
     try {
       const ctx = await requireAdmin();
+      return await handler(ctx, req, routeCtx);
+    } catch (e) {
+      if (e instanceof AuthError) return e.response;
+      throw e;
+    }
+  };
+}
+
+/**
+ * 包裝允許受限使用者（須更改密碼）存取的 route handler。
+ * 使用 requireAuthAllowRestricted()，不檢查 mustChangePassword。
+ * 適用於 /api/me (GET)、/api/me/password、/api/auth/logout 等端點。
+ *
+ * @example
+ * ```ts
+ * export const GET = withAuthAllowRestricted(async ({ user }) => {
+ *   return NextResponse.json({ user });
+ * });
+ * ```
+ */
+export function withAuthAllowRestricted(
+  handler: (ctx: AuthenticatedContext, req: NextRequest, routeCtx: RouteContext) => Promise<NextResponse>,
+) {
+  return async (req: NextRequest, routeCtx: RouteContext) => {
+    try {
+      const ctx = await requireAuthAllowRestricted();
       return await handler(ctx, req, routeCtx);
     } catch (e) {
       if (e instanceof AuthError) return e.response;
