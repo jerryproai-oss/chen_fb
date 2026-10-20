@@ -13,6 +13,12 @@ export function createVaultSession(userId: string): { token: string; expiresAt: 
   return { token, expiresAt };
 }
 
+/**
+ * 驗證 vault session token
+ * @param token - vault session token
+ * @param userId - 呼叫 API 的使用者 ID（或保險庫擁有者 ID）
+ * @returns true if valid
+ */
 export function validateVaultSession(token: string, userId: string): boolean {
   const session = vaultSessions.get(token);
   if (!session) return false;
@@ -24,6 +30,22 @@ export function validateVaultSession(token: string, userId: string): boolean {
   // Extend expiry on use
   session.expiresAt = Date.now() + 5 * 60 * 1000;
   return true;
+}
+
+/**
+ * 取得 vault session 的擁有者 ID
+ * 用於共享保險庫：session 綁的是保險庫擁有者，而非操作者
+ */
+export function getVaultSessionOwnerId(token: string): string | null {
+  const session = vaultSessions.get(token);
+  if (!session) return null;
+  if (Date.now() > session.expiresAt) {
+    vaultSessions.delete(token);
+    return null;
+  }
+  // Extend expiry on use
+  session.expiresAt = Date.now() + 5 * 60 * 1000;
+  return session.userId;
 }
 
 export function revokeVaultSession(token: string): void {

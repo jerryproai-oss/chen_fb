@@ -2,18 +2,26 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { Lock, Eye, EyeOff, AlertTriangle, Users } from 'lucide-react';
 import { deriveKey } from '@/lib/vault/crypto';
 import { setVaultKey } from '@/lib/vault/keystore';
 import styles from './page.module.css';
 
+type SharedVault = {
+  ownerId: string;
+  ownerName: string;
+  ownerAvatar: string | null;
+};
+
 /**
  * Vault 入口頁 — PIN 驗證 / 首次設定
- * /vault 不出現在導航列
+ * /vault 不出現在導覽列
  */
 export default function VaultPage() {
   const router = useRouter();
   const [hasPin, setHasPin] = useState<boolean | null>(null);
+  const [sharedVaults, setSharedVaults] = useState<SharedVault[]>([]);
+  const [selectedVaultOwner, setSelectedVaultOwner] = useState<string | null>(null);
   const [pin, setPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [showPin, setShowPin] = useState(false);
@@ -22,12 +30,13 @@ export default function VaultPage() {
   const [setupMode, setSetupMode] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // 檢查是否已設定 Vault PIN
+  // 檢查是否已設定 Vault PIN + 共享保險庫
   useEffect(() => {
     fetch('/api/vault/status')
       .then((r) => r.json())
       .then((data) => {
         setHasPin(data.hasPin);
+        setSharedVaults(data.sharedVaults ?? []);
         if (!data.hasPin) setSetupMode(true);
       })
       .catch(() => setHasPin(false));
@@ -35,7 +44,7 @@ export default function VaultPage() {
 
   useEffect(() => {
     inputRef.current?.focus();
-  }, [hasPin, setupMode]);
+  }, [hasPin, setupMode, selectedVaultOwner]);
 
   // PIN 驗證規則：6-20 字元，需包含大寫+小寫字母+數字
   const validatePin = (p: string): string | null => {
@@ -81,6 +90,7 @@ export default function VaultPage() {
         sessionStorage.setItem('vault-token', unlockData.token);
         sessionStorage.setItem('vault-salt', data.salt);
         sessionStorage.setItem('vault-expires', String(unlockData.expiresAt));
+        sessionStorage.removeItem('vault-owner-id');
         router.push('/vault/list');
       }
     } catch {
@@ -90,16 +100,20 @@ export default function VaultPage() {
     }
   };
 
-  // 解鎖
+  // 解鎖（自己或共享保險庫）
   const handleUnlock = async () => {
     if (!pin) { setError('請輸入密碼'); return; }
     setLoading(true);
     setError('');
     try {
+      const body: Record<string, string> = { pin };
+      if (selectedVaultOwner) {
+        body.vaultOwnerId = selectedVaultOwner;
+      }
       const res = await fetch('/api/vault/unlock', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -115,6 +129,11 @@ export default function VaultPage() {
       sessionStorage.setItem('vault-token', data.token);
       sessionStorage.setItem('vault-salt', data.salt);
       sessionStorage.setItem('vault-expires', String(data.expiresAt));
+      if (selectedVaultOwner) {
+        sessionStorage.setItem('vault-owner-id', selectedVaultOwner);
+      } else {
+        sessionStorage.removeItem('vault-owner-id');
+      }
       router.push('/vault/list');
     } catch {
       setError('網路錯誤，請稍後再試');
@@ -130,6 +149,13 @@ export default function VaultPage() {
     }
   };
 
+  // 目前選擇的保險庫名稱
+  const getSelectedVaultLabel = () => {
+    if (!selectedVaultOwner) return '我的特別區';
+    const sv = sharedVaults.find((v) => v.ownerId === selectedVaultOwner);
+    return sv ? `${sv.ownerName} 的特別區` : '共享特別區';
+  };
+
   if (hasPin === null) {
     return <div className={styles.container}><div className={styles.loader}>載入中…</div></div>;
   }
@@ -141,13 +167,40 @@ export default function VaultPage() {
           <Lock size={40} />
         </div>
         <h1 className={styles.title}>
-          {setupMode ? '設定特別區密碼' : '特別區'}
+          {setupMode ? '設定特別區密碼' : getSelectedVaultLabel()}
         </h1>
         <p className={styles.subtitle}>
           {setupMode
             ? '設定一組專屬密碼來保護你的私密資料'
             : '輸入密碼以進入特別區'}
         </p>
+
+        {/* 共享保險庫選擇器（非設定模式且有共享保險庫時顯示） */}
+        {!setupMode && (hasPin || sharedVaults.length > 0) && (
+          <div className={styles.vaultSelector}>
+            {hasPin && (
+              <button
+                type="button"
+                className={`${styles.vaultOption} ${selectedVaultOwner === null ? styles.vaultOptionActive : ''}`}
+                onClick={() => { setSelectedVaultOwner(null); setPin(''); setError(''); }}
+              >
+                <Lock size={16} />
+                <span>我的特別區</span>
+              </button>
+            )}
+            {sharedVaults.map((sv) => (
+              <button
+                key={sv.ownerId}
+                type="button"
+                className={`${styles.vaultOption} ${selectedVaultOwner === sv.ownerId ? styles.vaultOptionActive : ''}`}
+                onClick={() => { setSelectedVaultOwner(sv.ownerId); setPin(''); setError(''); }}
+              >
+                <Users size={16} />
+                <span>{sv.ownerName}</span>
+              </button>
+            ))}
+          </div>
+        )}
 
         {setupMode && (
           <div className={styles.warning}>

@@ -55,7 +55,35 @@
   background-color: rgba(139, 111, 71, 0.08);
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.memberBtn {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  color: var(--color-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  justify-content: center;
+  transition: background-color var(--transition-fast);
+}
+
+.memberBtn:hover {
+  background-color: rgba(90, 122, 90, 0.08);
+}
+
 .errorBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-sm);
   background-color: rgba(192, 80, 80, 0.08);
@@ -63,6 +91,17 @@
   color: var(--color-error);
   font-size: var(--font-size-sm);
   margin-bottom: var(--space-md);
+}
+
+.errorClose {
+  background: none;
+  border: none;
+  color: var(--color-error);
+  cursor: pointer;
+  padding: 4px 8px;
+  font-size: var(--font-size-sm);
+  min-width: 32px;
+  min-height: 32px;
 }
 
 /* Search */
@@ -388,4 +427,104 @@
   padding: var(--space-2xl);
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
+}
+
+/* ── 成員管理面板 ───────────────────────────────────────── */
+
+.memberPanel {
+  background-color: var(--color-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border-light);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.memberPanelHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: var(--space-sm);
+}
+
+.memberPanelHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--space-sm);
+}
+
+.memberSection {
+  margin-top: var(--space-sm);
+}
+
+.memberSectionTitle {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.memberRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) 0;
+  min-height: 44px;
+}
+
+.memberName {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.memberRemoveBtn {
+  background: none;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  padding: 6px;
+  color: var(--color-error);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  transition: all var(--transition-fast);
+}
+
+.memberRemoveBtn:hover {
+  background-color: rgba(192, 80, 80, 0.08);
+  border-color: var(--color-error);
+}
+
+.memberAddBtn {
+  background: none;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  padding: 6px;
+  color: var(--color-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  transition: all var(--transition-fast);
+}
+
+.memberAddBtn:hover {
+  background-color: rgba(90, 122, 90, 0.08);
+  border-color: var(--color-primary);
+}
+
+.memberAddBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

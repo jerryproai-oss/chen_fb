@@ -77,6 +77,8 @@ model User {
   stories       Story[]
   vaultPin      VaultPin?
   vaultItems    VaultItem[]
+  vaultOwnedShares  VaultMember[] @relation("vaultOwner")
+  vaultMemberShares VaultMember[] @relation("vaultMember")
 
   @@map("users")
 }
@@ -425,6 +427,7 @@ model VaultPin {
 model VaultItem {
   id           String   @id @default(uuid()) @db.Uuid
   userId       String   @map("user_id") @db.Uuid
+  createdBy    String?  @map("created_by") @db.Uuid
   titleEnc     String   @map("title_enc")
   contentEnc   String   @map("content_enc")
   category     String   @default("NOTE")
@@ -451,4 +454,17 @@ model VaultAttachment {
 
   item VaultItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
   @@map("vault_attachments")
+}
+
+model VaultMember {
+  id        String   @id @default(uuid()) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  memberId  String   @map("member_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  owner  User @relation("vaultOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  member User @relation("vaultMember", fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, memberId])
+  @@map("vault_members")
 }

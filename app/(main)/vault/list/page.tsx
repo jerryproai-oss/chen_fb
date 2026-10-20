@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import {
   Lock, Plus, KeyRound, FileText, Package,
   Trash2, ChevronLeft, Search, Copy, Eye, EyeOff,
+  Users, UserPlus, UserMinus, Shield,
 } from 'lucide-react';
 import { deriveKey, decrypt, encrypt } from '@/lib/vault/crypto';
 import { getVaultKey, clearVaultKey } from '@/lib/vault/keystore';
+import Avatar from '@/components/ui/Avatar';
 import styles from './page.module.css';
 
 type VaultItem = {
@@ -16,6 +18,7 @@ type VaultItem = {
   contentEnc: string;
   category: string;
   iv: string;
+  createdBy?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -25,8 +28,23 @@ type DecryptedItem = {
   title: string;
   content: string;
   category: string;
+  createdBy?: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+type VaultMemberInfo = {
+  id: string;
+  userId: string;
+  displayName: string;
+  avatarUrl: string | null;
+  createdAt: string;
+};
+
+type FamilyMember = {
+  id: string;
+  displayName: string;
+  avatarUrl: string | null;
 };
 
 const CATEGORIES = [
@@ -54,6 +72,15 @@ export default function VaultListPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const cryptoKeyRef = useRef<CryptoKey | null>(null);
 
+  // 共享保險庫相關
+  const [isSharedVault, setIsSharedVault] = useState(false);
+  const [vaultOwnerId, setVaultOwnerId] = useState<string | null>(null);
+  const [showMemberPanel, setShowMemberPanel] = useState(false);
+  const [vaultMembers, setVaultMembers] = useState<VaultMemberInfo[]>([]);
+  const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+  const [addingMember, setAddingMember] = useState(false);
+
   const getVaultToken = useCallback(() => sessionStorage.getItem('vault-token'), []);
   const getSalt = useCallback(() => sessionStorage.getItem('vault-salt'), []);
 
@@ -63,6 +90,13 @@ export default function VaultListPage() {
     const expires = sessionStorage.getItem('vault-expires');
     if (!token || !expires || Date.now() > Number(expires)) {
       router.replace('/vault');
+      return;
+    }
+    // 檢查是否為共享保險庫
+    const owId = sessionStorage.getItem('vault-owner-id');
+    if (owId) {
+      setVaultOwnerId(owId);
+      setIsSharedVault(true);
     }
   }, [router, getVaultToken]);
 
@@ -82,6 +116,7 @@ export default function VaultListPage() {
         if (!res.ok) throw new Error('載入失敗');
 
         const data = await res.json();
+        setIsSharedVault(data.isShared ?? false);
 
         // 從記憶體取得已衍生的加密金鑰（不再從 sessionStorage 讀 PIN）
         if (!cryptoKeyRef.current) {
@@ -106,6 +141,7 @@ export default function VaultListPage() {
               title,
               content,
               category: item.category,
+              createdBy: item.createdBy,
               createdAt: item.createdAt,
               updatedAt: item.updatedAt,
             });
@@ -115,6 +151,7 @@ export default function VaultListPage() {
               title: '⚠️ 解密失敗',
               content: '無法解密此項目',
               category: item.category,
+              createdBy: item.createdBy,
               createdAt: item.createdAt,
               updatedAt: item.updatedAt,
             });
@@ -146,9 +183,79 @@ export default function VaultListPage() {
     sessionStorage.removeItem('vault-token');
     sessionStorage.removeItem('vault-salt');
     sessionStorage.removeItem('vault-expires');
+    sessionStorage.removeItem('vault-owner-id');
     clearVaultKey();
     cryptoKeyRef.current = null;
     router.replace('/vault');
+  };
+
+  // 載入共享成員列表
+  const loadMembers = async () => {
+    setLoadingMembers(true);
+    try {
+      const [membersRes, familyRes] = await Promise.all([
+        fetch('/api/vault/members'),
+        fetch('/api/family/members'),
+      ]);
+      if (membersRes.ok) {
+        const data = await membersRes.json();
+        setVaultMembers(data.members ?? []);
+      }
+      if (familyRes.ok) {
+        const data = await familyRes.json();
+        setFamilyMembers(data.members ?? []);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingMembers(false);
+    }
+  };
+
+  const handleToggleMemberPanel = () => {
+    if (!showMemberPanel) {
+      loadMembers();
+    }
+    setShowMemberPanel(!showMemberPanel);
+  };
+
+  const handleAddMember = async (memberId: string) => {
+    setAddingMember(true);
+    try {
+      const res = await fetch('/api/vault/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || '新增失敗');
+        return;
+      }
+      await loadMembers();
+    } catch {
+      setError('新增成員失敗');
+    } finally {
+      setAddingMember(false);
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string) => {
+    try {
+      const res = await fetch('/api/vault/members', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ memberId }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || '移除失敗');
+        return;
+      }
+      setVaultMembers((prev) => prev.filter((m) => m.userId !== memberId));
+    } catch {
+      setError('移除成員失敗');
+    }
   };
 
   const handleAdd = async () => {
@@ -160,22 +267,6 @@ export default function VaultListPage() {
     setSaving(true);
     try {
       const { ciphertext: titleEnc, iv } = await encrypt(key, newTitle.trim());
-      const { ciphertext: contentEnc } = await encrypt(key, newContent.trim() || ' ');
-      // Use same IV for both title and content for simplicity
-      // Actually each encrypt generates its own IV. We need to store one IV.
-      // Let's use the title's IV for the item-level IV and re-encrypt content with same IV.
-      // Better: store both ciphertexts with the title's IV since we encrypt with same key
-      // Actually the IV must match the encryption. Let's just concatenate.
-      // Simplest approach: use the item's IV for title, content gets its own IV embedded.
-      
-      // For now: use title IV as the item IV, encrypt content separately
-      // On decrypt: use item IV for title, use item IV for content too
-      // But this is insecure — same IV reuse with same key!
-      // Proper fix: store separate IVs or generate per-field
-      
-      // Let's encrypt both with the same IV for the MVP but note this should be improved
-      // Actually AES-GCM is broken with IV reuse. Let's fix this properly.
-      // We'll encrypt title and content independently, and combine their IVs
       const contentResult = await encrypt(key, newContent.trim() || ' ');
       // Store as: titleIV|contentIV (separated by |)
       const combinedIv = iv + '|' + contentResult.iv;
@@ -205,6 +296,7 @@ export default function VaultListPage() {
         title: newTitle.trim(),
         content: newContent.trim() || ' ',
         category: newCategory,
+        createdBy: resData.item.createdBy,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }, ...prev]);
@@ -231,6 +323,11 @@ export default function VaultListPage() {
         headers: { 'x-vault-token': token },
       });
       if (res.status === 401) { router.replace('/vault'); return; }
+      if (res.status === 403) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || '沒有刪除權限');
+        return;
+      }
       if (!res.ok) throw new Error('刪除失敗');
       setItems(prev => prev.filter(item => item.id !== id));
       if (expandedId === id) setExpandedId(null);
@@ -282,6 +379,11 @@ export default function VaultListPage() {
     }
   };
 
+  // 可加入共享的家人（排除已是成員者）
+  const availableFamily = familyMembers.filter(
+    (fm) => !vaultMembers.some((vm) => vm.userId === fm.id),
+  );
+
   if (loading) {
     return <div className={styles.container}><div className={styles.loader}>載入中…</div></div>;
   }
@@ -294,15 +396,93 @@ export default function VaultListPage() {
           <ChevronLeft size={20} />
         </button>
         <h1 className={styles.title}>
-          <Lock size={18} />
-          <span>特別區</span>
+          {isSharedVault ? <Users size={18} /> : <Lock size={18} />}
+          <span>{isSharedVault ? '共享特別區' : '特別區'}</span>
         </h1>
-        <button className={styles.lockBtn} onClick={handleLock} type="button" title="上鎖">
-          <Lock size={18} />
-        </button>
+        <div className={styles.headerActions}>
+          {/* 成員管理按鈕 — 僅自己的保險庫且非共享檢視時顯示 */}
+          {!isSharedVault && !vaultOwnerId && (
+            <button
+              className={styles.memberBtn}
+              onClick={handleToggleMemberPanel}
+              type="button"
+              title="共享管理"
+            >
+              <Users size={18} />
+            </button>
+          )}
+          <button className={styles.lockBtn} onClick={handleLock} type="button" title="上鎖">
+            <Lock size={18} />
+          </button>
+        </div>
       </div>
 
-      {error && <div className={styles.errorBanner}>{error}</div>}
+      {error && (
+        <div className={styles.errorBanner}>
+          {error}
+          <button type="button" onClick={() => setError('')} className={styles.errorClose}>✕</button>
+        </div>
+      )}
+
+      {/* 成員管理面板 */}
+      {showMemberPanel && (
+        <div className={styles.memberPanel}>
+          <div className={styles.memberPanelHeader}>
+            <Shield size={16} />
+            <span>共享成員管理</span>
+          </div>
+          <p className={styles.memberPanelHint}>
+            共享成員使用你的密碼登入，可查看與新增項目，但不能刪除他人建立的項目。
+          </p>
+
+          {/* 已共享成員 */}
+          {vaultMembers.length > 0 && (
+            <div className={styles.memberSection}>
+              <h3 className={styles.memberSectionTitle}>已共享</h3>
+              {vaultMembers.map((member) => (
+                <div key={member.id} className={styles.memberRow}>
+                  <Avatar name={member.displayName} avatarUrl={member.avatarUrl} size="sm" />
+                  <span className={styles.memberName}>{member.displayName}</span>
+                  <button
+                    type="button"
+                    className={styles.memberRemoveBtn}
+                    onClick={() => handleRemoveMember(member.userId)}
+                    title="移除"
+                  >
+                    <UserMinus size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 可加入的家人 */}
+          {loadingMembers ? (
+            <p className={styles.memberPanelHint}>載入中…</p>
+          ) : availableFamily.length > 0 ? (
+            <div className={styles.memberSection}>
+              <h3 className={styles.memberSectionTitle}>可加入</h3>
+              {availableFamily.map((fm) => (
+                <div key={fm.id} className={styles.memberRow}>
+                  <Avatar name={fm.displayName} avatarUrl={fm.avatarUrl} size="sm" />
+                  <span className={styles.memberName}>{fm.displayName}</span>
+                  <button
+                    type="button"
+                    className={styles.memberAddBtn}
+                    onClick={() => handleAddMember(fm.id)}
+                    disabled={addingMember}
+                    title="加入"
+                  >
+                    <UserPlus size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : vaultMembers.length === 0 ? (
+            <p className={styles.memberPanelHint}>目前沒有其他家庭成員可加入</p>
+          ) : null}
+        </div>
+      )}
 
       {/* Search */}
       <div className={styles.searchWrapper}>
