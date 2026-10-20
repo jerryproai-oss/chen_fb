@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { MapPin, Check } from 'lucide-react';
 import type { Visibility, PollInput } from '@/lib/types';
@@ -49,7 +49,47 @@ export default function WritePage() {
   const titleRef = useRef<HTMLInputElement>(null);
   const subtitleRef = useRef<HTMLInputElement>(null);
 
-  const isDirty = !!(title.trim() || body.trim() || subtitle.trim());
+  const isDirty = !!(title.trim() || body.trim() || subtitle.trim() || mediaIds.length > 0);
+
+  // ── 自動儲存草稿到 localStorage ──────────────────
+  const DRAFT_KEY = 'shiri-draft';
+
+  // 初始載入時恢復草稿
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFT_KEY);
+      if (saved) {
+        const draft = JSON.parse(saved);
+        if (draft.title) setTitle(draft.title);
+        if (draft.subtitle) setSubtitle(draft.subtitle);
+        if (draft.body) setBody(draft.body);
+        if (draft.locationName) setLocationName(draft.locationName);
+      }
+    } catch {
+      // 忽略解析錯誤
+    }
+  }, []);
+
+  // 定時儲存（每 10 秒）
+  const saveDraft = useCallback(() => {
+    const hasContent = title.trim() || body.trim() || subtitle.trim();
+    if (hasContent) {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        title, subtitle, body, locationName,
+        savedAt: new Date().toISOString(),
+      }));
+    }
+  }, [title, subtitle, body, locationName]);
+
+  useEffect(() => {
+    const timer = setInterval(saveDraft, 10000);
+    return () => clearInterval(timer);
+  }, [saveDraft]);
+
+  // 成功提交後清除草稿
+  const clearDraft = () => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* */ }
+  };
 
   const handleCancel = () => {
     if (isDirty) {
@@ -61,7 +101,7 @@ export default function WritePage() {
     }
   };
 
-  const canSubmit = title.trim().length > 0 && !saving;
+  const canSubmit = (title.trim().length > 0 || body.trim().length > 0 || mediaIds.length > 0) && !saving;
 
   /** 在 input 的游標位置插入 emoji */
   function insertEmojiToInput(
@@ -122,6 +162,7 @@ export default function WritePage() {
       }
 
       const data = await res.json();
+      clearDraft();
       if (status === 'PUBLISHED') {
         router.push(`/posts/${data.post.id}`);
       } else {
@@ -143,7 +184,7 @@ export default function WritePage() {
 
         <div className={styles.field}>
           <label className={styles.fieldLabel} htmlFor="title">
-            標題<span className={styles.fieldRequired}>*</span>
+            標題
           </label>
           <div className={styles.inputWithEmoji}>
             <input
@@ -151,7 +192,7 @@ export default function WritePage() {
               ref={titleRef}
               type="text"
               className={styles.titleInput}
-              placeholder="今天發生了什麼？"
+              placeholder="為這篇手札取個標題（選填）"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               maxLength={100}

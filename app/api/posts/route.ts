@@ -212,16 +212,21 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
   }
 
   // ── 驗證 title ──────────────────────────────────────
-  if (typeof title !== 'string' || title.trim().length === 0) {
+  // 標題為選填，但標題+內容+媒體至少需要一項
+  if (title !== undefined && title !== null && typeof title === 'string' && title.trim().length > 200) {
     return NextResponse.json(
-      { error: '標題為必填' },
+      { error: '標題長度上限 200 字' },
       { status: 400 },
     );
   }
 
-  if (title.trim().length > 200) {
+  const trimmedTitle = (typeof title === 'string' ? title.trim() : '') || '';
+  const hasBody = typeof bodyPlainText === 'string' && bodyPlainText.trim().length > 0;
+  const hasMediaIds = Array.isArray(mediaIds) && mediaIds.length > 0;
+
+  if (!trimmedTitle && !hasBody && !hasMediaIds) {
     return NextResponse.json(
-      { error: '標題長度上限 200 字' },
+      { error: '請填寫標題、內容或上傳媒體（至少需要一項）' },
       { status: 400 },
     );
   }
@@ -432,7 +437,7 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
       data: {
         authorId: user.id,
         recordDate: parsedDate,
-        title: title.trim(),
+        title: trimmedTitle || '無標題',
         subtitle: subtitle ? (subtitle as string).trim() : null,
         bodyJson: (bodyJson as string) ?? null,
         bodyPlainText: (bodyPlainText as string) ?? null,

@@ -229,21 +229,15 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     updateData.recordDate = parsedDate;
   }
 
-  // title
+  // title（選填，空字串視為「無標題」）
   if (title !== undefined) {
-    if (typeof title !== 'string' || title.trim().length === 0) {
-      return NextResponse.json(
-        { error: '標題不可為空' },
-        { status: 400 },
-      );
-    }
-    if (title.trim().length > 200) {
+    if (typeof title === 'string' && title.trim().length > 200) {
       return NextResponse.json(
         { error: '標題長度上限 200 字' },
         { status: 400 },
       );
     }
-    updateData.title = title.trim();
+    updateData.title = (typeof title === 'string' && title.trim()) || '無標題';
   }
 
   // subtitle

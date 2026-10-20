@@ -138,7 +138,7 @@ export default function EditPostPage({
     loadPost();
   }, [id]);
 
-  const canSubmit = title.trim().length > 0 && !saving;
+  const canSubmit = (title.trim().length > 0 || body.trim().length > 0 || mediaIds.length > 0) && !saving;
 
   async function handleSubmit(status: 'DRAFT' | 'PUBLISHED') {
     if (!canSubmit) return;
@@ -221,7 +221,7 @@ export default function EditPostPage({
 
         <div className={styles.field}>
           <label className={styles.fieldLabel} htmlFor="title">
-            標題<span className={styles.fieldRequired}>*</span>
+            標題
           </label>
           <div className={styles.inputWithEmoji}>
             <input
@@ -229,7 +229,7 @@ export default function EditPostPage({
               ref={titleRef}
               type="text"
               className={styles.titleInput}
-              placeholder="今天發生了什麼？"
+              placeholder="為這篇手札取個標題（選填）"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               maxLength={100}
