@@ -326,14 +326,19 @@ export default function PostCard({
           {post.hasPoll && <PollCard hasPoll />}
         </div>
 
-        {/* ── 圖片網格（FB 風格：上2大+下3小） ── */}
+        {/* ── 圖片網格 ─────────────────────── */}
         {hasMedia && (
           <div className={`${styles.mediaGrid} ${mediaGridClass}`}>
             {post.media!.slice(0, displayCount).map((item, i) => {
               const isVideo = item.mimeType?.startsWith('video/');
               const isAudio = item.mimeType?.startsWith('audio/');
+              // 計算原始比例，用於 aspect-ratio
+              const hasSize = item.width && item.height && item.width > 0 && item.height > 0;
+              const itemStyle: React.CSSProperties = hasSize
+                ? { aspectRatio: `${item.width} / ${item.height}` }
+                : {};
               return (
-                <div key={item.id} className={styles.mediaItem}>
+                <div key={item.id} className={styles.mediaItem} style={itemStyle}>
                   {isVideo ? (
                     <div className={styles.mediaPlaceholder}>
                       <Film size={32} />
