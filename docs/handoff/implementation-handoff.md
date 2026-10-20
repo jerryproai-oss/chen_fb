@@ -97,7 +97,6 @@
 ## 已知限制 / 待完成
 
 ### 安全
-- R05: Vault 相關 table 缺少正式 migration（目前用 db push 建立）
 - R02: compose.yaml 需確認 NAS 實際媒體掛載（已加 media-data volume）
 
 ### 功能
@@ -105,10 +104,7 @@
 - AI 功能: 尚無實際 AI provider 整合
 
 ### 基礎設施
-- ESLint 未設定（初始化問答未完成）
-- 隔離測試環境未建立
 - README 需更新實際啟動/測試/部署流程
-- .env.example 需補上 Compose 需要的變數
 
 ## 主要檔案路徑
 

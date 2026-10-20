@@ -14,9 +14,13 @@ build/
 # Environment & secrets
 .env
 .env.local
+.env.test
 .env.production
 .env.*.local
 !.env.example
+
+# Test data
+test-data/
 
 # Database
 *.db
