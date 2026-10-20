@@ -203,6 +203,57 @@ function findLunarYear(year: number, month: number, day: number): number | null 
 // ============================================================
 
 /**
+ * 取得農曆年的春節（正月初一）西曆日期
+ */
+export function getSpringFestival(lunarYear: number): { month: number; day: number } | null {
+  const info = LUNAR_YEAR_INFO[lunarYear];
+  if (!info) return null;
+  return { month: info.springFestival[0], day: info.springFestival[1] };
+}
+
+/**
+ * 農曆轉西曆：給定農曆年月日，回傳對應西曆日期
+ * 比暴力搜尋更高效，直接從春節日期加天數
+ */
+export function lunarToSolar(
+  lunarYear: number,
+  lunarMonth: number,
+  lunarDay: number,
+  isLeapMonth = false,
+): { year: number; month: number; day: number } | null {
+  const info = LUNAR_YEAR_INFO[lunarYear];
+  if (!info) return null;
+
+  const { springFestival, monthDays, leapMonth } = info;
+  let totalDays = lunarDay - 1; // 從正月初一算起
+
+  // 累加到目標月份之前的所有天數
+  let monthIdx = 0;
+  for (let m = 1; m < lunarMonth; m++) {
+    totalDays += monthDays[monthIdx];
+    monthIdx++;
+    // 如果經過閏月，再加閏月天數
+    if (leapMonth === m) {
+      totalDays += monthDays[monthIdx];
+      monthIdx++;
+    }
+  }
+
+  // 如果目標是閏月，再加正常月天數
+  if (isLeapMonth && leapMonth === lunarMonth) {
+    totalDays += monthDays[monthIdx]; // 跳過正常月
+  }
+
+  // 從春節加天數
+  const sfDate = new Date(Date.UTC(lunarYear, springFestival[0] - 1, springFestival[1] + totalDays));
+  return {
+    year: sfDate.getUTCFullYear(),
+    month: sfDate.getUTCMonth() + 1,
+    day: sfDate.getUTCDate(),
+  };
+}
+
+/**
  * 西曆轉農曆。
  *
  * @param year  西曆年 (2024-2035 範圍內，或跨年末尾延伸至 2036 年初)
