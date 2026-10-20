@@ -105,6 +105,30 @@ export default function EditPostPage({
         if (typeof post.version === 'number') {
           setVersion(post.version);
         }
+        // 載入既有投票
+        if (post.hasPoll) {
+          try {
+            const pollRes = await fetch(`/api/posts/${id}/poll`);
+            if (pollRes.ok) {
+              const pollData = await pollRes.json();
+              if (pollData.poll) {
+                setPoll({
+                  question: pollData.poll.question,
+                  multiSelect: pollData.poll.multiSelect,
+                  endsAt: pollData.poll.endsAt ? pollData.poll.endsAt.slice(0, 16) : null,
+                  options: pollData.poll.options.map((opt: { text: string; description?: string; imageMediaId?: string; linkUrl?: string }) => ({
+                    text: opt.text,
+                    description: opt.description || undefined,
+                    imageMediaId: opt.imageMediaId || undefined,
+                    linkUrl: opt.linkUrl || undefined,
+                  })),
+                });
+              }
+            }
+          } catch (pollErr) {
+            console.error('載入投票資料失敗:', pollErr);
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : '載入失敗');
       } finally {
@@ -136,6 +160,11 @@ export default function EditPostPage({
         isMilestone,
         milestoneType: isMilestone ? milestoneType : null,
       };
+
+      // 加入投票資料
+      if (poll && poll.question.trim() && poll.options.filter(o => o.text.trim()).length >= 2) {
+        payload.poll = poll;
+      }
 
       if (version !== null) {
         payload.expectedVersion = version;

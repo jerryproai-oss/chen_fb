@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
+import { createReadStream, statSync } from 'fs';
+import { Readable } from 'stream';
 import path from 'path';
 import { prisma } from '@/lib/db/client';
 import { withAuth } from '@/lib/auth/middleware';
@@ -68,26 +69,55 @@ export const GET = withAuth(async ({ user }, _req: NextRequest, routeCtx) => {
     }
   }
 
-  // ── 讀取檔案 ──────────────────────────────────────
+  // ── 讀取檔案（支援 Range/206 串流） ─────────────────
   const absolutePath = path.join(MEDIA_ROOT, media.storagePath);
 
-  let buffer: Buffer;
+  let fileSize: number;
   try {
-    buffer = await readFile(absolutePath);
+    const stat = statSync(absolutePath);
+    fileSize = stat.size;
   } catch (error) {
-    console.error('[media] 檔案讀取失敗:', error);
+    console.error('[media] 檔案不存在或無法存取:', error);
     return NextResponse.json(
       { error: '檔案讀取失敗' },
       { status: 500 },
     );
   }
 
-  // ── 回傳檔案 ──────────────────────────────────────
-  return new NextResponse(new Uint8Array(buffer), {
-    headers: {
-      'Content-Type': media.mimeType,
-      'Content-Length': buffer.length.toString(),
-      'Cache-Control': 'private, max-age=86400, immutable',
-    },
-  });
+  const mimeType = media.mimeType;
+  const range = _req.headers.get('range');
+
+  if (range) {
+    const parts = range.replace(/bytes=/, '').split('-');
+    const start = parseInt(parts[0], 10);
+    const end = parts[1] ? parseInt(parts[1], 10) : Math.min(start + 1024 * 1024 - 1, fileSize - 1); // 預設 1MB chunk
+    const chunkSize = end - start + 1;
+
+    const stream = createReadStream(absolutePath, { start, end });
+    const readable = Readable.toWeb(stream) as ReadableStream;
+
+    return new NextResponse(readable, {
+      status: 206,
+      headers: {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': String(chunkSize),
+        'Content-Type': mimeType,
+        'Cache-Control': 'private, max-age=86400',
+      },
+    });
+  } else {
+    const stream = createReadStream(absolutePath);
+    const readable = Readable.toWeb(stream) as ReadableStream;
+
+    return new NextResponse(readable, {
+      status: 200,
+      headers: {
+        'Content-Length': String(fileSize),
+        'Accept-Ranges': 'bytes',
+        'Content-Type': mimeType,
+        'Cache-Control': 'private, max-age=86400, immutable',
+      },
+    });
+  }
 });

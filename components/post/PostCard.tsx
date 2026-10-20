@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Lock, Users, UserCheck, MessageCircle, Film, Music, Bookmark, ThumbsUp, SmilePlus } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
-import { stripMarkdown } from '@/lib/markdown';
 import PollCard from '@/components/post/PollCard';
 import ReactionPicker from '@/components/post/ReactionPicker';
 import type { PostSummary, Visibility, ReactionType, ReactionSummary } from '@/lib/types';
@@ -69,6 +68,9 @@ export default function PostCard({
   const [myReaction, setMyReaction] = useState<ReactionType | null>(post.myReaction ?? null);
   const [reactionSummary, setReactionSummary] = useState<ReactionSummary[]>(post.reactionSummary ?? []);
   const [showPicker, setShowPicker] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [showSeeMore, setShowSeeMore] = useState(false);
+  const bodyContentRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     setBookmarked(post.isBookmarked ?? false);
@@ -78,6 +80,22 @@ export default function PostCard({
     setMyReaction(post.myReaction ?? null);
     setReactionSummary(post.reactionSummary ?? []);
   }, [post.myReaction, post.reactionSummary]);
+
+  // 檢測文字是否超過 3 行需要展開按鈕
+  useEffect(() => {
+    const el = bodyContentRef.current;
+    if (!el || expanded) return;
+
+    const check = () => {
+      setShowSeeMore(el.scrollHeight > el.clientHeight + 1);
+    };
+
+    check();
+
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [post.bodyPlainText, expanded]);
 
   const handleBookmarkClick = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -281,22 +299,30 @@ export default function PostCard({
           {post.subtitle && (
             <p className={styles.subtitle}>{post.subtitle}</p>
           )}
-          {post.bodyPlainText && (() => {
-            const text = stripMarkdown(post.bodyPlainText!);
-            // 判斷是否可能超過 3 行：行數 > 3 或字數 > 80
-            const lines = text.split('\n');
-            const isLong = lines.length > 3 || text.length > 80;
-            return (
-              <div className={styles.bodyWrapper}>
-                <p className={styles.bodyPreview}>
-                  {text}
-                </p>
-                {isLong && (
-                  <span className={styles.seeMore}>查看更多</span>
-                )}
-              </div>
-            );
-          })()}
+          {post.bodyPlainText && (
+            <div className={styles.bodyWrapper}>
+              <p
+                ref={bodyContentRef}
+                className={`${styles.bodyPreview} ${expanded ? styles.bodyExpanded : ''}`}
+              >
+                {post.bodyPlainText}
+              </p>
+              {(showSeeMore || expanded) && (
+                <button
+                  type="button"
+                  className={styles.seeMoreBtn}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setExpanded(!expanded);
+                  }}
+                  aria-expanded={expanded}
+                >
+                  {expanded ? '收合' : '查看更多'}
+                </button>
+              )}
+            </div>
+          )}
           {post.hasPoll && <PollCard hasPoll />}
         </div>
 
