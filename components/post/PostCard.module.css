@@ -175,16 +175,16 @@
 .mediaItem {
   position: relative;
   overflow: hidden;
-  background-color: #f0ede8;
+  background-color: var(--color-bg);
   min-height: 0;
 }
 
 .mediaImage {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  object-position: center 20%;
   display: block;
-  background-color: #f0ede8;
 }
 
 .mediaPlaceholder {
@@ -227,18 +227,16 @@
 /* ── 2 張：並排 ──────────────────────────────────────── */
 .mediaGrid2 {
   grid-template-columns: 1fr 1fr;
-  align-items: start;
 }
 
 .mediaGrid2 .mediaItem {
-  max-height: 320px;
+  height: 260px;
 }
 
 /* ── 3 張：左 1 大 + 右 2 小堆疊 ─────────────────────── */
 .mediaGrid3 {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-  align-items: stretch;
 }
 
 .mediaGrid3 .mediaItem:first-child {
@@ -246,7 +244,12 @@
 }
 
 .mediaGrid3 .mediaItem {
-  max-height: 280px;
+  height: auto;
+  min-height: 0;
+}
+
+.mediaGrid3 .mediaItem:first-child {
+  height: 100%;
 }
 
 /* ── 4 張：2×2 網格 ──────────────────────────────────── */
@@ -256,7 +259,7 @@
 }
 
 .mediaGrid4 .mediaItem {
-  max-height: 260px;
+  height: 220px;
 }
 
 /* ── 5+ 張：上 2 大 + 下 3 小 ────────────────────────── */
@@ -268,40 +271,37 @@
 .mediaGrid5plus .mediaItem:nth-child(1),
 .mediaGrid5plus .mediaItem:nth-child(2) {
   grid-column: span 3;
-  max-height: 280px;
+  height: 280px;
 }
 
 /* 下排 3 張：各佔 2 欄 */
 .mediaGrid5plus .mediaItem:nth-child(n+3) {
   grid-column: span 2;
-  max-height: 200px;
+  height: 190px;
 }
 
 /* ── 響應式調整 ──────────────────────────────────────── */
 @media (min-width: 480px) {
   .mediaGrid2 .mediaItem {
-    max-height: 360px;
+    height: 300px;
   }
 
   .mediaGrid3 {
     grid-template-rows: 1fr 1fr;
-  }
-
-  .mediaGrid3 .mediaItem {
-    max-height: 320px;
+    height: 400px;
   }
 
   .mediaGrid4 .mediaItem {
-    max-height: 300px;
+    height: 260px;
   }
 
   .mediaGrid5plus .mediaItem:nth-child(1),
   .mediaGrid5plus .mediaItem:nth-child(2) {
-    max-height: 320px;
+    height: 320px;
   }
 
   .mediaGrid5plus .mediaItem:nth-child(n+3) {
-    max-height: 220px;
+    height: 220px;
   }
 }
 
