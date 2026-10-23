@@ -56,6 +56,7 @@ const CATEGORIES = [
   { key: 'FINANCE', label: '投資', icon: TrendingUp },
   { key: 'NOTE', label: '筆記', icon: FileText },
   { key: 'OTHER', label: '其他', icon: Package },
+  { key: 'CUSTOM', label: '自訂', icon: Plus },
 ] as const;
 
 // ── 結構化欄位定義 ─────────────────────────────────────────
@@ -112,6 +113,7 @@ const getTitlePlaceholder = (cat: string) => {
     case 'BANK': return '帳戶名稱（如 台銀薪轉）';
     case 'CREDIT_CARD': return '卡片名稱（如 中信 Visa 白金）';
     case 'FINANCE': return '帳戶名稱（如 元大證券）';
+    case 'CUSTOM': return '項目名稱';
     default: return '標題';
   }
 };
@@ -127,6 +129,9 @@ const parseStructured = (content: string): Record<string, string> | null => {
   return null;
 };
 
+/** 自訂欄位型別 */
+type CustomField = { label: string; value: string; sensitive: boolean };
+
 export default function VaultListPage() {
   const router = useRouter();
   const [items, setItems] = useState<DecryptedItem[]>([]);
@@ -140,6 +145,8 @@ export default function VaultListPage() {
   const [newCategory, setNewCategory] = useState('NOTE');
   const [formFields, setFormFields] = useState<Record<string, string>>({});
   const [formShowFields, setFormShowFields] = useState<Set<string>>(new Set());
+  const [formCustomFields, setFormCustomFields] = useState<CustomField[]>([]);
+  const [customCategoryLabel, setCustomCategoryLabel] = useState('');
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showContent, setShowContent] = useState<Set<string>>(new Set());
@@ -455,13 +462,39 @@ export default function VaultListPage() {
 
     // 根據分類建構 content
     let contentToEncrypt: string;
-    if (isStructuredCategory(newCategory)) {
+    if (newCategory === 'CUSTOM') {
+      // 自訂分類：所有欄位都是自訂
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: Record<string, any> = {};
+      if (customCategoryLabel.trim()) {
+        data.categoryLabel = customCategoryLabel.trim();
+      }
+      const validCustom = formCustomFields.filter(cf => cf.label.trim() && cf.value.trim());
+      if (validCustom.length > 0) {
+        data.customFields = validCustom.map(cf => ({
+          label: cf.label.trim(),
+          value: cf.value.trim(),
+          sensitive: cf.sensitive,
+        }));
+      }
+      contentToEncrypt = JSON.stringify(data);
+    } else if (isStructuredCategory(newCategory)) {
       const fields = CATEGORY_FIELDS[newCategory];
-      const data: Record<string, string> = {};
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: Record<string, any> = {};
       for (const f of fields) {
         if (formFields[f.key]?.trim()) {
           data[f.key] = formFields[f.key].trim();
         }
+      }
+      // 自訂欄位
+      const validCustom = formCustomFields.filter(cf => cf.label.trim() && cf.value.trim());
+      if (validCustom.length > 0) {
+        data.customFields = validCustom.map(cf => ({
+          label: cf.label.trim(),
+          value: cf.value.trim(),
+          sensitive: cf.sensitive,
+        }));
       }
       contentToEncrypt = JSON.stringify(data);
     } else {
@@ -510,6 +543,8 @@ export default function VaultListPage() {
       setNewCategory('NOTE');
       setFormFields({});
       setFormShowFields(new Set());
+      setFormCustomFields([]);
+      setCustomCategoryLabel('');
       setShowAddForm(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : '新增失敗');
@@ -566,6 +601,7 @@ export default function VaultListPage() {
       case 'CREDIT_CARD': return '信用卡';
       case 'FINANCE': return '投資';
       case 'NOTE': return '筆記';
+      case 'CUSTOM': return '自訂';
       default: return '其他';
     }
   };
@@ -637,57 +673,89 @@ export default function VaultListPage() {
 <meta charset="utf-8">
 <title>拾日特別區備份 — ${now}</title>
 <style>
-  @page { margin: 15mm; size: A4; }
+  @page { margin: 12mm; size: A4; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', sans-serif; color: #333; font-size: 11pt; line-height: 1.5; }
-  .header { text-align: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #5a7a5a; }
-  .header h1 { font-size: 18pt; color: #5a7a5a; margin-bottom: 4px; }
-  .header .meta { font-size: 9pt; color: #888; }
-  .warning { background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 8px 12px; margin-bottom: 16px; font-size: 9pt; color: #856404; text-align: center; }
-  .category { margin-bottom: 20px; }
-  .category h2 { font-size: 13pt; color: #5a7a5a; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 10px; }
-  .item { margin-bottom: 12px; padding: 10px 12px; border: 1px solid #e0ddd8; border-radius: 6px; page-break-inside: avoid; }
-  .item-title { font-weight: 700; font-size: 11pt; margin-bottom: 4px; }
-  .item-content { white-space: pre-wrap; word-break: break-all; font-family: 'Consolas', 'Monaco', monospace; font-size: 10pt; background: #f8f7f5; padding: 6px 8px; border-radius: 4px; margin-bottom: 4px; }
-  .field-row { display: flex; gap: 8px; padding: 2px 0; font-size: 10pt; }
-  .field-label { color: #888; min-width: 70px; flex-shrink: 0; }
-  .field-val { font-family: 'Consolas', 'Monaco', monospace; word-break: break-all; }
-  .item-date { font-size: 8pt; color: #aaa; text-align: right; }
-  .footer { text-align: center; margin-top: 24px; padding-top: 12px; border-top: 1px solid #ddd; font-size: 8pt; color: #aaa; }
+  body { font-family: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', sans-serif; color: #333; font-size: 9pt; line-height: 1.4; }
+  .header { text-align: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #5a7a5a; }
+  .header h1 { font-size: 14pt; color: #5a7a5a; margin-bottom: 2px; }
+  .header .meta { font-size: 8pt; color: #888; }
+  .warning { background: #fff3cd; border: 1px solid #ffc107; border-radius: 3px; padding: 4px 8px; margin-bottom: 10px; font-size: 8pt; color: #856404; text-align: center; }
+  .category { margin-bottom: 12px; }
+  .category h2 { font-size: 10pt; color: #5a7a5a; border-bottom: 1px solid #ddd; padding-bottom: 2px; margin-bottom: 6px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 9pt; }
+  table th { background: #f3f1ec; text-align: left; padding: 3px 6px; border: 1px solid #ddd; font-weight: 600; white-space: nowrap; }
+  table td { padding: 3px 6px; border: 1px solid #ddd; word-break: break-all; font-family: 'Consolas', 'Monaco', monospace; font-size: 8.5pt; }
+  table td.notes { font-family: inherit; white-space: pre-wrap; }
+  table td.date { font-size: 7.5pt; color: #999; white-space: nowrap; text-align: right; }
+  .plain-item { margin-bottom: 6px; padding: 4px 6px; border: 1px solid #e0ddd8; border-radius: 3px; page-break-inside: avoid; }
+  .plain-title { font-weight: 700; font-size: 9pt; margin-bottom: 2px; }
+  .plain-content { white-space: pre-wrap; word-break: break-all; font-size: 8.5pt; }
+  .plain-date { font-size: 7.5pt; color: #aaa; text-align: right; }
+  .footer { text-align: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 7pt; color: #aaa; }
   @media print {
     .warning { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .item { border-color: #ccc; }
-    .item-content { background: #f5f5f5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    table th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 </style>
 </head>
 <body>
 <div class="header">
-  <h1>🔐 拾日特別區 — 紙本備份</h1>
-  <div class="meta">匯出時間：${now}　｜　共 ${items.length} 個項目</div>
+  <h1>🔐 拾日特別區備份</h1>
+  <div class="meta">匯出：${now}　｜　共 ${items.length} 項</div>
 </div>
-<div class="warning">⚠️ 本文件包含敏感資訊，請妥善保管或銷毀。切勿拍照、掃描或以電子方式分享。</div>
-${Object.entries(grouped).map(([label, groupItems]) => `
+<div class="warning">⚠️ 本文件含敏感資訊，請妥善保管或銷毀。</div>
+${Object.entries(grouped).map(([label, groupItems]) => {
+  // 結構化分類用表格
+  const firstItem = groupItems[0];
+  const fieldDefs = CATEGORY_FIELDS[firstItem.category];
+  const isStruct = isStructuredCategory(firstItem.category);
+
+  if (isStruct && fieldDefs) {
+    // 表頭欄位
+    const cols = fieldDefs.filter(f => f.inputType !== 'textarea');
+    const hasNotes = fieldDefs.some(f => f.inputType === 'textarea');
+    return `
 <div class="category">
   <h2>${label}（${groupItems.length}）</h2>
-  ${groupItems.map(item => {
-    const structured = isStructuredCategory(item.category) ? parseStructured(item.content) : null;
-    const fieldDefs = CATEGORY_FIELDS[item.category];
-    const contentHtml = (structured && fieldDefs)
-      ? fieldDefs
-          .filter(f => structured[f.key])
-          .map(f => `<div class="field-row"><span class="field-label">${escapeHtml(f.label)}：</span><span class="field-val">${escapeHtml(structured[f.key])}</span></div>`)
-          .join('')
-      : `<div class="item-content">${escapeHtml(item.content)}</div>`;
-    return `
-  <div class="item">
-    <div class="item-title">${escapeHtml(item.title)}</div>
-    ${contentHtml}
-    <div class="item-date">更新：${formatFullDate(item.updatedAt)}</div>
-  </div>`;
-  }).join('')}
-</div>`).join('')}
-<div class="footer">拾日（Shiri）家庭手札 — 特別區紙本備份 — 列印後請妥善保管</div>
+  <table>
+    <tr>
+      <th>名稱</th>
+      ${cols.map(f => `<th>${f.label}</th>`).join('')}
+      ${hasNotes ? '<th>備註</th>' : ''}
+      <th>更新</th>
+    </tr>
+    ${groupItems.map(item => {
+      const s = parseStructured(item.content);
+      // 自訂欄位
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cf = s ? ((s as any).customFields as CustomField[] | undefined) : undefined;
+      const cfText = cf?.length ? cf.map(c => `${escapeHtml(c.label)}: ${escapeHtml(c.value)}`).join('; ') : '';
+      const notesField = fieldDefs.find(f => f.inputType === 'textarea');
+      const notesVal = s && notesField ? (s[notesField.key] || '') : '';
+      const combinedNotes = [notesVal, cfText].filter(Boolean).join(' | ');
+      return `<tr>
+      <td><b>${escapeHtml(item.title)}</b></td>
+      ${cols.map(f => `<td>${s ? escapeHtml(s[f.key] || '') : ''}</td>`).join('')}
+      ${hasNotes ? `<td class="notes">${escapeHtml(combinedNotes)}</td>` : ''}
+      <td class="date">${formatFullDate(item.updatedAt).slice(5)}</td>
+    </tr>`;
+    }).join('')}
+  </table>
+</div>`;
+  }
+
+  // 非結構化分類（筆記/其他）用簡單列表
+  return `
+<div class="category">
+  <h2>${label}（${groupItems.length}）</h2>
+  ${groupItems.map(item => `<div class="plain-item">
+    <div class="plain-title">${escapeHtml(item.title)}</div>
+    <div class="plain-content">${escapeHtml(item.content)}</div>
+    <div class="plain-date">${formatFullDate(item.updatedAt)}</div>
+  </div>`).join('')}
+</div>`;
+}).join('')}
+<div class="footer">拾日（Shiri）家庭手札 — 特別區紙本備份</div>
 </body>
 </html>`);
 
@@ -726,6 +794,7 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
       case 'CREDIT_CARD': return <CreditCard size={14} />;
       case 'FINANCE': return <TrendingUp size={14} />;
       case 'NOTE': return <FileText size={14} />;
+      case 'CUSTOM': return <Plus size={14} />;
       default: return <Package size={14} />;
     }
   };
@@ -1009,7 +1078,7 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
                 key={cat.key}
                 type="button"
                 className={`${styles.categoryChip} ${newCategory === cat.key ? styles.categoryChipActive : ''}`}
-                onClick={() => { setNewCategory(cat.key); setFormFields({}); setFormShowFields(new Set()); }}
+                onClick={() => { setNewCategory(cat.key); setFormFields({}); setFormShowFields(new Set()); setFormCustomFields([]); setCustomCategoryLabel(''); }}
               >
                 <cat.icon size={12} />
                 <span>{cat.label}</span>
@@ -1029,8 +1098,99 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
           </div>
 
           {/* 結構化分類：動態欄位 */}
-          {isStructuredCategory(newCategory) ? (
-            CATEGORY_FIELDS[newCategory].map(field => (
+          {newCategory === 'CUSTOM' ? (
+            <>
+            {/* 自訂分類名稱 */}
+            <div className={styles.formField}>
+              <label className={styles.formFieldLabel}>分類名稱 *</label>
+              <input
+                type="text"
+                className={styles.formInput}
+                placeholder="如：保險、房產、車輛…"
+                value={customCategoryLabel}
+                onChange={e => setCustomCategoryLabel(e.target.value)}
+                maxLength={30}
+              />
+            </div>
+            {/* 全部都是自訂欄位 */}
+            {formCustomFields.map((cf, idx) => (
+              <div key={idx} className={styles.customFieldRow}>
+                <input
+                  type="text"
+                  className={styles.customFieldLabel}
+                  placeholder="欄位名稱"
+                  value={cf.label}
+                  onChange={e => {
+                    const arr = [...formCustomFields];
+                    arr[idx] = { ...arr[idx], label: e.target.value };
+                    setFormCustomFields(arr);
+                  }}
+                />
+                <div className={styles.sensitiveInputWrapper}>
+                  <input
+                    type={cf.sensitive && !formShowFields.has(`cf-${idx}`) ? 'password' : 'text'}
+                    className={styles.formInput}
+                    placeholder="值"
+                    value={cf.value}
+                    onChange={e => {
+                      const arr = [...formCustomFields];
+                      arr[idx] = { ...arr[idx], value: e.target.value };
+                      setFormCustomFields(arr);
+                    }}
+                    autoComplete="off"
+                  />
+                  {cf.sensitive && (
+                    <button
+                      type="button"
+                      className={styles.sensitiveToggleBtn}
+                      onClick={() => setFormShowFields(prev => {
+                        const next = new Set(prev);
+                        const k = `cf-${idx}`;
+                        if (next.has(k)) next.delete(k); else next.add(k);
+                        return next;
+                      })}
+                      title={formShowFields.has(`cf-${idx}`) ? '隱藏' : '顯示'}
+                    >
+                      {formShowFields.has(`cf-${idx}`) ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  )}
+                </div>
+                <div className={styles.customFieldActions}>
+                  <label className={styles.customFieldSensitiveToggle} title="標記為敏感資料">
+                    <input
+                      type="checkbox"
+                      checked={cf.sensitive}
+                      onChange={e => {
+                        const arr = [...formCustomFields];
+                        arr[idx] = { ...arr[idx], sensitive: e.target.checked };
+                        setFormCustomFields(arr);
+                      }}
+                    />
+                    <Eye size={14} />
+                  </label>
+                  <button
+                    type="button"
+                    className={styles.customFieldDeleteBtn}
+                    onClick={() => setFormCustomFields(prev => prev.filter((_, i) => i !== idx))}
+                    title="刪除欄位"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              className={styles.addCustomFieldBtn}
+              onClick={() => setFormCustomFields(prev => [...prev, { label: '', value: '', sensitive: false }])}
+            >
+              <Plus size={14} />
+              <span>新增欄位</span>
+            </button>
+            </>
+          ) : isStructuredCategory(newCategory) ? (
+            <>
+            {CATEGORY_FIELDS[newCategory].map(field => (
               <div key={field.key} className={styles.formField}>
                 <label className={styles.formFieldLabel}>{field.label}{field.required ? ' *' : ''}</label>
                 {field.inputType === 'textarea' ? (
@@ -1075,9 +1235,85 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
                   />
                 )}
               </div>
-            ))
+            ))}
+
+            {/* 自訂欄位 */}
+            {formCustomFields.map((cf, idx) => (
+              <div key={idx} className={styles.customFieldRow}>
+                <input
+                  type="text"
+                  className={styles.customFieldLabel}
+                  placeholder="欄位名稱"
+                  value={cf.label}
+                  onChange={e => {
+                    const arr = [...formCustomFields];
+                    arr[idx] = { ...arr[idx], label: e.target.value };
+                    setFormCustomFields(arr);
+                  }}
+                />
+                <div className={styles.sensitiveInputWrapper}>
+                  <input
+                    type={cf.sensitive && !formShowFields.has(`cf-${idx}`) ? 'password' : 'text'}
+                    className={styles.formInput}
+                    placeholder="值"
+                    value={cf.value}
+                    onChange={e => {
+                      const arr = [...formCustomFields];
+                      arr[idx] = { ...arr[idx], value: e.target.value };
+                      setFormCustomFields(arr);
+                    }}
+                    autoComplete="off"
+                  />
+                  {cf.sensitive && (
+                    <button
+                      type="button"
+                      className={styles.sensitiveToggleBtn}
+                      onClick={() => setFormShowFields(prev => {
+                        const next = new Set(prev);
+                        const k = `cf-${idx}`;
+                        if (next.has(k)) next.delete(k); else next.add(k);
+                        return next;
+                      })}
+                      title={formShowFields.has(`cf-${idx}`) ? '隱藏' : '顯示'}
+                    >
+                      {formShowFields.has(`cf-${idx}`) ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  )}
+                </div>
+                <div className={styles.customFieldActions}>
+                  <label className={styles.customFieldSensitiveToggle} title="標記為敏感資料">
+                    <input
+                      type="checkbox"
+                      checked={cf.sensitive}
+                      onChange={e => {
+                        const arr = [...formCustomFields];
+                        arr[idx] = { ...arr[idx], sensitive: e.target.checked };
+                        setFormCustomFields(arr);
+                      }}
+                    />
+                    <Eye size={14} />
+                  </label>
+                  <button
+                    type="button"
+                    className={styles.customFieldDeleteBtn}
+                    onClick={() => setFormCustomFields(prev => prev.filter((_, i) => i !== idx))}
+                    title="刪除欄位"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            ))}
+            <button
+              type="button"
+              className={styles.addCustomFieldBtn}
+              onClick={() => setFormCustomFields(prev => [...prev, { label: '', value: '', sensitive: false }])}
+            >
+              <Plus size={14} />
+              <span>新增自訂欄位</span>
+            </button>
+            </>
           ) : (
-            /* 筆記 / 其他：純文字 */
             <div className={styles.formField}>
               <textarea
                 className={styles.formTextarea}
@@ -1093,7 +1329,7 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
             <button
               type="button"
               className={styles.formCancelBtn}
-              onClick={() => { setShowAddForm(false); setNewTitle(''); setNewContent(''); setFormFields({}); setFormShowFields(new Set()); }}
+              onClick={() => { setShowAddForm(false); setNewTitle(''); setNewContent(''); setFormFields({}); setFormShowFields(new Set()); setFormCustomFields([]); setCustomCategoryLabel(''); }}
             >
               取消
             </button>
@@ -1126,22 +1362,44 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
               className={styles.itemHeader}
               onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
             >
-              <span className={styles.itemCategoryIcon}>{getCategoryIcon(item.category)}</span>
-              <span className={styles.itemTitle}>{item.title}</span>
+              <span className={styles.itemCategoryIcon}>
+                {getCategoryIcon(item.category)}
+              </span>
+              <span className={styles.itemTitle}>
+                {item.category === 'CUSTOM' && (() => {
+                  const s = parseStructured(item.content);
+                  return s?.categoryLabel ? `[${s.categoryLabel}] ` : '';
+                })()}
+                {item.title}
+              </span>
               <span className={styles.itemDate}>{formatDate(item.updatedAt)}</span>
             </div>
 
             {expandedId === item.id && (
               <div className={styles.itemBody}>
                 {(() => {
-                  const structured = isStructuredCategory(item.category) ? parseStructured(item.content) : null;
-                  const fieldDefs = CATEGORY_FIELDS[item.category];
+                  // 嘗試解析結構化內容（含 CUSTOM 分類）
+                  const structured = (isStructuredCategory(item.category) || item.category === 'CUSTOM')
+                    ? parseStructured(item.content) : null;
+                  const fieldDefs = CATEGORY_FIELDS[item.category]; // CUSTOM 沒有 fieldDefs
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  const customFields = structured ? ((structured as any).customFields as CustomField[] | undefined) : undefined;
 
-                  if (structured && fieldDefs) {
+                  if (structured && (fieldDefs || item.category === 'CUSTOM')) {
                     // ── 結構化顯示 ──
                     return (
                       <div className={styles.structuredFields}>
-                        {fieldDefs.map(f => {
+                        {/* CUSTOM 分類標籤 */}
+                        {item.category === 'CUSTOM' && structured.categoryLabel && (
+                          <div className={styles.fieldRow}>
+                            <span className={styles.fieldLabel}>分類</span>
+                            <div className={styles.fieldValueRow}>
+                              <span className={styles.fieldValue}>{structured.categoryLabel}</span>
+                            </div>
+                          </div>
+                        )}
+                        {/* 預設欄位 */}
+                        {fieldDefs?.map(f => {
                           const val = structured[f.key];
                           if (!val) return null;
                           const isHidden = f.sensitive && !showContent.has(`${item.id}-${f.key}`);
@@ -1189,6 +1447,49 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
                                     type="button"
                                     className={styles.fieldActionBtn}
                                     onClick={() => handleCopy(val, feedbackKey)}
+                                    title="複製"
+                                  >
+                                    <Copy size={14} />
+                                    {copyFeedback === feedbackKey && <span className={styles.copyToast}>已複製</span>}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {/* 自訂欄位 */}
+                        {customFields?.map((cf, idx) => {
+                          const isHidden = cf.sensitive && !showContent.has(`${item.id}-cf-${idx}`);
+                          const feedbackKey = `${item.id}-cf-${idx}`;
+                          return (
+                            <div key={`cf-${idx}`} className={styles.fieldRow}>
+                              <span className={styles.fieldLabel}>{cf.label}</span>
+                              <div className={styles.fieldValueRow}>
+                                <span className={`${styles.fieldValue} ${cf.sensitive ? styles.fieldMono : ''}`}>
+                                  {isHidden ? '••••••••' : cf.value}
+                                </span>
+                                <div className={styles.fieldActions}>
+                                  {cf.sensitive && (
+                                    <button
+                                      type="button"
+                                      className={styles.fieldActionBtn}
+                                      onClick={() => {
+                                        setShowContent(prev => {
+                                          const next = new Set(prev);
+                                          const k = `${item.id}-cf-${idx}`;
+                                          if (next.has(k)) next.delete(k); else next.add(k);
+                                          return next;
+                                        });
+                                      }}
+                                      title={isHidden ? '顯示' : '隱藏'}
+                                    >
+                                      {isHidden ? <Eye size={14} /> : <EyeOff size={14} />}
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    className={styles.fieldActionBtn}
+                                    onClick={() => handleCopy(cf.value, feedbackKey)}
                                     title="複製"
                                   >
                                     <Copy size={14} />

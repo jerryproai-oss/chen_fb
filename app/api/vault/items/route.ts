@@ -3,7 +3,7 @@ import { withAuth } from '@/lib/auth/middleware';
 import { prisma } from '@/lib/db/client';
 import { getVaultSessionOwnerId } from '@/lib/vault/session';
 
-const VALID_CATEGORIES = ['NOTE', 'PASSWORD', 'BANK', 'CREDIT_CARD', 'FINANCE', 'OTHER'];
+const VALID_CATEGORIES = ['NOTE', 'PASSWORD', 'BANK', 'CREDIT_CARD', 'FINANCE', 'CUSTOM', 'OTHER'];
 
 /**
  * 驗證 vault token 並取得保險庫擁有者 ID

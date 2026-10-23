@@ -818,3 +818,105 @@
   padding-top: var(--space-sm);
   margin-top: var(--space-xs);
 }
+
+
+/* ── 自訂欄位 ─────────────────────────────────────────── */
+
+.customFieldRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.customFieldLabel {
+  width: 90px;
+  flex-shrink: 0;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 40px;
+  box-sizing: border-box;
+}
+
+.customFieldLabel:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.customFieldRow .sensitiveInputWrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.customFieldActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.customFieldSensitiveToggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  padding: 4px;
+  min-width: 30px;
+  min-height: 30px;
+  justify-content: center;
+}
+
+.customFieldSensitiveToggle input[type="checkbox"] {
+  display: none;
+}
+
+.customFieldSensitiveToggle:has(input:checked) {
+  color: var(--color-primary);
+}
+
+.customFieldDeleteBtn {
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  min-height: 30px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+}
+
+.customFieldDeleteBtn:hover {
+  color: var(--color-error);
+}
+
+.addCustomFieldBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-primary);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  margin-top: 4px;
+  min-height: 36px;
+  transition: all var(--transition-fast);
+}
+
+.addCustomFieldBtn:hover {
+  border-color: var(--color-primary);
+  background-color: rgba(90, 122, 90, 0.04);
+}
