@@ -923,8 +923,16 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
           return;
         }
 
-        const confirmed = confirm(`即將匯入 ${importItems.length} 個項目，確定嗎？`);
-        if (!confirmed) return;
+        // 詢問是否要指定分類（群組名稱）
+        const assignLabel = prompt(
+          `即將匯入 ${importItems.length} 個項目。\n\n` +
+          `如要將所有項目歸入同一個分類群組，請輸入分類名稱（如：瑞興、俊鴻）。\n` +
+          `留空則保留檔案中原有的分類設定。`,
+          ''
+        );
+        // 使用者按取消 → 中止匯入
+        if (assignLabel === null) return;
+        const overrideLabel = assignLabel.trim();
 
         let success = 0;
         let failed = 0;
@@ -935,7 +943,10 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
 
             // 判斷分類
             let category = 'NOTE';
-            if (item.category) {
+            if (overrideLabel) {
+              // 使用者指定了分類名稱，強制設為 CUSTOM
+              category = 'CUSTOM';
+            } else if (item.category) {
               const catMap: Record<string, string> = {
                 'PASSWORD': 'PASSWORD', '帳密': 'PASSWORD',
                 'BANK': 'BANK', '銀行': 'BANK',
@@ -950,7 +961,18 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
 
             // 建構 content
             let contentStr: string;
-            if (typeof item.content === 'object' && item.content !== null) {
+            if (overrideLabel) {
+              // 使用者指定了分類，將內容包裝成 CUSTOM 格式
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              let existingContent: any = {};
+              if (typeof item.content === 'object' && item.content !== null) {
+                existingContent = item.content;
+              } else if (item.fields && typeof item.fields === 'object') {
+                existingContent = item.fields;
+              }
+              existingContent.categoryLabel = overrideLabel;
+              contentStr = JSON.stringify(existingContent);
+            } else if (typeof item.content === 'object' && item.content !== null) {
               contentStr = JSON.stringify(item.content);
             } else if (item.fields && typeof item.fields === 'object') {
               contentStr = JSON.stringify(item.fields);
