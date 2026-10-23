@@ -933,3 +933,65 @@
   border-color: var(--color-primary);
   background-color: rgba(90, 122, 90, 0.04);
 }
+
+
+/* ── 自訂分類群組（收合） ─────────────────────────────── */
+
+.groupContainer {
+  margin-bottom: var(--space-sm);
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  min-height: 48px;
+  transition: background-color var(--transition-fast);
+}
+
+.groupHeader:hover {
+  background-color: rgba(90, 122, 90, 0.04);
+}
+
+.groupChevron {
+  color: var(--color-text-secondary);
+  transition: transform 0.2s ease;
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+}
+
+.groupChevronOpen {
+  transform: rotate(-90deg) scaleX(-1);
+  transform: rotate(0deg);
+}
+
+.groupLabel {
+  flex: 1;
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.groupCount {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-weight: 500;
+}
+
+.groupItems {
+  margin-top: 4px;
+  margin-left: 12px;
+  border-left: 2px solid var(--color-border-light);
+  padding-left: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}

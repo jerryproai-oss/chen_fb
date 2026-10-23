@@ -154,6 +154,7 @@ export default function VaultListPage() {
   const [showContent, setShowContent] = useState<Set<string>>(new Set());
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const cryptoKeyRef = useRef<CryptoKey | null>(null);
 
   // 共享保險庫相關
@@ -1594,7 +1595,31 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
           </div>
         )}
 
-        {filteredItems.map(item => (
+        {(() => {
+          // 將 CUSTOM 項目按 categoryLabel 分組，其他項目直接顯示
+          const regularItems: DecryptedItem[] = [];
+          const customGroups: Record<string, DecryptedItem[]> = {};
+
+          for (const item of filteredItems) {
+            if (item.category === 'CUSTOM') {
+              const s = parseStructured(item.content);
+              const label = s?.categoryLabel || '自訂';
+              if (!customGroups[label]) customGroups[label] = [];
+              customGroups[label].push(item);
+            } else {
+              regularItems.push(item);
+            }
+          }
+
+          const toggleGroup = (label: string) => {
+            setCollapsedGroups(prev => {
+              const next = new Set(prev);
+              if (next.has(label)) next.delete(label); else next.add(label);
+              return next;
+            });
+          };
+
+          const renderItemCard = (item: DecryptedItem) => (
           <div
             key={item.id}
             className={`${styles.itemCard} ${expandedId === item.id ? styles.itemCardExpanded : ''}`}
@@ -1607,10 +1632,6 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
                 {getCategoryIcon(item.category)}
               </span>
               <span className={styles.itemTitle}>
-                {item.category === 'CUSTOM' && (() => {
-                  const s = parseStructured(item.content);
-                  return s?.categoryLabel ? `[${s.categoryLabel}] ` : '';
-                })()}
                 {item.title}
               </span>
               <span className={styles.itemDate}>{formatDate(item.updatedAt)}</span>
@@ -1816,7 +1837,36 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
               </div>
             )}
           </div>
-        ))}
+        );
+
+          return (
+            <>
+              {/* 自訂分類群組（可收合） */}
+              {Object.entries(customGroups).map(([label, groupItems]) => (
+                <div key={`group-${label}`} className={styles.groupContainer}>
+                  <div
+                    className={styles.groupHeader}
+                    onClick={() => toggleGroup(label)}
+                  >
+                    <ChevronLeft
+                      size={16}
+                      className={`${styles.groupChevron} ${!collapsedGroups.has(label) ? styles.groupChevronOpen : ''}`}
+                    />
+                    <span className={styles.groupLabel}>{label}</span>
+                    <span className={styles.groupCount}>{groupItems.length}</span>
+                  </div>
+                  {!collapsedGroups.has(label) && (
+                    <div className={styles.groupItems}>
+                      {groupItems.map(item => renderItemCard(item))}
+                    </div>
+                  )}
+                </div>
+              ))}
+              {/* 一般項目 */}
+              {regularItems.map(item => renderItemCard(item))}
+            </>
+          );
+        })()}
       </div>
     </div>
   );
