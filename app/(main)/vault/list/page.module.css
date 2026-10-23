@@ -285,6 +285,38 @@
   border-color: var(--color-primary);
 }
 
+/* 敏感欄位（密碼/卡號等）含眼睛切換 */
+.sensitiveInputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sensitiveInputWrapper .formInput {
+  padding-right: 44px;
+}
+
+.sensitiveToggleBtn {
+  position: absolute;
+  right: 4px;
+  background: none;
+  border: none;
+  padding: 8px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+}
+
+.sensitiveToggleBtn:hover {
+  color: var(--color-primary);
+}
+
 .formActions {
   display: flex;
   justify-content: flex-end;

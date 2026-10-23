@@ -139,6 +139,7 @@ export default function VaultListPage() {
   const [newContent, setNewContent] = useState('');
   const [newCategory, setNewCategory] = useState('NOTE');
   const [formFields, setFormFields] = useState<Record<string, string>>({});
+  const [formShowFields, setFormShowFields] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showContent, setShowContent] = useState<Set<string>>(new Set());
@@ -508,6 +509,7 @@ export default function VaultListPage() {
       setNewContent('');
       setNewCategory('NOTE');
       setFormFields({});
+      setFormShowFields(new Set());
       setShowAddForm(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : '新增失敗');
@@ -1007,7 +1009,7 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
                 key={cat.key}
                 type="button"
                 className={`${styles.categoryChip} ${newCategory === cat.key ? styles.categoryChipActive : ''}`}
-                onClick={() => { setNewCategory(cat.key); setFormFields({}); }}
+                onClick={() => { setNewCategory(cat.key); setFormFields({}); setFormShowFields(new Set()); }}
               >
                 <cat.icon size={12} />
                 <span>{cat.label}</span>
@@ -1039,9 +1041,32 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
                     onChange={e => setFormFields(prev => ({ ...prev, [field.key]: e.target.value }))}
                     rows={2}
                   />
+                ) : field.sensitive ? (
+                  <div className={styles.sensitiveInputWrapper}>
+                    <input
+                      type={formShowFields.has(field.key) ? 'text' : 'password'}
+                      className={styles.formInput}
+                      placeholder={field.placeholder}
+                      value={formFields[field.key] || ''}
+                      onChange={e => setFormFields(prev => ({ ...prev, [field.key]: e.target.value }))}
+                      autoComplete="off"
+                    />
+                    <button
+                      type="button"
+                      className={styles.sensitiveToggleBtn}
+                      onClick={() => setFormShowFields(prev => {
+                        const next = new Set(prev);
+                        if (next.has(field.key)) next.delete(field.key); else next.add(field.key);
+                        return next;
+                      })}
+                      title={formShowFields.has(field.key) ? '隱藏' : '顯示'}
+                    >
+                      {formShowFields.has(field.key) ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 ) : (
                   <input
-                    type={field.sensitive ? 'password' : 'text'}
+                    type="text"
                     className={styles.formInput}
                     placeholder={field.placeholder}
                     value={formFields[field.key] || ''}
@@ -1068,7 +1093,7 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
             <button
               type="button"
               className={styles.formCancelBtn}
-              onClick={() => { setShowAddForm(false); setNewTitle(''); setNewContent(''); setFormFields({}); }}
+              onClick={() => { setShowAddForm(false); setNewTitle(''); setNewContent(''); setFormFields({}); setFormShowFields(new Set()); }}
             >
               取消
             </button>
