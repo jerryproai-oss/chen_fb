@@ -6,6 +6,7 @@ import {
   Lock, Plus, KeyRound, FileText, Package,
   Trash2, ChevronLeft, Search, Copy, Eye, EyeOff,
   Users, UserPlus, UserMinus, Shield, Settings,
+  Download, Printer,
 } from 'lucide-react';
 import { deriveKey, decrypt, encrypt, generateSalt } from '@/lib/vault/crypto';
 import { getVaultKey, clearVaultKey } from '@/lib/vault/keystore';
@@ -89,6 +90,7 @@ export default function VaultListPage() {
   const [showPinFields, setShowPinFields] = useState(false);
   const [changingPin, setChangingPin] = useState(false);
   const [changePinProgress, setChangePinProgress] = useState('');
+  const [showBackupMenu, setShowBackupMenu] = useState(false);
 
   const getVaultToken = useCallback(() => sessionStorage.getItem('vault-token'), []);
   const getSalt = useCallback(() => sessionStorage.getItem('vault-salt'), []);
@@ -461,6 +463,129 @@ export default function VaultListPage() {
     }
   };
 
+  // ── 備份功能 ───────────────────────────────────────────
+
+  const escapeHtml = (str: string) =>
+    str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  const getCategoryLabel = (cat: string) => {
+    switch (cat) {
+      case 'PASSWORD': return '帳密';
+      case 'NOTE': return '筆記';
+      default: return '其他';
+    }
+  };
+
+  const formatFullDate = (d: string) => {
+    const date = new Date(d);
+    return `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  };
+
+  const nowStr = () => {
+    const d = new Date();
+    return `${d.getFullYear()}${(d.getMonth() + 1).toString().padStart(2, '0')}${d.getDate().toString().padStart(2, '0')}_${d.getHours().toString().padStart(2, '0')}${d.getMinutes().toString().padStart(2, '0')}`;
+  };
+
+  /** 匯出為 JSON 檔案下載 */
+  const handleExportFile = () => {
+    if (items.length === 0) { setError('沒有可匯出的項目'); return; }
+
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      exportedFrom: '拾日特別區',
+      itemCount: items.length,
+      items: items.map(item => ({
+        title: item.title,
+        content: item.content,
+        category: getCategoryLabel(item.category),
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      })),
+    };
+
+    const json = JSON.stringify(exportData, null, 2);
+    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `拾日特別區備份_${nowStr()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    setShowBackupMenu(false);
+  };
+
+  /** 列印紙本備份 */
+  const handlePrint = () => {
+    if (items.length === 0) { setError('沒有可列印的項目'); return; }
+    setShowBackupMenu(false);
+
+    // 按分類分組
+    const grouped: Record<string, DecryptedItem[]> = {};
+    for (const item of items) {
+      const label = getCategoryLabel(item.category);
+      if (!grouped[label]) grouped[label] = [];
+      grouped[label].push(item);
+    }
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) { setError('無法開啟列印視窗，請允許彈出視窗'); return; }
+
+    const now = formatFullDate(new Date().toISOString());
+
+    printWindow.document.write(`<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>拾日特別區備份 — ${now}</title>
+<style>
+  @page { margin: 15mm; size: A4; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', sans-serif; color: #333; font-size: 11pt; line-height: 1.5; }
+  .header { text-align: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #5a7a5a; }
+  .header h1 { font-size: 18pt; color: #5a7a5a; margin-bottom: 4px; }
+  .header .meta { font-size: 9pt; color: #888; }
+  .warning { background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 8px 12px; margin-bottom: 16px; font-size: 9pt; color: #856404; text-align: center; }
+  .category { margin-bottom: 20px; }
+  .category h2 { font-size: 13pt; color: #5a7a5a; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 10px; }
+  .item { margin-bottom: 12px; padding: 10px 12px; border: 1px solid #e0ddd8; border-radius: 6px; page-break-inside: avoid; }
+  .item-title { font-weight: 700; font-size: 11pt; margin-bottom: 4px; }
+  .item-content { white-space: pre-wrap; word-break: break-all; font-family: 'Consolas', 'Monaco', monospace; font-size: 10pt; background: #f8f7f5; padding: 6px 8px; border-radius: 4px; margin-bottom: 4px; }
+  .item-date { font-size: 8pt; color: #aaa; text-align: right; }
+  .footer { text-align: center; margin-top: 24px; padding-top: 12px; border-top: 1px solid #ddd; font-size: 8pt; color: #aaa; }
+  @media print {
+    .warning { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .item { border-color: #ccc; }
+    .item-content { background: #f5f5f5; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🔐 拾日特別區 — 紙本備份</h1>
+  <div class="meta">匯出時間：${now}　｜　共 ${items.length} 個項目</div>
+</div>
+<div class="warning">⚠️ 本文件包含敏感資訊，請妥善保管或銷毀。切勿拍照、掃描或以電子方式分享。</div>
+${Object.entries(grouped).map(([label, groupItems]) => `
+<div class="category">
+  <h2>${label}（${groupItems.length}）</h2>
+  ${groupItems.map(item => `
+  <div class="item">
+    <div class="item-title">${escapeHtml(item.title)}</div>
+    <div class="item-content">${escapeHtml(item.content)}</div>
+    <div class="item-date">更新：${formatFullDate(item.updatedAt)}</div>
+  </div>`).join('')}
+</div>`).join('')}
+<div class="footer">拾日（Shiri）家庭手札 — 特別區紙本備份 — 列印後請妥善保管</div>
+</body>
+</html>`);
+
+    printWindow.document.close();
+    // 等圖片/字型載入後列印
+    setTimeout(() => { printWindow.print(); }, 300);
+  };
+
   const toggleShowContent = (id: string) => {
     setShowContent(prev => {
       const next = new Set(prev);
@@ -518,12 +643,34 @@ export default function VaultListPage() {
             <>
               <button
                 className={styles.memberBtn}
-                onClick={() => { setShowChangePinPanel(!showChangePinPanel); setShowMemberPanel(false); }}
+                onClick={() => { setShowChangePinPanel(!showChangePinPanel); setShowMemberPanel(false); setShowBackupMenu(false); }}
                 type="button"
                 title="更改密碼"
               >
                 <Settings size={18} />
               </button>
+              <div className={styles.backupMenuWrapper}>
+                <button
+                  className={styles.memberBtn}
+                  onClick={() => { setShowBackupMenu(!showBackupMenu); setShowMemberPanel(false); setShowChangePinPanel(false); }}
+                  type="button"
+                  title="備份"
+                >
+                  <Download size={18} />
+                </button>
+                {showBackupMenu && (
+                  <div className={styles.backupDropdown}>
+                    <button type="button" className={styles.backupDropdownItem} onClick={handleExportFile}>
+                      <Download size={16} />
+                      <span>匯出檔案 (.json)</span>
+                    </button>
+                    <button type="button" className={styles.backupDropdownItem} onClick={handlePrint}>
+                      <Printer size={16} />
+                      <span>列印紙本</span>
+                    </button>
+                  </div>
+                )}
+              </div>
               <button
                 className={styles.memberBtn}
                 onClick={handleToggleMemberPanel}
