@@ -644,3 +644,109 @@
 .backupDropdownItem:not(:last-child) {
   border-bottom: 1px solid var(--color-border-light, #eee);
 }
+
+
+/* ── 表單欄位標籤 ─────────────────────────────────────── */
+
+.formFieldLabel {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+
+/* ── 結構化欄位展示 ───────────────────────────────────── */
+
+.structuredFields {
+  padding-top: var(--space-sm);
+}
+
+.fieldRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 0;
+}
+
+.fieldRow:not(:last-of-type) {
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.fieldLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.fieldValueRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-height: 32px;
+}
+
+.fieldValue {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+  line-height: 1.5;
+  min-width: 0;
+}
+
+.fieldMono {
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  letter-spacing: 0.5px;
+}
+
+.fieldLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.fieldLink:hover {
+  text-decoration: underline;
+}
+
+.fieldActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.fieldActionBtn {
+  position: relative;
+  background: none;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 30px;
+  min-height: 30px;
+  transition: all var(--transition-fast);
+}
+
+.fieldActionBtn:hover {
+  background-color: rgba(90, 122, 90, 0.06);
+  color: var(--color-text);
+}
+
+.itemDeleteRow {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-sm);
+  margin-top: var(--space-xs);
+}

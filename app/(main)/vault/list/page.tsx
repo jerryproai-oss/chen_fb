@@ -6,7 +6,7 @@ import {
   Lock, Plus, KeyRound, FileText, Package,
   Trash2, ChevronLeft, Search, Copy, Eye, EyeOff,
   Users, UserPlus, UserMinus, Shield, Settings,
-  Download, Printer,
+  Download, Printer, Landmark, CreditCard, TrendingUp, ExternalLink,
 } from 'lucide-react';
 import { deriveKey, decrypt, encrypt, generateSalt } from '@/lib/vault/crypto';
 import { getVaultKey, clearVaultKey } from '@/lib/vault/keystore';
@@ -51,9 +51,81 @@ type FamilyMember = {
 const CATEGORIES = [
   { key: 'ALL', label: '全部', icon: Package },
   { key: 'PASSWORD', label: '帳密', icon: KeyRound },
+  { key: 'BANK', label: '銀行', icon: Landmark },
+  { key: 'CREDIT_CARD', label: '信用卡', icon: CreditCard },
+  { key: 'FINANCE', label: '投資', icon: TrendingUp },
   { key: 'NOTE', label: '筆記', icon: FileText },
   { key: 'OTHER', label: '其他', icon: Package },
 ] as const;
+
+// ── 結構化欄位定義 ─────────────────────────────────────────
+
+type FieldDef = {
+  key: string;
+  label: string;
+  placeholder: string;
+  required?: boolean;
+  sensitive?: boolean;   // 遮蔽顯示（密碼/卡號/CVV 等）
+  inputType?: 'text' | 'password' | 'url' | 'textarea';
+};
+
+/** 各分類的結構化欄位；NOTE / OTHER 不在此定義，使用純文字 */
+const CATEGORY_FIELDS: Record<string, FieldDef[]> = {
+  PASSWORD: [
+    { key: 'username', label: '帳號', placeholder: '使用者名稱或 Email', required: true },
+    { key: 'password', label: '密碼', placeholder: '密碼', required: true, sensitive: true },
+    { key: 'url', label: '網站', placeholder: 'https://...', inputType: 'url' },
+    { key: 'notes', label: '備註', placeholder: '其他備註', inputType: 'textarea' },
+  ],
+  BANK: [
+    { key: 'bankName', label: '銀行', placeholder: '銀行名稱', required: true },
+    { key: 'accountNumber', label: '帳號', placeholder: '銀行帳號', required: true, sensitive: true },
+    { key: 'accountName', label: '戶名', placeholder: '帳戶持有人' },
+    { key: 'branch', label: '分行', placeholder: '分行名稱' },
+    { key: 'notes', label: '備註', placeholder: '其他備註', inputType: 'textarea' },
+  ],
+  CREDIT_CARD: [
+    { key: 'bankName', label: '發卡銀行', placeholder: '發卡銀行', required: true },
+    { key: 'cardNumber', label: '卡號', placeholder: '信用卡號碼', required: true, sensitive: true },
+    { key: 'cardHolder', label: '持卡人', placeholder: '卡片上的姓名' },
+    { key: 'expiryDate', label: '有效期限', placeholder: 'MM/YY' },
+    { key: 'cvv', label: '安全碼', placeholder: 'CVV', sensitive: true },
+    { key: 'creditLimit', label: '信用額度', placeholder: '額度金額' },
+    { key: 'notes', label: '備註', placeholder: '其他備註', inputType: 'textarea' },
+  ],
+  FINANCE: [
+    { key: 'institution', label: '機構', placeholder: '券商/銀行/平台名稱', required: true },
+    { key: 'accountNumber', label: '帳號', placeholder: '投資帳號', required: true, sensitive: true },
+    { key: 'accountName', label: '戶名', placeholder: '帳戶持有人' },
+    { key: 'accountType', label: '帳戶類型', placeholder: '股票/期貨/基金/ETF/加密貨幣' },
+    { key: 'notes', label: '備註', placeholder: '其他備註', inputType: 'textarea' },
+  ],
+};
+
+/** 判斷是否為結構化分類 */
+const isStructuredCategory = (cat: string) => cat in CATEGORY_FIELDS;
+
+/** 取得表單標題 placeholder */
+const getTitlePlaceholder = (cat: string) => {
+  switch (cat) {
+    case 'PASSWORD': return '服務名稱（如 Gmail）';
+    case 'BANK': return '帳戶名稱（如 台銀薪轉）';
+    case 'CREDIT_CARD': return '卡片名稱（如 中信 Visa 白金）';
+    case 'FINANCE': return '帳戶名稱（如 元大證券）';
+    default: return '標題';
+  }
+};
+
+/** 嘗試解析結構化內容 */
+const parseStructured = (content: string): Record<string, string> | null => {
+  try {
+    const parsed = JSON.parse(content);
+    if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+      return parsed as Record<string, string>;
+    }
+  } catch { /* plain text */ }
+  return null;
+};
 
 export default function VaultListPage() {
   const router = useRouter();
@@ -66,6 +138,7 @@ export default function VaultListPage() {
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [newCategory, setNewCategory] = useState('NOTE');
+  const [formFields, setFormFields] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showContent, setShowContent] = useState<Set<string>>(new Set());
@@ -379,10 +452,25 @@ export default function VaultListPage() {
     const key = cryptoKeyRef.current;
     if (!token || !key) { router.replace('/vault'); return; }
 
+    // 根據分類建構 content
+    let contentToEncrypt: string;
+    if (isStructuredCategory(newCategory)) {
+      const fields = CATEGORY_FIELDS[newCategory];
+      const data: Record<string, string> = {};
+      for (const f of fields) {
+        if (formFields[f.key]?.trim()) {
+          data[f.key] = formFields[f.key].trim();
+        }
+      }
+      contentToEncrypt = JSON.stringify(data);
+    } else {
+      contentToEncrypt = newContent.trim() || ' ';
+    }
+
     setSaving(true);
     try {
       const { ciphertext: titleEnc, iv } = await encrypt(key, newTitle.trim());
-      const contentResult = await encrypt(key, newContent.trim() || ' ');
+      const contentResult = await encrypt(key, contentToEncrypt);
       // Store as: titleIV|contentIV (separated by |)
       const combinedIv = iv + '|' + contentResult.iv;
 
@@ -409,7 +497,7 @@ export default function VaultListPage() {
       setItems(prev => [{
         id: resData.item.id,
         title: newTitle.trim(),
-        content: newContent.trim() || ' ',
+        content: contentToEncrypt,
         category: newCategory,
         createdBy: resData.item.createdBy,
         createdAt: new Date().toISOString(),
@@ -419,6 +507,7 @@ export default function VaultListPage() {
       setNewTitle('');
       setNewContent('');
       setNewCategory('NOTE');
+      setFormFields({});
       setShowAddForm(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : '新增失敗');
@@ -471,6 +560,9 @@ export default function VaultListPage() {
   const getCategoryLabel = (cat: string) => {
     switch (cat) {
       case 'PASSWORD': return '帳密';
+      case 'BANK': return '銀行';
+      case 'CREDIT_CARD': return '信用卡';
+      case 'FINANCE': return '投資';
       case 'NOTE': return '筆記';
       default: return '其他';
     }
@@ -494,13 +586,16 @@ export default function VaultListPage() {
       exportedAt: new Date().toISOString(),
       exportedFrom: '拾日特別區',
       itemCount: items.length,
-      items: items.map(item => ({
-        title: item.title,
-        content: item.content,
-        category: getCategoryLabel(item.category),
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt,
-      })),
+      items: items.map(item => {
+        const structured = isStructuredCategory(item.category) ? parseStructured(item.content) : null;
+        return {
+          title: item.title,
+          category: getCategoryLabel(item.category),
+          ...(structured ? { fields: structured } : { content: item.content }),
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        };
+      }),
     };
 
     const json = JSON.stringify(exportData, null, 2);
@@ -552,6 +647,9 @@ export default function VaultListPage() {
   .item { margin-bottom: 12px; padding: 10px 12px; border: 1px solid #e0ddd8; border-radius: 6px; page-break-inside: avoid; }
   .item-title { font-weight: 700; font-size: 11pt; margin-bottom: 4px; }
   .item-content { white-space: pre-wrap; word-break: break-all; font-family: 'Consolas', 'Monaco', monospace; font-size: 10pt; background: #f8f7f5; padding: 6px 8px; border-radius: 4px; margin-bottom: 4px; }
+  .field-row { display: flex; gap: 8px; padding: 2px 0; font-size: 10pt; }
+  .field-label { color: #888; min-width: 70px; flex-shrink: 0; }
+  .field-val { font-family: 'Consolas', 'Monaco', monospace; word-break: break-all; }
   .item-date { font-size: 8pt; color: #aaa; text-align: right; }
   .footer { text-align: center; margin-top: 24px; padding-top: 12px; border-top: 1px solid #ddd; font-size: 8pt; color: #aaa; }
   @media print {
@@ -570,12 +668,22 @@ export default function VaultListPage() {
 ${Object.entries(grouped).map(([label, groupItems]) => `
 <div class="category">
   <h2>${label}（${groupItems.length}）</h2>
-  ${groupItems.map(item => `
+  ${groupItems.map(item => {
+    const structured = isStructuredCategory(item.category) ? parseStructured(item.content) : null;
+    const fieldDefs = CATEGORY_FIELDS[item.category];
+    const contentHtml = (structured && fieldDefs)
+      ? fieldDefs
+          .filter(f => structured[f.key])
+          .map(f => `<div class="field-row"><span class="field-label">${escapeHtml(f.label)}：</span><span class="field-val">${escapeHtml(structured[f.key])}</span></div>`)
+          .join('')
+      : `<div class="item-content">${escapeHtml(item.content)}</div>`;
+    return `
   <div class="item">
     <div class="item-title">${escapeHtml(item.title)}</div>
-    <div class="item-content">${escapeHtml(item.content)}</div>
+    ${contentHtml}
     <div class="item-date">更新：${formatFullDate(item.updatedAt)}</div>
-  </div>`).join('')}
+  </div>`;
+  }).join('')}
 </div>`).join('')}
 <div class="footer">拾日（Shiri）家庭手札 — 特別區紙本備份 — 列印後請妥善保管</div>
 </body>
@@ -612,6 +720,9 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
   const getCategoryIcon = (cat: string) => {
     switch (cat) {
       case 'PASSWORD': return <KeyRound size={14} />;
+      case 'BANK': return <Landmark size={14} />;
+      case 'CREDIT_CARD': return <CreditCard size={14} />;
+      case 'FINANCE': return <TrendingUp size={14} />;
       case 'NOTE': return <FileText size={14} />;
       default: return <Package size={14} />;
     }
@@ -883,40 +994,73 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
       {showAddForm && (
         <div className={styles.addForm}>
           <div className={styles.formField}>
+            <select
+              className={styles.formSelect}
+              value={newCategory}
+              onChange={e => { setNewCategory(e.target.value); setFormFields({}); }}
+            >
+              <option value="NOTE">📝 筆記</option>
+              <option value="PASSWORD">🔑 帳密</option>
+              <option value="BANK">🏦 銀行</option>
+              <option value="CREDIT_CARD">💳 信用卡</option>
+              <option value="FINANCE">📈 投資</option>
+              <option value="OTHER">📦 其他</option>
+            </select>
+          </div>
+          <div className={styles.formField}>
             <input
               type="text"
               className={styles.formInput}
-              placeholder="標題"
+              placeholder={getTitlePlaceholder(newCategory)}
               value={newTitle}
               onChange={e => setNewTitle(e.target.value)}
               maxLength={100}
             />
           </div>
-          <div className={styles.formField}>
-            <textarea
-              className={styles.formTextarea}
-              placeholder="內容（帳密、備忘等）"
-              value={newContent}
-              onChange={e => setNewContent(e.target.value)}
-              rows={3}
-            />
-          </div>
-          <div className={styles.formField}>
-            <select
-              className={styles.formSelect}
-              value={newCategory}
-              onChange={e => setNewCategory(e.target.value)}
-            >
-              <option value="NOTE">📝 筆記</option>
-              <option value="PASSWORD">🔑 帳密</option>
-              <option value="OTHER">📦 其他</option>
-            </select>
-          </div>
+
+          {/* 結構化分類：動態欄位 */}
+          {isStructuredCategory(newCategory) ? (
+            CATEGORY_FIELDS[newCategory].map(field => (
+              <div key={field.key} className={styles.formField}>
+                <label className={styles.formFieldLabel}>{field.label}{field.required ? ' *' : ''}</label>
+                {field.inputType === 'textarea' ? (
+                  <textarea
+                    className={styles.formTextarea}
+                    placeholder={field.placeholder}
+                    value={formFields[field.key] || ''}
+                    onChange={e => setFormFields(prev => ({ ...prev, [field.key]: e.target.value }))}
+                    rows={2}
+                  />
+                ) : (
+                  <input
+                    type={field.sensitive ? 'password' : 'text'}
+                    className={styles.formInput}
+                    placeholder={field.placeholder}
+                    value={formFields[field.key] || ''}
+                    onChange={e => setFormFields(prev => ({ ...prev, [field.key]: e.target.value }))}
+                    autoComplete="off"
+                  />
+                )}
+              </div>
+            ))
+          ) : (
+            /* 筆記 / 其他：純文字 */
+            <div className={styles.formField}>
+              <textarea
+                className={styles.formTextarea}
+                placeholder="內容"
+                value={newContent}
+                onChange={e => setNewContent(e.target.value)}
+                rows={3}
+              />
+            </div>
+          )}
+
           <div className={styles.formActions}>
             <button
               type="button"
               className={styles.formCancelBtn}
-              onClick={() => { setShowAddForm(false); setNewTitle(''); setNewContent(''); }}
+              onClick={() => { setShowAddForm(false); setNewTitle(''); setNewContent(''); setFormFields({}); }}
             >
               取消
             </button>
@@ -956,43 +1100,128 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
 
             {expandedId === item.id && (
               <div className={styles.itemBody}>
-                <div className={styles.itemContentRow}>
-                  <pre className={styles.itemContent}>
-                    {item.category === 'PASSWORD' && !showContent.has(item.id)
-                      ? '••••••••'
-                      : item.content}
-                  </pre>
-                  <div className={styles.itemActions}>
-                    {item.category === 'PASSWORD' && (
-                      <button
-                        type="button"
-                        className={styles.itemActionBtn}
-                        onClick={() => toggleShowContent(item.id)}
-                        title={showContent.has(item.id) ? '隱藏' : '顯示'}
-                      >
-                        {showContent.has(item.id) ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      className={styles.itemActionBtn}
-                      onClick={() => handleCopy(item.content, item.id)}
-                      title="複製"
-                    >
-                      <Copy size={16} />
-                      {copyFeedback === item.id && <span className={styles.copyToast}>已複製</span>}
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.itemActionBtn} ${styles.itemDeleteBtn}`}
-                      onClick={() => handleDelete(item.id)}
-                      disabled={deletingId === item.id}
-                      title="刪除"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
+                {(() => {
+                  const structured = isStructuredCategory(item.category) ? parseStructured(item.content) : null;
+                  const fieldDefs = CATEGORY_FIELDS[item.category];
+
+                  if (structured && fieldDefs) {
+                    // ── 結構化顯示 ──
+                    return (
+                      <div className={styles.structuredFields}>
+                        {fieldDefs.map(f => {
+                          const val = structured[f.key];
+                          if (!val) return null;
+                          const isHidden = f.sensitive && !showContent.has(`${item.id}-${f.key}`);
+                          const feedbackKey = `${item.id}-${f.key}`;
+                          return (
+                            <div key={f.key} className={styles.fieldRow}>
+                              <span className={styles.fieldLabel}>{f.label}</span>
+                              <div className={styles.fieldValueRow}>
+                                {f.inputType === 'url' ? (
+                                  <a
+                                    href={val.startsWith('http') ? val : `https://${val}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={styles.fieldLink}
+                                  >
+                                    <ExternalLink size={12} />
+                                    <span>{val}</span>
+                                  </a>
+                                ) : f.inputType === 'textarea' ? (
+                                  <pre className={styles.fieldValue}>{val}</pre>
+                                ) : (
+                                  <span className={`${styles.fieldValue} ${f.sensitive ? styles.fieldMono : ''}`}>
+                                    {isHidden ? '••••••••' : val}
+                                  </span>
+                                )}
+                                <div className={styles.fieldActions}>
+                                  {f.sensitive && (
+                                    <button
+                                      type="button"
+                                      className={styles.fieldActionBtn}
+                                      onClick={() => {
+                                        setShowContent(prev => {
+                                          const next = new Set(prev);
+                                          const k = `${item.id}-${f.key}`;
+                                          if (next.has(k)) next.delete(k); else next.add(k);
+                                          return next;
+                                        });
+                                      }}
+                                      title={isHidden ? '顯示' : '隱藏'}
+                                    >
+                                      {isHidden ? <Eye size={14} /> : <EyeOff size={14} />}
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    className={styles.fieldActionBtn}
+                                    onClick={() => handleCopy(val, feedbackKey)}
+                                    title="複製"
+                                  >
+                                    <Copy size={14} />
+                                    {copyFeedback === feedbackKey && <span className={styles.copyToast}>已複製</span>}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        <div className={styles.itemDeleteRow}>
+                          <button
+                            type="button"
+                            className={`${styles.itemActionBtn} ${styles.itemDeleteBtn}`}
+                            onClick={() => handleDelete(item.id)}
+                            disabled={deletingId === item.id}
+                            title="刪除"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
+                  // ── 純文字顯示（筆記/其他/舊資料） ──
+                  return (
+                    <div className={styles.itemContentRow}>
+                      <pre className={styles.itemContent}>
+                        {item.category === 'PASSWORD' && !showContent.has(item.id)
+                          ? '••••••••'
+                          : item.content}
+                      </pre>
+                      <div className={styles.itemActions}>
+                        {item.category === 'PASSWORD' && (
+                          <button
+                            type="button"
+                            className={styles.itemActionBtn}
+                            onClick={() => toggleShowContent(item.id)}
+                            title={showContent.has(item.id) ? '隱藏' : '顯示'}
+                          >
+                            {showContent.has(item.id) ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className={styles.itemActionBtn}
+                          onClick={() => handleCopy(item.content, item.id)}
+                          title="複製"
+                        >
+                          <Copy size={16} />
+                          {copyFeedback === item.id && <span className={styles.copyToast}>已複製</span>}
+                        </button>
+                        <button
+                          type="button"
+                          className={`${styles.itemActionBtn} ${styles.itemDeleteBtn}`}
+                          onClick={() => handleDelete(item.id)}
+                          disabled={deletingId === item.id}
+                          title="刪除"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </div>
