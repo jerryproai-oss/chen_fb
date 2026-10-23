@@ -7,6 +7,7 @@ import {
   Trash2, ChevronLeft, Search, Copy, Eye, EyeOff,
   Users, UserPlus, UserMinus, Shield, Settings,
   Download, Printer, Landmark, CreditCard, TrendingUp, ExternalLink,
+  Pencil,
 } from 'lucide-react';
 import { deriveKey, decrypt, encrypt, generateSalt } from '@/lib/vault/crypto';
 import { getVaultKey, clearVaultKey } from '@/lib/vault/keystore';
@@ -148,6 +149,7 @@ export default function VaultListPage() {
   const [formCustomFields, setFormCustomFields] = useState<CustomField[]>([]);
   const [customCategoryLabel, setCustomCategoryLabel] = useState('');
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showContent, setShowContent] = useState<Set<string>>(new Set());
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
@@ -548,6 +550,125 @@ export default function VaultListPage() {
       setShowAddForm(false);
     } catch (e) {
       setError(e instanceof Error ? e.message : '新增失敗');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  /** 開始編輯：把解密的資料填入表單 */
+  const handleStartEdit = (item: DecryptedItem) => {
+    setEditingId(item.id);
+    setNewTitle(item.title);
+    setNewCategory(item.category);
+    setShowAddForm(true);
+    setExpandedId(null);
+
+    if (item.category === 'CUSTOM') {
+      const s = parseStructured(item.content);
+      setCustomCategoryLabel(s?.categoryLabel || '');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const cf = s ? ((s as any).customFields as CustomField[] | undefined) : undefined;
+      setFormCustomFields(cf || []);
+      setFormFields({});
+    } else if (isStructuredCategory(item.category)) {
+      const s = parseStructured(item.content);
+      if (s) {
+        const fields: Record<string, string> = {};
+        const fieldDefs = CATEGORY_FIELDS[item.category];
+        for (const f of fieldDefs) {
+          if (s[f.key]) fields[f.key] = s[f.key];
+        }
+        setFormFields(fields);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const cf = (s as any).customFields as CustomField[] | undefined;
+        setFormCustomFields(cf || []);
+      }
+      setCustomCategoryLabel('');
+    } else {
+      setNewContent(item.content);
+      setFormFields({});
+      setFormCustomFields([]);
+      setCustomCategoryLabel('');
+    }
+    setFormShowFields(new Set());
+  };
+
+  /** 儲存編輯（PATCH） */
+  const handleSaveEdit = async () => {
+    if (!editingId || !newTitle.trim()) return;
+    const token = getVaultToken();
+    const key = cryptoKeyRef.current;
+    if (!token || !key) { router.replace('/vault'); return; }
+
+    // 建構 content
+    let contentToEncrypt: string;
+    if (newCategory === 'CUSTOM') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: Record<string, any> = {};
+      if (customCategoryLabel.trim()) data.categoryLabel = customCategoryLabel.trim();
+      const validCustom = formCustomFields.filter(cf => cf.label.trim() && cf.value.trim());
+      if (validCustom.length > 0) {
+        data.customFields = validCustom.map(cf => ({ label: cf.label.trim(), value: cf.value.trim(), sensitive: cf.sensitive }));
+      }
+      contentToEncrypt = JSON.stringify(data);
+    } else if (isStructuredCategory(newCategory)) {
+      const fields = CATEGORY_FIELDS[newCategory];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const data: Record<string, any> = {};
+      for (const f of fields) {
+        if (formFields[f.key]?.trim()) data[f.key] = formFields[f.key].trim();
+      }
+      const validCustom = formCustomFields.filter(cf => cf.label.trim() && cf.value.trim());
+      if (validCustom.length > 0) {
+        data.customFields = validCustom.map(cf => ({ label: cf.label.trim(), value: cf.value.trim(), sensitive: cf.sensitive }));
+      }
+      contentToEncrypt = JSON.stringify(data);
+    } else {
+      contentToEncrypt = newContent.trim() || ' ';
+    }
+
+    setSaving(true);
+    try {
+      const { ciphertext: titleEnc, iv } = await encrypt(key, newTitle.trim());
+      const contentResult = await encrypt(key, contentToEncrypt);
+      const combinedIv = iv + '|' + contentResult.iv;
+
+      const res = await fetch(`/api/vault/items/${editingId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-vault-token': token,
+        },
+        body: JSON.stringify({
+          titleEnc,
+          contentEnc: contentResult.ciphertext,
+          category: newCategory,
+          iv: combinedIv,
+        }),
+      });
+
+      if (res.status === 401) { router.replace('/vault'); return; }
+      if (!res.ok) throw new Error('更新失敗');
+
+      // 更新本地項目
+      setItems(prev => prev.map(it =>
+        it.id === editingId
+          ? { ...it, title: newTitle.trim(), content: contentToEncrypt, category: newCategory, updatedAt: new Date().toISOString() }
+          : it
+      ));
+
+      // 清空表單
+      setEditingId(null);
+      setNewTitle('');
+      setNewContent('');
+      setNewCategory('NOTE');
+      setFormFields({});
+      setFormShowFields(new Set());
+      setFormCustomFields([]);
+      setCustomCategoryLabel('');
+      setShowAddForm(false);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '更新失敗');
     } finally {
       setSaving(false);
     }
@@ -1068,9 +1189,15 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
         </button>
       )}
 
-      {/* Add form */}
+      {/* Add/Edit form */}
       {showAddForm && (
         <div className={styles.addForm}>
+          {editingId && (
+            <div className={styles.formHeader}>
+              <Pencil size={14} />
+              <span>編輯項目</span>
+            </div>
+          )}
           {/* 分類選擇晶片 */}
           <div className={styles.categoryChips}>
             {CATEGORIES.filter(c => c.key !== 'ALL').map(cat => (
@@ -1329,17 +1456,17 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
             <button
               type="button"
               className={styles.formCancelBtn}
-              onClick={() => { setShowAddForm(false); setNewTitle(''); setNewContent(''); setFormFields({}); setFormShowFields(new Set()); setFormCustomFields([]); setCustomCategoryLabel(''); }}
+              onClick={() => { setShowAddForm(false); setEditingId(null); setNewTitle(''); setNewContent(''); setFormFields({}); setFormShowFields(new Set()); setFormCustomFields([]); setCustomCategoryLabel(''); }}
             >
               取消
             </button>
             <button
               type="button"
               className={styles.formSaveBtn}
-              onClick={handleAdd}
+              onClick={editingId ? handleSaveEdit : handleAdd}
               disabled={saving || !newTitle.trim()}
             >
-              {saving ? '儲存中…' : '儲存'}
+              {saving ? '儲存中…' : editingId ? '更新' : '儲存'}
             </button>
           </div>
         </div>
@@ -1503,6 +1630,14 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
                         <div className={styles.itemDeleteRow}>
                           <button
                             type="button"
+                            className={styles.itemActionBtn}
+                            onClick={() => handleStartEdit(item)}
+                            title="編輯"
+                          >
+                            <Pencil size={16} />
+                          </button>
+                          <button
+                            type="button"
                             className={`${styles.itemActionBtn} ${styles.itemDeleteBtn}`}
                             onClick={() => handleDelete(item.id)}
                             disabled={deletingId === item.id}
@@ -1542,6 +1677,14 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
                         >
                           <Copy size={16} />
                           {copyFeedback === item.id && <span className={styles.copyToast}>已複製</span>}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.itemActionBtn}
+                          onClick={() => handleStartEdit(item)}
+                          title="編輯"
+                        >
+                          <Pencil size={16} />
                         </button>
                         <button
                           type="button"
