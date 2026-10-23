@@ -983,7 +983,14 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
         <button
           type="button"
           className={styles.addBtn}
-          onClick={() => setShowAddForm(true)}
+          onClick={() => {
+            setShowAddForm(true);
+            // 自動帶入目前篩選的分類
+            if (activeTab !== 'ALL') {
+              setNewCategory(activeTab);
+              setFormFields({});
+            }
+          }}
         >
           <Plus size={18} />
           <span>新增項目</span>
@@ -993,20 +1000,21 @@ ${Object.entries(grouped).map(([label, groupItems]) => `
       {/* Add form */}
       {showAddForm && (
         <div className={styles.addForm}>
-          <div className={styles.formField}>
-            <select
-              className={styles.formSelect}
-              value={newCategory}
-              onChange={e => { setNewCategory(e.target.value); setFormFields({}); }}
-            >
-              <option value="NOTE">📝 筆記</option>
-              <option value="PASSWORD">🔑 帳密</option>
-              <option value="BANK">🏦 銀行</option>
-              <option value="CREDIT_CARD">💳 信用卡</option>
-              <option value="FINANCE">📈 投資</option>
-              <option value="OTHER">📦 其他</option>
-            </select>
+          {/* 分類選擇晶片 */}
+          <div className={styles.categoryChips}>
+            {CATEGORIES.filter(c => c.key !== 'ALL').map(cat => (
+              <button
+                key={cat.key}
+                type="button"
+                className={`${styles.categoryChip} ${newCategory === cat.key ? styles.categoryChipActive : ''}`}
+                onClick={() => { setNewCategory(cat.key); setFormFields({}); }}
+              >
+                <cat.icon size={12} />
+                <span>{cat.label}</span>
+              </button>
+            ))}
           </div>
+
           <div className={styles.formField}>
             <input
               type="text"
