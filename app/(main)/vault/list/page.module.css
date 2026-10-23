@@ -995,3 +995,83 @@
   flex-direction: column;
   gap: var(--space-xs);
 }
+
+
+/* 批次刪除 */
+.batchCheckbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 6px;
+  color: #5a7a5a;
+  flex-shrink: 0;
+}
+
+.itemCardSelected {
+  background: rgba(90, 122, 90, 0.08);
+  border-color: #5a7a5a;
+}
+
+.batchBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top: 2px solid #5a7a5a;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 100;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.batchBarText {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.batchBarActions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.batchBarCancel {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+  color: #666;
+  cursor: pointer;
+}
+
+.batchBarCancel:hover {
+  background: #f5f5f5;
+}
+
+.batchBarDelete {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #dc3545;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.batchBarDelete:hover:not(:disabled) {
+  background: #c82333;
+}
+
+.batchBarDelete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

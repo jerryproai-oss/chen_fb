@@ -7,7 +7,7 @@ import {
   Trash2, ChevronLeft, Search, Copy, Eye, EyeOff,
   Users, UserPlus, UserMinus, Shield, Settings,
   Download, Printer, Landmark, CreditCard, TrendingUp, ExternalLink,
-  Pencil, Upload,
+  Pencil, Upload, CheckSquare, Square, X,
 } from 'lucide-react';
 import { deriveKey, decrypt, encrypt, generateSalt } from '@/lib/vault/crypto';
 import { getVaultKey, clearVaultKey } from '@/lib/vault/keystore';
@@ -155,6 +155,9 @@ export default function VaultListPage() {
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [batchMode, setBatchMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchDeleting, setBatchDeleting] = useState(false);
   const cryptoKeyRef = useRef<CryptoKey | null>(null);
 
   // 共享保險庫相關
@@ -701,6 +704,69 @@ export default function VaultListPage() {
     }
   };
 
+  /** 切換批次選取 */
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  /** 全選/取消選取一組項目 */
+  const toggleSelectGroup = (ids: string[]) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      const allSelected = ids.every(id => next.has(id));
+      if (allSelected) {
+        ids.forEach(id => next.delete(id));
+      } else {
+        ids.forEach(id => next.add(id));
+      }
+      return next;
+    });
+  };
+
+  /** 批次刪除 */
+  const handleBatchDelete = async () => {
+    const token = getVaultToken();
+    if (!token) { router.replace('/vault'); return; }
+    if (selectedIds.size === 0) return;
+
+    const confirmed = confirm(`確定要刪除選取的 ${selectedIds.size} 個項目嗎？此操作無法復原。`);
+    if (!confirmed) return;
+
+    setBatchDeleting(true);
+    let success = 0;
+    let failed = 0;
+
+    for (const id of selectedIds) {
+      try {
+        const res = await fetch(`/api/vault/items/${id}`, {
+          method: 'DELETE',
+          headers: { 'x-vault-token': token },
+        });
+        if (res.ok) {
+          success++;
+        } else {
+          failed++;
+        }
+      } catch {
+        failed++;
+      }
+    }
+
+    // 更新列表
+    setItems(prev => prev.filter(item => !selectedIds.has(item.id)));
+    setSelectedIds(new Set());
+    setBatchMode(false);
+    setBatchDeleting(false);
+
+    if (failed > 0) {
+      alert(`刪除完成：成功 ${success} 筆，失敗 ${failed} 筆`);
+    }
+  };
+
   const handleCopy = async (text: string, id: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -1120,6 +1186,25 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
                 <Users size={18} />
               </button>
             </>
+          )}
+          {!batchMode ? (
+            <button
+              className={styles.memberBtn}
+              onClick={() => { setBatchMode(true); setSelectedIds(new Set()); }}
+              type="button"
+              title="批次刪除"
+            >
+              <Trash2 size={18} />
+            </button>
+          ) : (
+            <button
+              className={styles.memberBtn}
+              onClick={() => { setBatchMode(false); setSelectedIds(new Set()); }}
+              type="button"
+              title="取消批次"
+            >
+              <X size={18} />
+            </button>
           )}
           <button className={styles.lockBtn} onClick={handleLock} type="button" title="上鎖">
             <Lock size={18} />
@@ -1649,12 +1734,23 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
           const renderItemCard = (item: DecryptedItem) => (
           <div
             key={item.id}
-            className={`${styles.itemCard} ${expandedId === item.id ? styles.itemCardExpanded : ''}`}
+            className={`${styles.itemCard} ${expandedId === item.id ? styles.itemCardExpanded : ''} ${batchMode && selectedIds.has(item.id) ? styles.itemCardSelected : ''}`}
           >
             <div
               className={styles.itemHeader}
-              onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
+              onClick={() => {
+                if (batchMode) {
+                  toggleSelect(item.id);
+                } else {
+                  setExpandedId(expandedId === item.id ? null : item.id);
+                }
+              }}
             >
+              {batchMode && (
+                <span className={styles.batchCheckbox}>
+                  {selectedIds.has(item.id) ? <CheckSquare size={18} /> : <Square size={18} />}
+                </span>
+              )}
               <span className={styles.itemCategoryIcon}>
                 {getCategoryIcon(item.category)}
               </span>
@@ -1869,18 +1965,33 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
           return (
             <>
               {/* 自訂分類群組（可收合） */}
-              {Object.entries(customGroups).map(([label, groupItems]) => (
+              {Object.entries(customGroups).map(([label, groupItems]) => {
+                const groupIds = groupItems.map(i => i.id);
+                const allGroupSelected = batchMode && groupIds.length > 0 && groupIds.every(id => selectedIds.has(id));
+                return (
                 <div key={`group-${label}`} className={styles.groupContainer}>
                   <div
                     className={styles.groupHeader}
-                    onClick={() => toggleGroup(label)}
+                    onClick={() => {
+                      if (batchMode) {
+                        toggleSelectGroup(groupIds);
+                      } else {
+                        toggleGroup(label);
+                      }
+                    }}
                   >
-                    <ChevronLeft
-                      size={16}
-                      className={`${styles.groupChevron} ${!collapsedGroups.has(label) ? styles.groupChevronOpen : ''}`}
-                    />
+                    {batchMode ? (
+                      <span className={styles.batchCheckbox}>
+                        {allGroupSelected ? <CheckSquare size={16} /> : <Square size={16} />}
+                      </span>
+                    ) : (
+                      <ChevronLeft
+                        size={16}
+                        className={`${styles.groupChevron} ${!collapsedGroups.has(label) ? styles.groupChevronOpen : ''}`}
+                      />
+                    )}
                     <span className={styles.groupLabel}>{label}</span>
-                    <span className={styles.groupCount}>{groupItems.length}</span>
+                    <span className={styles.groupCount}>{batchMode ? `${groupIds.filter(id => selectedIds.has(id)).length}/${groupItems.length}` : groupItems.length}</span>
                   </div>
                   {!collapsedGroups.has(label) && (
                     <div className={styles.groupItems}>
@@ -1888,13 +1999,41 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
                     </div>
                   )}
                 </div>
-              ))}
+                );
+              })}
               {/* 一般項目 */}
               {regularItems.map(item => renderItemCard(item))}
             </>
           );
         })()}
       </div>
+
+      {/* 批次刪除操作列 */}
+      {batchMode && (
+        <div className={styles.batchBar}>
+          <span className={styles.batchBarText}>
+            已選取 {selectedIds.size} 個項目
+          </span>
+          <div className={styles.batchBarActions}>
+            <button
+              type="button"
+              className={styles.batchBarCancel}
+              onClick={() => { setBatchMode(false); setSelectedIds(new Set()); }}
+            >
+              取消
+            </button>
+            <button
+              type="button"
+              className={styles.batchBarDelete}
+              onClick={handleBatchDelete}
+              disabled={selectedIds.size === 0 || batchDeleting}
+            >
+              <Trash2 size={16} />
+              {batchDeleting ? '刪除中...' : `刪除 (${selectedIds.size})`}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
