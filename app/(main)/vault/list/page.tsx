@@ -7,7 +7,7 @@ import {
   Trash2, ChevronLeft, Search, Copy, Eye, EyeOff,
   Users, UserPlus, UserMinus, Shield, Settings,
   Download, Printer, Landmark, CreditCard, TrendingUp, ExternalLink,
-  Pencil,
+  Pencil, Upload,
 } from 'lucide-react';
 import { deriveKey, decrypt, encrypt, generateSalt } from '@/lib/vault/crypto';
 import { getVaultKey, clearVaultKey } from '@/lib/vault/keystore';
@@ -885,6 +885,116 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
     setTimeout(() => { printWindow.print(); }, 300);
   };
 
+  /** 匯入 JSON 檔案 */
+  const handleImportFile = () => {
+    setShowBackupMenu(false);
+    const token = getVaultToken();
+    const key = cryptoKeyRef.current;
+    if (!token || !key) { router.replace('/vault'); return; }
+
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+
+        // 支援兩種格式：
+        // 1. 陣列 [{title, category, content}, ...]
+        // 2. 匯出格式 {items: [{title, category, content/fields}, ...]}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let importItems: any[] = [];
+        if (Array.isArray(data)) {
+          importItems = data;
+        } else if (data.items && Array.isArray(data.items)) {
+          importItems = data.items;
+        } else {
+          setError('無法辨識的檔案格式');
+          return;
+        }
+
+        if (importItems.length === 0) {
+          setError('檔案中沒有項目');
+          return;
+        }
+
+        const confirmed = confirm(`即將匯入 ${importItems.length} 個項目，確定嗎？`);
+        if (!confirmed) return;
+
+        let success = 0;
+        let failed = 0;
+
+        for (const item of importItems) {
+          try {
+            const title = String(item.title || '未命名').trim();
+
+            // 判斷分類
+            let category = 'NOTE';
+            if (item.category) {
+              const catMap: Record<string, string> = {
+                'PASSWORD': 'PASSWORD', '帳密': 'PASSWORD',
+                'BANK': 'BANK', '銀行': 'BANK',
+                'CREDIT_CARD': 'CREDIT_CARD', '信用卡': 'CREDIT_CARD',
+                'FINANCE': 'FINANCE', '投資': 'FINANCE',
+                'CUSTOM': 'CUSTOM', '自訂': 'CUSTOM',
+                'NOTE': 'NOTE', '筆記': 'NOTE',
+                'OTHER': 'OTHER', '其他': 'OTHER',
+              };
+              category = catMap[item.category] || 'NOTE';
+            }
+
+            // 建構 content
+            let contentStr: string;
+            if (typeof item.content === 'object' && item.content !== null) {
+              contentStr = JSON.stringify(item.content);
+            } else if (item.fields && typeof item.fields === 'object') {
+              contentStr = JSON.stringify(item.fields);
+            } else {
+              contentStr = String(item.content || ' ');
+            }
+
+            const { ciphertext: titleEnc, iv: titleIv } = await encrypt(key, title);
+            const { ciphertext: contentEnc, iv: contentIv } = await encrypt(key, contentStr);
+
+            const res = await fetch('/api/vault/items', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-vault-token': token,
+              },
+              body: JSON.stringify({
+                titleEnc,
+                contentEnc,
+                category,
+                iv: titleIv + '|' + contentIv,
+              }),
+            });
+
+            if (res.ok) {
+              success++;
+            } else {
+              failed++;
+            }
+          } catch {
+            failed++;
+          }
+        }
+
+        alert(`匯入完成！成功 ${success} 筆${failed > 0 ? `，失敗 ${failed} 筆` : ''}`);
+
+        // 重新載入頁面以顯示新項目
+        window.location.reload();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : '匯入失敗');
+      }
+    };
+    input.click();
+  };
+
   const toggleShowContent = (id: string) => {
     setShowContent(prev => {
       const next = new Set(prev);
@@ -970,6 +1080,10 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
                     <button type="button" className={styles.backupDropdownItem} onClick={handlePrint}>
                       <Printer size={16} />
                       <span>列印紙本</span>
+                    </button>
+                    <button type="button" className={styles.backupDropdownItem} onClick={handleImportFile}>
+                      <Upload size={16} />
+                      <span>匯入檔案 (.json)</span>
                     </button>
                   </div>
                 )}
