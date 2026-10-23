@@ -1603,9 +1603,14 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
           for (const item of filteredItems) {
             if (item.category === 'CUSTOM') {
               const s = parseStructured(item.content);
-              const label = s?.categoryLabel || '自訂';
-              if (!customGroups[label]) customGroups[label] = [];
-              customGroups[label].push(item);
+              const label = s?.categoryLabel;
+              if (label) {
+                if (!customGroups[label]) customGroups[label] = [];
+                customGroups[label].push(item);
+              } else {
+                // 沒有分類名稱的 CUSTOM 項目，直接與一般項目一起顯示
+                regularItems.push(item);
+              }
             } else {
               regularItems.push(item);
             }
