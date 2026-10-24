@@ -194,7 +194,8 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
     );
   }
 
-  if (parsedDate.getTime() > Date.now()) {
+  // 允許 5 分鐘誤差（因前後端時鐘可能不完全同步）
+  if (parsedDate.getTime() > Date.now() + 5 * 60 * 1000) {
     return NextResponse.json(
       { error: '記錄時間不能是未來' },
       { status: 400 },

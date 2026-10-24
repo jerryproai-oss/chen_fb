@@ -273,7 +273,10 @@ export default function HealthPage() {
     setSaving(true);
     setError('');
     try {
-      const body: Record<string, unknown> = { recordedAt: form.recordedAt };
+      const body: Record<string, unknown> = {};
+      // 將本地 datetime-local 值轉換為完整的 ISO 字串（含時區 offset）
+      const localDate = new Date(form.recordedAt);
+      body.recordedAt = localDate.toISOString();
       if (form.systolic) body.systolic = parseInt(form.systolic);
       if (form.diastolic) body.diastolic = parseInt(form.diastolic);
       if (form.heartRate) body.heartRate = parseInt(form.heartRate);
