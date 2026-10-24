@@ -82,6 +82,9 @@ model User {
   healthRecords         HealthRecord[]
   healthSharesAsOwner   HealthSharePermission[] @relation("healthOwner")
   healthSharesAsViewer  HealthSharePermission[] @relation("healthViewer")
+  wikiPages             WikiPage[]
+  wikiEdits             WikiPageVersion[]
+  wikiPermissions       WikiPagePermission[]
 
   @@map("users")
 }
@@ -513,4 +516,58 @@ model HealthSharePermission {
 
   @@unique([ownerId, viewerId])
   @@map("health_share_permissions")
+}
+
+
+// ── Wiki 文件庫 ────────────────────────────────────────────
+
+model WikiPage {
+  id          String     @id @default(uuid()) @db.Uuid
+  slug        String     @unique
+  title       String
+  content     String     @db.Text    // Markdown 原文
+  category    String     @default("general")
+  visibility  Visibility @default(FAMILY)
+  authorId    String     @map("author_id") @db.Uuid
+  pinned      Boolean    @default(false)
+
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  versions    WikiPageVersion[]
+  permissions WikiPagePermission[]
+
+  @@index([authorId])
+  @@index([category])
+  @@index([createdAt])
+  @@map("wiki_pages")
+}
+
+model WikiPageVersion {
+  id         String   @id @default(uuid()) @db.Uuid
+  pageId     String   @map("page_id") @db.Uuid
+  title      String
+  content    String   @db.Text
+  editedById String   @map("edited_by_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  page     WikiPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  editedBy User     @relation(fields: [editedById], references: [id], onDelete: Cascade)
+
+  @@index([pageId, createdAt])
+  @@map("wiki_page_versions")
+}
+
+model WikiPagePermission {
+  id        String   @id @default(uuid()) @db.Uuid
+  pageId    String   @map("page_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  page WikiPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, userId])
+  @@map("wiki_page_permissions")
 }

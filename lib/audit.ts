@@ -59,6 +59,11 @@ export const AuditActions = {
   // 標籤
   TAG_CREATE: "TAG_CREATE",
 
+  // Wiki
+  WIKI_CREATE: "WIKI_CREATE",
+  WIKI_UPDATE: "WIKI_UPDATE",
+  WIKI_DELETE: "WIKI_DELETE",
+
   // 通知
   NOTIFICATION_READ: "NOTIFICATION_READ",
 
@@ -83,6 +88,7 @@ export const ResourceTypes = {
   BOOKMARK: "BOOKMARK",
   TAG: "TAG",
   NOTIFICATION: "NOTIFICATION",
+  WIKI: "WIKI",
 } as const;
 
 export type ResourceType =

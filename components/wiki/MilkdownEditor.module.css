@@ -1,0 +1,31 @@
+/* ── Milkdown Editor Container ─────────────────────────────── */
+
+.editorContainer {
+  min-height: 400px;
+}
+
+/* Override Milkdown editor inner padding & sizing */
+.editorContainer :global(.milkdown) {
+  min-height: 400px;
+  padding: 16px;
+}
+
+/* Ensure the ProseMirror editing area fills the container */
+.editorContainer :global(.ProseMirror) {
+  min-height: 360px;
+  outline: none;
+}
+
+/* Focus ring for the editor */
+.editorContainer :global(.ProseMirror-focused) {
+  outline: none;
+}
+
+/* Read-only cursor */
+.readOnly {
+  cursor: default;
+}
+
+.readOnly :global(.ProseMirror) {
+  cursor: default;
+}

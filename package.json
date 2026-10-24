@@ -14,8 +14,16 @@
     "init-admin": "tsx scripts/init-admin.ts"
   },
   "dependencies": {
+    "@milkdown/kit": "^7.22.3",
+    "@milkdown/plugin-block": "^7.22.3",
+    "@milkdown/plugin-slash": "^7.22.3",
+    "@milkdown/plugin-tooltip": "^7.22.3",
+    "@milkdown/plugin-upload": "^7.22.3",
+    "@milkdown/react": "^7.22.3",
+    "@milkdown/theme-nord": "^7.22.3",
     "@prisma/adapter-pg": "^7.10.1",
     "@prisma/client": "7.10.1",
+    "@prosemirror-adapter/react": "^0.5.5",
     "argon2": "^0.41",
     "bcryptjs": "^3.0.3",
     "docx": "^9.14.0",
