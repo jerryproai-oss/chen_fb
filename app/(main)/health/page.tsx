@@ -125,8 +125,19 @@ interface FormData {
   note: string;
 }
 
+/** 取得本地時間字串（格式：YYYY-MM-DDTHH:mm），供 datetime-local 使用 */
+function getLocalDateTimeString(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const h = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  return `${y}-${m}-${d}T${h}:${min}`;
+}
+
 const defaultForm = (): FormData => ({
-  recordedAt: new Date().toISOString().slice(0, 16),
+  recordedAt: getLocalDateTimeString(),
   systolic: '', diastolic: '', heartRate: '',
   bloodSugar: '', mealTiming: '',
   temperature: '', weight: '', bodyFat: '', oxygenSat: '',
@@ -190,18 +201,36 @@ export default function HealthPage() {
       const res = await fetch('/api/health/share');
       if (res.ok) {
         const data = await res.json();
-        setSharedTo(data.sharedTo || []);
-        setSharedFrom(data.sharedFrom || []);
+        // API 回傳 sharedTo: [{ id, viewer: { id, displayName, avatarUrl } }]
+        // 轉換成 UI 需要的 [{ id, displayName, avatarUrl }] 格式
+        setSharedTo(
+          (data.sharedTo || []).map((s: Record<string, Record<string, unknown>>) => ({
+            id: s.viewer?.id as string,
+            displayName: s.viewer?.displayName as string,
+            avatarUrl: s.viewer?.avatarUrl as string | null,
+          }))
+        );
+        setSharedFrom(
+          (data.sharedFrom || []).map((s: Record<string, Record<string, unknown>>) => ({
+            id: s.owner?.id as string,
+            displayName: s.owner?.displayName as string,
+            avatarUrl: s.owner?.avatarUrl as string | null,
+          }))
+        );
       }
     } catch { /* ignore */ }
   }, []);
 
   const fetchUsers = useCallback(async () => {
     try {
-      const res = await fetch('/api/family');
+      const res = await fetch('/api/family/members');
       if (res.ok) {
         const data = await res.json();
-        setAllUsers(data.members || []);
+        setAllUsers((data.members || []).map((u: Record<string, unknown>) => ({
+          id: u.id as string,
+          displayName: u.displayName as string,
+          avatarUrl: u.avatarUrl as string | null,
+        })));
       }
     } catch { /* ignore */ }
   }, []);
