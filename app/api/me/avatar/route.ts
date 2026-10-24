@@ -28,6 +28,27 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const AVATAR_ROOT = '/data/media/avatars';
 
 /**
+ * 驗證圖片檔案的 magic bytes 是否與宣稱的 MIME type 相符。
+ */
+function validateImageMagicBytes(buffer: Buffer, declaredMime: string): boolean {
+  if (buffer.length < 12) return false;
+  if (declaredMime === 'image/jpeg') {
+    return buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+  }
+  if (declaredMime === 'image/png') {
+    return buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+  }
+  if (declaredMime === 'image/gif') {
+    return buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46;
+  }
+  if (declaredMime === 'image/webp') {
+    return buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46
+      && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+  }
+  return false;
+}
+
+/**
  * 取得使用者大頭照的檔案路徑
  * 檔名格式: {userId}.{ext}
  */
@@ -115,6 +136,15 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
   try {
     await mkdir(AVATAR_ROOT, { recursive: true });
     const buffer = Buffer.from(await file.arrayBuffer());
+
+    // ── 驗證 magic bytes（防止偽造 MIME type）────────
+    if (!validateImageMagicBytes(buffer, file.type)) {
+      return NextResponse.json(
+        { error: '檔案內容與宣稱的圖片類型不符' },
+        { status: 400 },
+      );
+    }
+
     await writeFile(absolutePath, buffer);
   } catch (error) {
     console.error('[avatar] 檔案寫入失敗:', error);
@@ -162,6 +192,15 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
 export const GET = withAuth(async ({ user }, req: NextRequest) => {
   const { searchParams } = new URL(req.url);
   const targetUserId = searchParams.get('userId') || user.id;
+
+  // 驗證 userId 格式（UUID v4），防止參數注入
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!UUID_REGEX.test(targetUserId)) {
+    return NextResponse.json(
+      { error: '無效的使用者 ID' },
+      { status: 400 },
+    );
+  }
 
   // 直接從檔案系統尋找 {userId}.{ext}
   const avatarPath = await findAvatarFile(targetUserId);

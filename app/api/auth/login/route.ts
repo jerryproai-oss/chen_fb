@@ -6,6 +6,7 @@ import {
   setSessionCookie,
 } from '@/lib/auth/session';
 import { checkRateLimit, recordAttempt } from '@/lib/auth/rate-limit';
+import { validateOrigin } from '@/lib/auth/middleware';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
 
 /** 每個 IP 在 15 分鐘內最多嘗試登入 10 次 */
@@ -22,6 +23,10 @@ const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000;
  * - 建立 session 並設定 httpOnly cookie
  */
 export async function POST(request: NextRequest) {
+  // ── CSRF Origin 驗證 ────────────────────────────────────
+  const originError = validateOrigin(request);
+  if (originError) return originError;
+
   const ip =
     request.headers.get('x-forwarded-for') ||
     request.headers.get('x-real-ip') ||

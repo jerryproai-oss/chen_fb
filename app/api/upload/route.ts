@@ -70,6 +70,72 @@ const MAX_FILE_SIZE_MEDIA = 500 * 1024 * 1024;
 const MEDIA_ROOT = '/data/media';
 
 /**
+ * 驗證檔案實際內容的 magic bytes 是否與宣稱的 MIME type 相符。
+ * 防止客戶端偽造 MIME type 上傳惡意檔案。
+ */
+function validateMagicBytes(buffer: Buffer, declaredMime: string): boolean {
+  if (buffer.length < 12) return false;
+
+  // 圖片
+  if (declaredMime === 'image/jpeg') {
+    return buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF;
+  }
+  if (declaredMime === 'image/png') {
+    return buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47;
+  }
+  if (declaredMime === 'image/gif') {
+    return buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46;
+  }
+  if (declaredMime === 'image/webp') {
+    return buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46
+      && buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50;
+  }
+  // HEIC/HEIF — ftyp box
+  if (declaredMime === 'image/heic' || declaredMime === 'image/heif') {
+    return buffer[4] === 0x66 && buffer[5] === 0x74 && buffer[6] === 0x79 && buffer[7] === 0x70;
+  }
+  // 影片 — MP4/MOV/3GP 都有 ftyp box
+  if (declaredMime.startsWith('video/') && ['video/mp4', 'video/quicktime', 'video/3gpp'].includes(declaredMime)) {
+    return buffer[4] === 0x66 && buffer[5] === 0x74 && buffer[6] === 0x79 && buffer[7] === 0x70;
+  }
+  // WebM/MKV — EBML header
+  if (declaredMime === 'video/webm' || declaredMime === 'video/x-matroska') {
+    return buffer[0] === 0x1A && buffer[1] === 0x45 && buffer[2] === 0xDF && buffer[3] === 0xA3;
+  }
+  // AVI — RIFF....AVI
+  if (declaredMime === 'video/x-msvideo') {
+    return buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46;
+  }
+  // 音訊 — MP3 (ID3 tag 或 sync word)
+  if (declaredMime === 'audio/mpeg') {
+    return (buffer[0] === 0x49 && buffer[1] === 0x44 && buffer[2] === 0x33) // ID3
+      || (buffer[0] === 0xFF && (buffer[1] & 0xE0) === 0xE0); // sync
+  }
+  // M4A/AAC in MP4 container
+  if (declaredMime === 'audio/mp4' || declaredMime === 'audio/x-m4a' || declaredMime === 'audio/aac') {
+    return buffer[4] === 0x66 && buffer[5] === 0x74 && buffer[6] === 0x79 && buffer[7] === 0x70;
+  }
+  // WAV — RIFF
+  if (declaredMime === 'audio/wav' || declaredMime === 'audio/x-wav') {
+    return buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46;
+  }
+  // OGG
+  if (declaredMime === 'audio/ogg') {
+    return buffer[0] === 0x4F && buffer[1] === 0x67 && buffer[2] === 0x67 && buffer[3] === 0x53;
+  }
+  // FLAC
+  if (declaredMime === 'audio/flac') {
+    return buffer[0] === 0x66 && buffer[1] === 0x4C && buffer[2] === 0x61 && buffer[3] === 0x43;
+  }
+  // Audio WebM — EBML header
+  if (declaredMime === 'audio/webm') {
+    return buffer[0] === 0x1A && buffer[1] === 0x45 && buffer[2] === 0xDF && buffer[3] === 0xA3;
+  }
+
+  return false;
+}
+
+/**
  * POST /api/upload
  *
  * 上傳圖片檔案。
@@ -133,6 +199,15 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
   try {
     await mkdir(absoluteDir, { recursive: true });
     const buffer = Buffer.from(await file.arrayBuffer());
+
+    // ── 驗證 magic bytes（防止偽造 MIME type）────────
+    if (!validateMagicBytes(buffer, file.type)) {
+      return NextResponse.json(
+        { error: '檔案內容與宣稱的類型不符' },
+        { status: 400 },
+      );
+    }
+
     await writeFile(absolutePath, buffer);
   } catch (error) {
     console.error('[upload] 檔案寫入失敗:', error);

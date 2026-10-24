@@ -166,7 +166,16 @@ export function validateOrigin(req: NextRequest): NextResponse | null {
   if (!MUTATING_METHODS.has(req.method)) return null;
 
   const appOrigin = process.env.APP_ORIGIN;
-  if (!appOrigin) return null; // 未設定 APP_ORIGIN 時跳過（開發環境）
+  // 生產環境必須設定 APP_ORIGIN，否則拒絕所有 mutating 請求
+  if (!appOrigin) {
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json(
+        { error: '伺服器配置錯誤' },
+        { status: 500 },
+      );
+    }
+    return null; // 開發環境跳過
+  }
 
   const origin = req.headers.get('origin');
   const referer = req.headers.get('referer');

@@ -512,6 +512,7 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
                     imageUrl: opt.imageMediaId && typeof opt.imageMediaId === 'string'
                       ? `/api/media/${opt.imageMediaId}` : null,
                     linkUrl: opt.linkUrl && typeof opt.linkUrl === 'string'
+                      && /^https?:\/\//i.test((opt.linkUrl as string).trim())
                       ? (opt.linkUrl as string).trim() : null,
                     sortOrder: i,
                   };

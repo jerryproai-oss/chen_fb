@@ -87,10 +87,17 @@ export const PATCH = withAuth(async ({ user }, req, routeCtx) => {
   if (pinned === true) data.pinnedAt = new Date();
   if (pinned === false) data.pinnedAt = null;
 
-  const item = await prisma.vaultItem.update({
-    where: { id },
+  const { count } = await prisma.vaultItem.updateMany({
+    where: { id, userId: result.ownerId },
     data,
   });
+
+  if (count === 0) {
+    return NextResponse.json({ error: '更新失敗，項目可能已被刪除' }, { status: 404 });
+  }
+
+  // 取回更新後的項目
+  const item = await prisma.vaultItem.findUnique({ where: { id } });
 
   return NextResponse.json({ item });
 });
@@ -118,7 +125,7 @@ export const DELETE = withAuth(async ({ user }, req, routeCtx) => {
     return NextResponse.json({ error: '只有項目建立者或保險庫擁有者可以刪除' }, { status: 403 });
   }
 
-  await prisma.vaultItem.delete({ where: { id } });
+  await prisma.vaultItem.deleteMany({ where: { id, userId: result.ownerId } });
 
   return NextResponse.json({ success: true });
 });
