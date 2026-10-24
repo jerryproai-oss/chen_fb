@@ -1094,7 +1094,8 @@ export default function VaultListPage() {
       saveAs(blob, `拾日特別區備份_${nowStr()}.docx`);
     } catch (err) {
       console.error('Export Word error:', err);
-      setError('匯出失敗，請稍後再試');
+      const msg = err instanceof Error ? err.message : String(err);
+      setError(`匯出失敗：${msg}`);
     }
   };
 
