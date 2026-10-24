@@ -10,7 +10,7 @@ import {
   Pencil, Upload, CheckSquare, Square, X, Pin,
 } from 'lucide-react';
 import { deriveKey, decrypt, encrypt, generateSalt } from '@/lib/vault/crypto';
-import { getVaultKey, clearVaultKey } from '@/lib/vault/keystore';
+import { getVaultKey, clearVaultKey, setOnLockCallback, initIdleMonitor } from '@/lib/vault/keystore';
 import Avatar from '@/components/ui/Avatar';
 import styles from './page.module.css';
 
@@ -280,6 +280,18 @@ export default function VaultListPage() {
     }, 30_000);
     return () => clearInterval(interval);
   });
+
+  // ── M5: 閒置自動上鎖 ──
+  useEffect(() => {
+    setOnLockCallback(() => {
+      router.replace('/vault');
+    });
+    const cleanup = initIdleMonitor();
+    return () => {
+      cleanup();
+      setOnLockCallback(null);
+    };
+  }, [router]);
 
   const handleLock = () => {
     sessionStorage.removeItem('vault-token');

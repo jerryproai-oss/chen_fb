@@ -15,7 +15,7 @@ async function validateAndGetOwnerId(
 ): Promise<{ ownerId: string } | { error: string; status: number }> {
   if (!token) return { error: '請先解鎖特別區', status: 401 };
 
-  const ownerId = getVaultSessionOwnerId(token);
+  const ownerId = getVaultSessionOwnerId(token, currentUserId);
   if (!ownerId) return { error: '請先解鎖特別區', status: 401 };
 
   if (ownerId === currentUserId) return { ownerId };
@@ -71,7 +71,14 @@ export const PATCH = withAuth(async ({ user }, req, routeCtx) => {
   if (category && !VALID_CATEGORIES.includes(category)) {
     return NextResponse.json({ error: '無效的分類' }, { status: 400 });
   }
-
+  // 加密欄位必須同時提供，避免不一致導致資料無法解密
+  const hasCryptoFields = titleEnc || contentEnc || iv;
+  if (hasCryptoFields && (!titleEnc || !contentEnc || !iv)) {
+    return NextResponse.json(
+      { error: '加密欄位（titleEnc、contentEnc、iv）必須同時提供' },
+      { status: 400 },
+    );
+  }
   const data: Record<string, string | Date | null> = {};
   if (titleEnc) data.titleEnc = titleEnc;
   if (contentEnc) data.contentEnc = contentEnc;

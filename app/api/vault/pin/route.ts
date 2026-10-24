@@ -3,6 +3,7 @@ import { withAuth } from '@/lib/auth/middleware';
 import { prisma } from '@/lib/db/client';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { checkRateLimit } from '@/lib/vault/session';
 
 function validatePin(pin: string): string | null {
   if (typeof pin !== 'string') return '密碼格式錯誤';
@@ -46,6 +47,15 @@ export const POST = withAuth(async ({ user }, req) => {
 // 客戶端負責用舊 key 解密所有項目，再用新 key 重新加密後一併送上。
 // newSalt 由客戶端生成（Web Crypto randomBytes），與重新加密的項目一起提交。
 export const PUT = withAuth(async ({ user }, req) => {
+  // 暴力破解防護
+  const rl = checkRateLimit(user.id);
+  if (!rl.allowed) {
+    return NextResponse.json(
+      { error: `嘗試次數過多，請 ${rl.retryAfter} 秒後再試` },
+      { status: 429 },
+    );
+  }
+
   const body = await req.json();
   const { oldPin, newPin, newSalt, reEncryptedItems } = body;
 

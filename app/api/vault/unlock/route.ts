@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/middleware';
 import { prisma } from '@/lib/db/client';
 import bcrypt from 'bcryptjs';
-import { createVaultSession, checkRateLimit } from '@/lib/vault/session';
+import { createVaultSession, checkRateLimit, resetRateLimit } from '@/lib/vault/session';
 
 /**
  * POST /api/vault/unlock
@@ -54,8 +54,11 @@ export const POST = withAuth(async ({ user }, req) => {
     return NextResponse.json({ error: '密碼錯誤' }, { status: 401 });
   }
 
+  // 密碼正確 — 重設 rate limit
+  resetRateLimit(user.id);
+
   // session 的 userId 設為保險庫擁有者（用來 scope item 查詢）
-  const session = createVaultSession(targetUserId);
+  const session = createVaultSession(targetUserId, user.id);
 
   return NextResponse.json({
     token: session.token,

@@ -15,7 +15,7 @@ async function validateAndGetOwnerId(
 ): Promise<{ ownerId: string } | { error: string; status: number }> {
   if (!token) return { error: '請先解鎖特別區', status: 401 };
 
-  const ownerId = getVaultSessionOwnerId(token);
+  const ownerId = getVaultSessionOwnerId(token, currentUserId);
   if (!ownerId) return { error: '請先解鎖特別區', status: 401 };
 
   // 如果是自己的保險庫
