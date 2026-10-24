@@ -891,7 +891,6 @@ export default function VaultListPage() {
       const { Document, Packer, Paragraph, Table, TableRow, TableCell,
               WidthType, TextRun, HeadingLevel, BorderStyle,
               AlignmentType, ShadingType } = await import('docx');
-      const { saveAs } = await import('file-saver');
 
       const now = new Date();
       const nowFmt = `${now.getFullYear()}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
@@ -1091,7 +1090,14 @@ export default function VaultListPage() {
       });
 
       const blob = await Packer.toBlob(doc);
-      saveAs(blob, `拾日特別區備份_${nowStr()}.docx`);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `拾日特別區備份_${nowStr()}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Export Word error:', err);
       const msg = err instanceof Error ? err.message : String(err);
