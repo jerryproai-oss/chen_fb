@@ -166,6 +166,10 @@ export default function HealthPage() {
   const [error, setError] = useState('');
   const [showPdfExport, setShowPdfExport] = useState(false);
 
+  // 查看對象（空字串 = 自己）
+  const [viewingUserId, setViewingUserId] = useState('');
+  const isViewingOther = viewingUserId !== '';
+
   // 分享
   const [sharedTo, setSharedTo] = useState<ShareUser[]>([]);
   const [sharedFrom, setSharedFrom] = useState<ShareUser[]>([]);
@@ -176,17 +180,19 @@ export default function HealthPage() {
 
   const fetchRecords = useCallback(async () => {
     try {
-      const res = await fetch(`/api/health/records?days=${days}`);
+      const userParam = viewingUserId ? `&userId=${viewingUserId}` : '';
+      const res = await fetch(`/api/health/records?days=${days}${userParam}`);
       if (res.ok) {
         const data = await res.json();
         setRecords(data.records || []);
       }
     } catch { /* ignore */ }
-  }, [days]);
+  }, [days, viewingUserId]);
 
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch(`/api/health/stats?days=${days}`);
+      const userParam = viewingUserId ? `&userId=${viewingUserId}` : '';
+      const res = await fetch(`/api/health/stats?days=${days}${userParam}`);
       if (res.ok) {
         const data = await res.json();
         // API 回傳 { stats: {...}, anomalies: {...} }，合併成 UI 需要的 HealthStats 結構
@@ -202,7 +208,7 @@ export default function HealthPage() {
         });
       }
     } catch { /* ignore */ }
-  }, [days]);
+  }, [days, viewingUserId]);
 
   const fetchShares = useCallback(async () => {
     try {
@@ -404,6 +410,37 @@ export default function HealthPage() {
         <p className={styles.pageSubtitle}>追蹤您的健康數據，掌握身體狀況</p>
       </div>
 
+      {/* 查看對象切換（有共享給我的成員時顯示）*/}
+      {sharedFrom.length > 0 && (
+        <div className={styles.viewerSelector}>
+          <button
+            type="button"
+            className={`${styles.viewerBtn} ${!isViewingOther ? styles.viewerBtnActive : ''}`}
+            onClick={() => setViewingUserId('')}
+          >
+            👤 我的記錄
+          </button>
+          {sharedFrom.map((u) => (
+            <button
+              key={u.id}
+              type="button"
+              className={`${styles.viewerBtn} ${viewingUserId === u.id ? styles.viewerBtnActive : ''}`}
+              onClick={() => setViewingUserId(u.id)}
+            >
+              <Avatar avatarUrl={u.avatarUrl} name={u.displayName} size="sm" />
+              {u.displayName}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 查看他人時的提示 */}
+      {isViewingOther && (
+        <div className={styles.viewingBanner}>
+          👁️ 正在查看 <strong>{sharedFrom.find(u => u.id === viewingUserId)?.displayName}</strong> 的健康記錄（唯讀）
+        </div>
+      )}
+
       {/* Controls */}
       <div className={styles.controls}>
         <div className={styles.tabRow}>
@@ -429,9 +466,11 @@ export default function HealthPage() {
           <button type="button" className={styles.exportBtn} onClick={() => setShowPdfExport(true)}>
             <FileText size={14} /> PDF
           </button>
-          <button type="button" className={styles.addBtn} onClick={handleOpenAdd}>
-            <Plus size={16} /> 新增量測
-          </button>
+          {!isViewingOther && (
+            <button type="button" className={styles.addBtn} onClick={handleOpenAdd}>
+              <Plus size={16} /> 新增量測
+            </button>
+          )}
         </div>
       </div>
 
@@ -625,10 +664,12 @@ export default function HealthPage() {
         {records.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}><Heart size={48} /></div>
-            <div className={styles.emptyText}>尚無健康記錄</div>
-            <button type="button" className={styles.addBtn} onClick={handleOpenAdd}>
-              <Plus size={16} /> 新增第一筆量測
-            </button>
+            <div className={styles.emptyText}>{isViewingOther ? '對方尚無健康記錄' : '尚無健康記錄'}</div>
+            {!isViewingOther && (
+              <button type="button" className={styles.addBtn} onClick={handleOpenAdd}>
+                <Plus size={16} /> 新增第一筆量測
+              </button>
+            )}
           </div>
         ) : (
           records.map((rec) => (
@@ -667,21 +708,24 @@ export default function HealthPage() {
                 )}
               </div>
               {rec.note && <span className={styles.recordNote} title={rec.note}>📝 {rec.note}</span>}
-              <div className={styles.recordActions}>
-                <button type="button" className={styles.recordActionBtn} onClick={() => handleOpenEdit(rec)} title="編輯">
-                  <Pencil size={14} />
-                </button>
-                <button type="button" className={`${styles.recordActionBtn} ${styles.recordActionBtnDanger}`}
-                  onClick={() => handleDelete(rec.id)} title="刪除">
-                  <Trash2 size={14} />
-                </button>
-              </div>
+              {!isViewingOther && (
+                <div className={styles.recordActions}>
+                  <button type="button" className={styles.recordActionBtn} onClick={() => handleOpenEdit(rec)} title="編輯">
+                    <Pencil size={14} />
+                  </button>
+                  <button type="button" className={`${styles.recordActionBtn} ${styles.recordActionBtnDanger}`}
+                    onClick={() => handleDelete(rec.id)} title="刪除">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              )}
             </div>
           ))
         )}
       </div>
 
-      {/* Share Section */}
+      {/* Share Section — 只在查看自己的記錄時顯示 */}
+      {!isViewingOther && (
       <div className={styles.shareCard}>
         <div className={styles.shareTitle}>
           <Share2 size={18} /> 資料共享
@@ -723,6 +767,9 @@ export default function HealthPage() {
           <>
             <div className={styles.shareTitle} style={{ marginTop: '16px' }}>
               👥 共享給我的成員
+              <span style={{ fontSize: '11px', color: 'var(--color-text-secondary)', marginLeft: '8px', fontWeight: 400 }}>
+                （點擊上方切換按鈕可查看對方數據）
+              </span>
             </div>
             {sharedFrom.map((u) => (
               <div key={u.id} className={styles.shareItem}>
@@ -730,11 +777,20 @@ export default function HealthPage() {
                   <Avatar avatarUrl={u.avatarUrl} name={u.displayName} size="sm" />
                   <span className={styles.shareUserName}>{u.displayName}</span>
                 </div>
+                <button
+                  type="button"
+                  className={styles.exportBtn}
+                  onClick={() => setViewingUserId(u.id)}
+                  style={{ fontSize: '11px' }}
+                >
+                  👁️ 查看數據
+                </button>
               </div>
             ))}
           </>
         )}
       </div>
+      )}
 
       {/* Add/Edit Modal */}
       {showModal && (
