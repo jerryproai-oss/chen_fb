@@ -12,6 +12,7 @@ import {
   Camera,
   Bookmark,
   Lock,
+  Trash2,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import FontSizeSwitcher from '@/components/ui/FontSizeSwitcher';
@@ -301,6 +302,16 @@ export default function ProfilePage() {
             <Lock size={18} />
           </span>
           <span className={styles.menuItemLabel}>特別區</span>
+          <span className={styles.menuItemArrow}>
+            <ChevronRight size={18} />
+          </span>
+        </Link>
+
+        <Link href="/trash" className={styles.menuItem}>
+          <span className={styles.menuItemIcon}>
+            <Trash2 size={18} />
+          </span>
+          <span className={styles.menuItemLabel}>資源回收桶</span>
           <span className={styles.menuItemArrow}>
             <ChevronRight size={18} />
           </span>
