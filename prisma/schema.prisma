@@ -79,6 +79,9 @@ model User {
   vaultItems    VaultItem[]
   vaultOwnedShares  VaultMember[] @relation("vaultOwner")
   vaultMemberShares VaultMember[] @relation("vaultMember")
+  healthRecords         HealthRecord[]
+  healthSharesAsOwner   HealthSharePermission[] @relation("healthOwner")
+  healthSharesAsViewer  HealthSharePermission[] @relation("healthViewer")
 
   @@map("users")
 }
@@ -469,4 +472,45 @@ model VaultMember {
 
   @@unique([ownerId, memberId])
   @@map("vault_members")
+}
+
+// ── Health Tracking ──────────────────────────────────────────
+
+model HealthRecord {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  recordedAt     DateTime @map("recorded_at")
+
+  systolic       Int?     // 收縮壓 (mmHg)
+  diastolic      Int?     // 舒張壓 (mmHg)
+  heartRate      Int?     @map("heart_rate")          // 心率 (bpm)
+  bloodSugar     Float?   @map("blood_sugar")         // 血糖 (mg/dL)
+  mealTiming     String?  @map("meal_timing")         // fasting / before / after
+  temperature    Float?                               // 體溫 (°C)
+  weight         Float?                               // 體重 (kg)
+  bodyFat        Float?   @map("body_fat")            // 體脂率 (%)
+  oxygenSat      Float?   @map("oxygen_sat")          // 血氧 (%)
+
+  note           String?
+
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, recordedAt])
+  @@map("health_records")
+}
+
+model HealthSharePermission {
+  id        String   @id @default(uuid()) @db.Uuid
+  ownerId   String   @map("owner_id") @db.Uuid
+  viewerId  String   @map("viewer_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  owner  User @relation("healthOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  viewer User @relation("healthViewer", fields: [viewerId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, viewerId])
+  @@map("health_share_permissions")
 }
