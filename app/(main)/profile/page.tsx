@@ -15,6 +15,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
+import ImageLightbox from '@/components/ui/ImageLightbox';
 import FontSizeSwitcher from '@/components/ui/FontSizeSwitcher';
 import ThemeSwitcher from '@/components/ui/ThemeSwitcher';
 import type { UserProfile } from '@/lib/types';
@@ -31,6 +32,7 @@ export default function ProfilePage() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [showAvatarPreview, setShowAvatarPreview] = useState(false);
   const [isEditingBirthday, setIsEditingBirthday] = useState(false);
   const [birthdayInput, setBirthdayInput] = useState('');
   const [savingBirthday, setSavingBirthday] = useState(false);
@@ -153,14 +155,24 @@ export default function ProfilePage() {
       <div className={styles.profileCard}>
         <div
           className={styles.avatarWrapper}
-          onClick={handleAvatarClick}
+          onClick={() => {
+            if (user.avatarUrl) {
+              setShowAvatarPreview(true);
+            } else {
+              handleAvatarClick();
+            }
+          }}
           role="button"
           tabIndex={0}
-          aria-label="上傳大頭照"
+          aria-label={user.avatarUrl ? '查看大頭照' : '上傳大頭照'}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              handleAvatarClick();
+              if (user.avatarUrl) {
+                setShowAvatarPreview(true);
+              } else {
+                handleAvatarClick();
+              }
             }
           }}
         >
@@ -169,7 +181,22 @@ export default function ProfilePage() {
             avatarUrl={user.avatarUrl}
             size="xl"
           />
-          <div className={styles.avatarOverlay}>
+          <div
+            className={styles.avatarOverlay}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAvatarClick();
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label="更換大頭照"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleAvatarClick();
+              }
+            }}
+          >
             {uploadingAvatar ? (
               <div className={styles.avatarSpinner} />
             ) : (
@@ -333,6 +360,15 @@ export default function ProfilePage() {
           {loggingOut ? '登出中…' : '登出'}
         </button>
       </div>
+
+      {/* 大頭照全螢幕預覽 */}
+      {showAvatarPreview && user.avatarUrl && (
+        <ImageLightbox
+          src={user.avatarUrl}
+          alt={user.displayName}
+          onClose={() => setShowAvatarPreview(false)}
+        />
+      )}
     </div>
   );
 }
