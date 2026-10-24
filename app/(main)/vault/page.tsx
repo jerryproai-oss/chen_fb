@@ -210,6 +210,9 @@ export default function VaultPage() {
         )}
 
         {/* PIN 輸入 */}
+        <form onSubmit={(e) => e.preventDefault()} autoComplete="off" data-form-type="other">
+        {/* 隱藏欄位避免瀏覽器將 PIN 視為登入密碼 */}
+        <input type="text" name="prevent-autofill" autoComplete="off" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
         <div className={styles.inputGroup}>
           <label className={styles.inputLabel}>
             {setupMode ? '設定密碼' : '密碼'}
@@ -223,7 +226,8 @@ export default function VaultPage() {
               onChange={(e) => { setPin(e.target.value); setError(''); }}
               onKeyDown={handleKeyDown}
               placeholder="大小寫英文+數字，至少6位"
-              autoComplete="off"
+              autoComplete="new-password"
+              name="vault-pin-code"
               maxLength={20}
             />
             <button
@@ -249,7 +253,8 @@ export default function VaultPage() {
                 onChange={(e) => { setConfirmPin(e.target.value); setError(''); }}
                 onKeyDown={handleKeyDown}
                 placeholder="再次輸入密碼"
-                autoComplete="off"
+                autoComplete="new-password"
+                name="vault-pin-confirm"
                 maxLength={20}
               />
             </div>
@@ -272,6 +277,7 @@ export default function VaultPage() {
             密碼需 6-20 字元，包含大寫與小寫英文字母及數字
           </p>
         )}
+        </form>
       </div>
     </div>
   );

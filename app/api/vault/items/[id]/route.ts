@@ -57,7 +57,7 @@ export const PATCH = withAuth(async ({ user }, req, routeCtx) => {
 
   const { id } = await routeCtx.params;
   const body = await req.json();
-  const { titleEnc, contentEnc, category, iv } = body;
+  const { titleEnc, contentEnc, category, iv, pinned } = body;
 
   // 確認項目存在於此保險庫
   const existing = await prisma.vaultItem.findFirst({
@@ -72,11 +72,13 @@ export const PATCH = withAuth(async ({ user }, req, routeCtx) => {
     return NextResponse.json({ error: '無效的分類' }, { status: 400 });
   }
 
-  const data: Record<string, string> = {};
+  const data: Record<string, string | Date | null> = {};
   if (titleEnc) data.titleEnc = titleEnc;
   if (contentEnc) data.contentEnc = contentEnc;
   if (category) data.category = category;
   if (iv) data.iv = iv;
+  if (pinned === true) data.pinnedAt = new Date();
+  if (pinned === false) data.pinnedAt = null;
 
   const item = await prisma.vaultItem.update({
     where: { id },

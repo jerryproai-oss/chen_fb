@@ -39,7 +39,10 @@ export const GET = withAuth(async ({ user }, req) => {
 
   const items = await prisma.vaultItem.findMany({
     where: { userId: result.ownerId },
-    orderBy: { updatedAt: 'desc' },
+    orderBy: [
+      { pinnedAt: { sort: 'desc', nulls: 'last' } },
+      { updatedAt: 'desc' },
+    ],
     select: {
       id: true,
       titleEnc: true,
@@ -47,6 +50,7 @@ export const GET = withAuth(async ({ user }, req) => {
       category: true,
       iv: true,
       createdBy: true,
+      pinnedAt: true,
       createdAt: true,
       updatedAt: true,
     },

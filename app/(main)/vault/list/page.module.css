@@ -673,6 +673,13 @@
   text-align: center;
 }
 
+.changePinError {
+  font-size: 0.85rem;
+  color: #dc3545;
+  margin: 4px 0 0;
+  text-align: center;
+}
+
 .changePinActions {
   display: flex;
   gap: var(--space-sm);
@@ -1074,4 +1081,28 @@
 .batchBarDelete:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ── 置頂 (Pin) ───────────────────────────────────────── */
+
+.pinnedBadge {
+  display: flex;
+  align-items: center;
+  color: var(--color-accent, #d4a574);
+  flex-shrink: 0;
+  transform: rotate(45deg);
+}
+
+.itemPinnedBtn {
+  color: var(--color-accent, #d4a574);
+  border-color: var(--color-accent, #d4a574);
+}
+
+.itemPinnedBtn:hover {
+  background-color: rgba(212, 165, 116, 0.08);
+  color: var(--color-accent, #d4a574);
+}
+
+.itemCardPinned {
+  border-left: 3px solid var(--color-accent, #d4a574);
 }

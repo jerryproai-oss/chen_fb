@@ -6,8 +6,8 @@ import {
   Lock, Plus, KeyRound, FileText, Package,
   Trash2, ChevronLeft, Search, Copy, Eye, EyeOff,
   Users, UserPlus, UserMinus, Shield, Settings,
-  Download, Printer, Landmark, CreditCard, TrendingUp, ExternalLink,
-  Pencil, Upload, CheckSquare, Square, X,
+  Download, Landmark, CreditCard, TrendingUp, ExternalLink,
+  Pencil, Upload, CheckSquare, Square, X, Pin,
 } from 'lucide-react';
 import { deriveKey, decrypt, encrypt, generateSalt } from '@/lib/vault/crypto';
 import { getVaultKey, clearVaultKey } from '@/lib/vault/keystore';
@@ -21,6 +21,7 @@ type VaultItem = {
   category: string;
   iv: string;
   createdBy?: string | null;
+  pinnedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -31,6 +32,7 @@ type DecryptedItem = {
   content: string;
   category: string;
   createdBy?: string | null;
+  pinnedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -240,6 +242,7 @@ export default function VaultListPage() {
               content,
               category: item.category,
               createdBy: item.createdBy,
+              pinnedAt: item.pinnedAt ?? null,
               createdAt: item.createdAt,
               updatedAt: item.updatedAt,
             });
@@ -250,6 +253,7 @@ export default function VaultListPage() {
               content: '無法解密此項目',
               category: item.category,
               createdBy: item.createdBy,
+              pinnedAt: item.pinnedAt ?? null,
               createdAt: item.createdAt,
               updatedAt: item.updatedAt,
             });
@@ -445,6 +449,47 @@ export default function VaultListPage() {
       cryptoKeyRef.current = newKey;
       sessionStorage.setItem('vault-salt', newSalt);
 
+      // 7. 重新取得 items 並用新 key 解密，以刷新列表
+      setChangePinProgress('重新載入項目…');
+      const refreshRes = await fetch('/api/vault/items', {
+        headers: { 'x-vault-token': token },
+      });
+      if (refreshRes.ok) {
+        const refreshData = await refreshRes.json();
+        const decrypted: DecryptedItem[] = [];
+        for (const item of refreshData.items as VaultItem[]) {
+          try {
+            const ivParts = item.iv.split('|');
+            const titleIv = ivParts[0];
+            const contentIv = ivParts.length > 1 ? ivParts[1] : ivParts[0];
+            const title = await decrypt(newKey, item.titleEnc, titleIv);
+            const content = await decrypt(newKey, item.contentEnc, contentIv);
+            decrypted.push({
+              id: item.id,
+              title,
+              content,
+              category: item.category,
+              createdBy: item.createdBy,
+              pinnedAt: item.pinnedAt ?? null,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt,
+            });
+          } catch {
+            decrypted.push({
+              id: item.id,
+              title: '⚠️ 解密失敗',
+              content: '無法解密此項目',
+              category: item.category,
+              createdBy: item.createdBy,
+              pinnedAt: item.pinnedAt ?? null,
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt,
+            });
+          }
+        }
+        setItems(decrypted);
+      }
+
       // 清空表單
       setOldPinInput('');
       setNewPinInput('');
@@ -540,6 +585,7 @@ export default function VaultListPage() {
         content: contentToEncrypt,
         category: newCategory,
         createdBy: resData.item.createdBy,
+        pinnedAt: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }, ...prev]);
@@ -704,6 +750,46 @@ export default function VaultListPage() {
     }
   };
 
+  const handleTogglePin = async (item: DecryptedItem) => {
+    const token = getVaultToken();
+    if (!token) { router.replace('/vault'); return; }
+
+    const newPinned = !item.pinnedAt;
+    try {
+      const res = await fetch(`/api/vault/items/${item.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-vault-token': token,
+        },
+        body: JSON.stringify({ pinned: newPinned }),
+      });
+
+      if (res.status === 401) { router.replace('/vault'); return; }
+      if (!res.ok) throw new Error('操作失敗');
+
+      const data = await res.json();
+      setItems(prev => {
+        const updated = prev.map(it =>
+          it.id === item.id
+            ? { ...it, pinnedAt: newPinned ? (data.item.pinnedAt || new Date().toISOString()) : null }
+            : it
+        );
+        // 重新排序：置頂在前，其餘按 updatedAt 降序
+        return updated.sort((a, b) => {
+          if (a.pinnedAt && !b.pinnedAt) return -1;
+          if (!a.pinnedAt && b.pinnedAt) return 1;
+          if (a.pinnedAt && b.pinnedAt) {
+            return new Date(b.pinnedAt).getTime() - new Date(a.pinnedAt).getTime();
+          }
+          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+        });
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : '操作失敗');
+    }
+  };
+
   /** 切換批次選取 */
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
@@ -779,9 +865,6 @@ export default function VaultListPage() {
 
   // ── 備份功能 ───────────────────────────────────────────
 
-  const escapeHtml = (str: string) =>
-    str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-
   const getCategoryLabel = (cat: string) => {
     switch (cat) {
       case 'PASSWORD': return '帳密';
@@ -794,162 +877,225 @@ export default function VaultListPage() {
     }
   };
 
-  const formatFullDate = (d: string) => {
-    const date = new Date(d);
-    return `${date.getFullYear()}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-  };
-
   const nowStr = () => {
     const d = new Date();
     return `${d.getFullYear()}${(d.getMonth() + 1).toString().padStart(2, '0')}${d.getDate().toString().padStart(2, '0')}_${d.getHours().toString().padStart(2, '0')}${d.getMinutes().toString().padStart(2, '0')}`;
   };
 
-  /** 匯出為 JSON 檔案下載 */
-  const handleExportFile = () => {
+  /** 匯出為 Word (.docx) 檔案下載 */
+  const handleExportFile = async () => {
     if (items.length === 0) { setError('沒有可匯出的項目'); return; }
-
-    const exportData = {
-      exportedAt: new Date().toISOString(),
-      exportedFrom: '拾日特別區',
-      itemCount: items.length,
-      items: items.map(item => {
-        const structured = isStructuredCategory(item.category) ? parseStructured(item.content) : null;
-        return {
-          title: item.title,
-          category: getCategoryLabel(item.category),
-          ...(structured ? { fields: structured } : { content: item.content }),
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt,
-        };
-      }),
-    };
-
-    const json = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([json], { type: 'application/json;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `拾日特別區備份_${nowStr()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    setShowBackupMenu(false);
-  };
-
-  /** 列印紙本備份 */
-  const handlePrint = () => {
-    if (items.length === 0) { setError('沒有可列印的項目'); return; }
     setShowBackupMenu(false);
 
-    // 按分類分組
-    const grouped: Record<string, DecryptedItem[]> = {};
-    for (const item of items) {
-      const label = getCategoryLabel(item.category);
-      if (!grouped[label]) grouped[label] = [];
-      grouped[label].push(item);
-    }
+    try {
+      const { Document, Packer, Paragraph, Table, TableRow, TableCell,
+              WidthType, TextRun, HeadingLevel, BorderStyle,
+              AlignmentType, ShadingType } = await import('docx');
+      const { saveAs } = await import('file-saver');
 
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) { setError('無法開啟列印視窗，請允許彈出視窗'); return; }
+      const now = new Date();
+      const nowFmt = `${now.getFullYear()}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
-    const now = formatFullDate(new Date().toISOString());
+      // ── 按分類分組（CUSTOM 依 categoryLabel 細分） ──
+      const grouped: Record<string, { catKey: string; items: DecryptedItem[] }> = {};
+      for (const item of items) {
+        let label: string;
+        const catKey = item.category;
+        if (item.category === 'CUSTOM') {
+          const s = parseStructured(item.content);
+          label = s?.categoryLabel || '自訂';
+        } else {
+          label = getCategoryLabel(item.category);
+        }
+        if (!grouped[label]) grouped[label] = { catKey, items: [] };
+        grouped[label].items.push(item);
+      }
 
-    printWindow.document.write(`<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-<meta charset="utf-8">
-<title>拾日特別區備份 — ${now}</title>
-<style>
-  @page { margin: 12mm; size: A4; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Microsoft JhengHei', 'PingFang TC', 'Noto Sans TC', sans-serif; color: #333; font-size: 9pt; line-height: 1.4; }
-  .header { text-align: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #5a7a5a; }
-  .header h1 { font-size: 14pt; color: #5a7a5a; margin-bottom: 2px; }
-  .header .meta { font-size: 8pt; color: #888; }
-  .warning { background: #fff3cd; border: 1px solid #ffc107; border-radius: 3px; padding: 4px 8px; margin-bottom: 10px; font-size: 8pt; color: #856404; text-align: center; }
-  .category { margin-bottom: 12px; }
-  .category h2 { font-size: 10pt; color: #5a7a5a; border-bottom: 1px solid #ddd; padding-bottom: 2px; margin-bottom: 6px; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 9pt; }
-  table th { background: #f3f1ec; text-align: left; padding: 3px 6px; border: 1px solid #ddd; font-weight: 600; white-space: nowrap; }
-  table td { padding: 3px 6px; border: 1px solid #ddd; word-break: break-all; font-family: 'Consolas', 'Monaco', monospace; font-size: 8.5pt; }
-  table td.notes { font-family: inherit; white-space: pre-wrap; }
-  table td.date { font-size: 7.5pt; color: #999; white-space: nowrap; text-align: right; }
-  .plain-item { margin-bottom: 6px; padding: 4px 6px; border: 1px solid #e0ddd8; border-radius: 3px; page-break-inside: avoid; }
-  .plain-title { font-weight: 700; font-size: 9pt; margin-bottom: 2px; }
-  .plain-content { white-space: pre-wrap; word-break: break-all; font-size: 8.5pt; }
-  .plain-date { font-size: 7.5pt; color: #aaa; text-align: right; }
-  .footer { text-align: center; margin-top: 12px; padding-top: 8px; border-top: 1px solid #ddd; font-size: 7pt; color: #aaa; }
-  @media print {
-    .warning { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    table th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  }
-</style>
-</head>
-<body>
-<div class="header">
-  <h1>🔐 拾日特別區備份</h1>
-  <div class="meta">匯出：${now}　｜　共 ${items.length} 項</div>
-</div>
-<div class="warning">⚠️ 本文件含敏感資訊，請妥善保管或銷毀。</div>
-${Object.entries(grouped).map(([label, groupItems]) => {
-  // 結構化分類用表格
-  const firstItem = groupItems[0];
-  const fieldDefs = CATEGORY_FIELDS[firstItem.category];
-  const isStruct = isStructuredCategory(firstItem.category);
+      // ── helper: 建立表格 cell ──
+      const cellBorders = {
+        top: { style: BorderStyle.SINGLE, size: 1, color: 'CCCCCC' },
+        bottom: { style: BorderStyle.SINGLE, size: 1, color: 'CCCCCC' },
+        left: { style: BorderStyle.SINGLE, size: 1, color: 'CCCCCC' },
+        right: { style: BorderStyle.SINGLE, size: 1, color: 'CCCCCC' },
+      };
 
-  if (isStruct && fieldDefs) {
-    // 表頭欄位
-    const cols = fieldDefs.filter(f => f.inputType !== 'textarea');
-    const hasNotes = fieldDefs.some(f => f.inputType === 'textarea');
-    return `
-<div class="category">
-  <h2>${label}（${groupItems.length}）</h2>
-  <table>
-    <tr>
-      <th>名稱</th>
-      ${cols.map(f => `<th>${f.label}</th>`).join('')}
-      ${hasNotes ? '<th>備註</th>' : ''}
-      <th>更新</th>
-    </tr>
-    ${groupItems.map(item => {
-      const s = parseStructured(item.content);
-      // 自訂欄位
+      const headerCell = (text: string) => new TableCell({
+        children: [new Paragraph({ children: [new TextRun({ text, bold: true, size: 18, font: 'Microsoft JhengHei' })] })],
+        shading: { type: ShadingType.SOLID, color: 'F3F1EC', fill: 'F3F1EC' },
+        borders: cellBorders,
+        width: { size: 0, type: WidthType.AUTO },
+      });
+
+      const dataCell = (text: string, mono = false) => new TableCell({
+        children: [new Paragraph({ children: [new TextRun({ text: text || '', size: 17, font: mono ? 'Consolas' : 'Microsoft JhengHei' })] })],
+        borders: cellBorders,
+        width: { size: 0, type: WidthType.AUTO },
+      });
+
+      // ── 組裝文件內容 ──
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const cf = s ? ((s as any).customFields as CustomField[] | undefined) : undefined;
-      const cfText = cf?.length ? cf.map(c => `${escapeHtml(c.label)}: ${escapeHtml(c.value)}`).join('; ') : '';
-      const notesField = fieldDefs.find(f => f.inputType === 'textarea');
-      const notesVal = s && notesField ? (s[notesField.key] || '') : '';
-      const combinedNotes = [notesVal, cfText].filter(Boolean).join(' | ');
-      return `<tr>
-      <td><b>${escapeHtml(item.title)}</b></td>
-      ${cols.map(f => `<td>${s ? escapeHtml(s[f.key] || '') : ''}</td>`).join('')}
-      ${hasNotes ? `<td class="notes">${escapeHtml(combinedNotes)}</td>` : ''}
-      <td class="date">${formatFullDate(item.updatedAt).slice(5)}</td>
-    </tr>`;
-    }).join('')}
-  </table>
-</div>`;
-  }
+      const docChildren: any[] = [];
 
-  // 非結構化分類（筆記/其他）用簡單列表
-  return `
-<div class="category">
-  <h2>${label}（${groupItems.length}）</h2>
-  ${groupItems.map(item => `<div class="plain-item">
-    <div class="plain-title">${escapeHtml(item.title)}</div>
-    <div class="plain-content">${escapeHtml(item.content)}</div>
-    <div class="plain-date">${formatFullDate(item.updatedAt)}</div>
-  </div>`).join('')}
-</div>`;
-}).join('')}
-<div class="footer">拾日（Shiri）家庭手札 — 特別區紙本備份</div>
-</body>
-</html>`);
+      // 標題
+      docChildren.push(new Paragraph({
+        heading: HeadingLevel.HEADING_1,
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text: '🔐 拾日特別區備份', size: 32, bold: true, font: 'Microsoft JhengHei', color: '5A7A5A' })],
+      }));
+      docChildren.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 200 },
+        children: [new TextRun({ text: `匯出：${nowFmt}　｜　共 ${items.length} 項`, size: 18, color: '888888', font: 'Microsoft JhengHei' })],
+      }));
+      docChildren.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 300 },
+        children: [new TextRun({ text: '⚠️ 本文件含敏感資訊，請妥善保管或銷毀。', size: 18, color: '856404', bold: true, font: 'Microsoft JhengHei' })],
+      }));
 
-    printWindow.document.close();
-    // 等圖片/字型載入後列印
-    setTimeout(() => { printWindow.print(); }, 300);
+      // ── 逐分類輸出 ──
+      for (const [label, group] of Object.entries(grouped)) {
+        const { catKey, items: groupItems } = group;
+        const fieldDefs = CATEGORY_FIELDS[catKey];
+        const isStruct = isStructuredCategory(catKey);
+
+        // 分類標題
+        docChildren.push(new Paragraph({
+          heading: HeadingLevel.HEADING_2,
+          spacing: { before: 300, after: 100 },
+          children: [new TextRun({ text: `${label}（${groupItems.length}）`, size: 24, bold: true, font: 'Microsoft JhengHei', color: '5A7A5A' })],
+        }));
+
+        // ── 結構化分類（帳密、銀行、信用卡、投資）用表格 ──
+        if (isStruct && fieldDefs) {
+          const cols = fieldDefs.filter(f => f.inputType !== 'textarea');
+          const hasNotes = fieldDefs.some(f => f.inputType === 'textarea');
+
+          // 表頭
+          const headerCells = [headerCell('名稱'), ...cols.map(f => headerCell(f.label))];
+          if (hasNotes) headerCells.push(headerCell('備註'));
+
+          const rows = [new TableRow({ children: headerCells })];
+
+          for (const item of groupItems) {
+            const s = parseStructured(item.content);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const cf = s ? ((s as any).customFields as CustomField[] | undefined) : undefined;
+            const cfText = cf?.length ? cf.map(c => `${c.label}: ${c.value}`).join('; ') : '';
+            const notesField = fieldDefs.find(f => f.inputType === 'textarea');
+            const notesVal = s && notesField ? (s[notesField.key] || '') : '';
+            const combinedNotes = [notesVal, cfText].filter(Boolean).join(' | ');
+
+            const dataCells = [
+              dataCell(item.title),
+              ...cols.map(f => dataCell(s ? (s[f.key] || '') : '', f.sensitive)),
+            ];
+            if (hasNotes) dataCells.push(dataCell(combinedNotes));
+            rows.push(new TableRow({ children: dataCells }));
+          }
+
+          docChildren.push(new Table({
+            rows,
+            width: { size: 100, type: WidthType.PERCENTAGE },
+          }));
+          continue;
+        }
+
+        // ── CUSTOM 分類：蒐集所有欄位，用表格 ──
+        if (catKey === 'CUSTOM') {
+          const allFieldLabels: string[] = [];
+          const parsedItems: Array<{ item: DecryptedItem; fields: Record<string, string> }> = [];
+
+          for (const item of groupItems) {
+            const s = parseStructured(item.content);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const cf = s ? ((s as any).customFields as CustomField[] | undefined) : undefined;
+            const fields: Record<string, string> = {};
+            if (cf) {
+              for (const c of cf) {
+                fields[c.label] = c.value;
+                if (!allFieldLabels.includes(c.label)) allFieldLabels.push(c.label);
+              }
+            } else if (s) {
+              for (const [k, v] of Object.entries(s)) {
+                if (k === 'categoryLabel' || k === 'customFields') continue;
+                fields[k] = String(v);
+                if (!allFieldLabels.includes(k)) allFieldLabels.push(k);
+              }
+            }
+            parsedItems.push({ item, fields });
+          }
+
+          if (allFieldLabels.length > 0) {
+            const headerCells = [headerCell('名稱'), ...allFieldLabels.map(l => headerCell(l))];
+            const rows = [new TableRow({ children: headerCells })];
+
+            for (const { item, fields } of parsedItems) {
+              const dataCells = [dataCell(item.title), ...allFieldLabels.map(l => dataCell(fields[l] || ''))];
+              rows.push(new TableRow({ children: dataCells }));
+            }
+
+            docChildren.push(new Table({
+              rows,
+              width: { size: 100, type: WidthType.PERCENTAGE },
+            }));
+            continue;
+          }
+        }
+
+        // ── 非結構化分類（筆記/其他）──
+        for (const item of groupItems) {
+          const s = parseStructured(item.content);
+          let displayContent: string;
+          if (s) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const cf = (s as any).customFields as CustomField[] | undefined;
+            const lines: string[] = [];
+            for (const [k, v] of Object.entries(s)) {
+              if (k === 'categoryLabel' || k === 'customFields') continue;
+              lines.push(`${k}: ${String(v)}`);
+            }
+            if (cf) {
+              for (const c of cf) {
+                lines.push(`${c.label}: ${c.value}`);
+              }
+            }
+            displayContent = lines.length > 0 ? lines.join('\n') : item.content;
+          } else {
+            displayContent = item.content;
+          }
+          docChildren.push(new Paragraph({
+            spacing: { before: 100 },
+            children: [new TextRun({ text: `■ ${item.title}`, bold: true, size: 20, font: 'Microsoft JhengHei' })],
+          }));
+          // 逐行輸出內容
+          for (const line of displayContent.split('\n')) {
+            docChildren.push(new Paragraph({
+              spacing: { after: 40 },
+              children: [new TextRun({ text: line, size: 18, font: 'Microsoft JhengHei' })],
+            }));
+          }
+        }
+      }
+
+      // 頁尾
+      docChildren.push(new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 400 },
+        children: [new TextRun({ text: '拾日（Shiri）家庭手札 — 特別區備份', size: 14, color: 'AAAAAA', font: 'Microsoft JhengHei' })],
+      }));
+
+      // ── 產生並下載 ──
+      const doc = new Document({
+        sections: [{ children: docChildren }],
+      });
+
+      const blob = await Packer.toBlob(doc);
+      saveAs(blob, `拾日特別區備份_${nowStr()}.docx`);
+    } catch (err) {
+      console.error('Export Word error:', err);
+      setError('匯出失敗，請稍後再試');
+    }
   };
 
   /** 匯入 JSON 檔案 */
@@ -1164,12 +1310,9 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
                   <div className={styles.backupDropdown}>
                     <button type="button" className={styles.backupDropdownItem} onClick={handleExportFile}>
                       <Download size={16} />
-                      <span>匯出檔案 (.json)</span>
+                      <span>匯出檔案 (.docx)</span>
                     </button>
-                    <button type="button" className={styles.backupDropdownItem} onClick={handlePrint}>
-                      <Printer size={16} />
-                      <span>列印紙本</span>
-                    </button>
+
                     <button type="button" className={styles.backupDropdownItem} onClick={handleImportFile}>
                       <Upload size={16} />
                       <span>匯入檔案 (.json)</span>
@@ -1276,6 +1419,9 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
             </label>
             {changePinProgress && (
               <p className={styles.changePinProgress}>{changePinProgress}</p>
+            )}
+            {error && (
+              <p className={styles.changePinError}>{error}</p>
             )}
             <div className={styles.changePinActions}>
               <button
@@ -1734,7 +1880,7 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
           const renderItemCard = (item: DecryptedItem) => (
           <div
             key={item.id}
-            className={`${styles.itemCard} ${expandedId === item.id ? styles.itemCardExpanded : ''} ${batchMode && selectedIds.has(item.id) ? styles.itemCardSelected : ''}`}
+            className={`${styles.itemCard} ${item.pinnedAt ? styles.itemCardPinned : ''} ${expandedId === item.id ? styles.itemCardExpanded : ''} ${batchMode && selectedIds.has(item.id) ? styles.itemCardSelected : ''}`}
           >
             <div
               className={styles.itemHeader}
@@ -1757,6 +1903,11 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
               <span className={styles.itemTitle}>
                 {item.title}
               </span>
+              {item.pinnedAt && (
+                <span className={styles.pinnedBadge} title="已置頂">
+                  <Pin size={12} />
+                </span>
+              )}
               <span className={styles.itemDate}>{formatDate(item.updatedAt)}</span>
             </div>
 
@@ -1888,6 +2039,14 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
                         <div className={styles.itemDeleteRow}>
                           <button
                             type="button"
+                            className={`${styles.itemActionBtn} ${item.pinnedAt ? styles.itemPinnedBtn : ''}`}
+                            onClick={() => handleTogglePin(item)}
+                            title={item.pinnedAt ? '取消置頂' : '置頂'}
+                          >
+                            <Pin size={16} />
+                          </button>
+                          <button
+                            type="button"
                             className={styles.itemActionBtn}
                             onClick={() => handleStartEdit(item)}
                             title="編輯"
@@ -1935,6 +2094,14 @@ ${Object.entries(grouped).map(([label, groupItems]) => {
                         >
                           <Copy size={16} />
                           {copyFeedback === item.id && <span className={styles.copyToast}>已複製</span>}
+                        </button>
+                        <button
+                          type="button"
+                          className={`${styles.itemActionBtn} ${item.pinnedAt ? styles.itemPinnedBtn : ''}`}
+                          onClick={() => handleTogglePin(item)}
+                          title={item.pinnedAt ? '取消置頂' : '置頂'}
+                        >
+                          <Pin size={16} />
                         </button>
                         <button
                           type="button"
