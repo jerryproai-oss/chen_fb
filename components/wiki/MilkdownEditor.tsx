@@ -10,6 +10,7 @@ import {
   toggleStrongCommand,
   toggleEmphasisCommand,
   toggleInlineCodeCommand,
+  toggleLinkCommand,
   wrapInHeadingCommand,
   wrapInBulletListCommand,
   wrapInOrderedListCommand,
@@ -22,10 +23,16 @@ import {
   gfm,
   toggleStrikethroughCommand,
   insertTableCommand,
+  addRowAfterCommand,
+  addRowBeforeCommand,
+  addColAfterCommand,
+  addColBeforeCommand,
+  deleteSelectedCellsCommand,
 } from '@milkdown/kit/preset/gfm';
-import { history } from '@milkdown/kit/plugin/history';
+import { history, undoCommand, redoCommand } from '@milkdown/kit/plugin/history';
 import { listener, listenerCtx } from '@milkdown/kit/plugin/listener';
 import { clipboard } from '@milkdown/kit/plugin/clipboard';
+import { indent, indentConfig } from '@milkdown/kit/plugin/indent';
 import { Milkdown, MilkdownProvider, useEditor } from '@milkdown/react';
 import { nord } from '@milkdown/theme-nord';
 import '@milkdown/theme-nord/style.css';
@@ -35,17 +42,14 @@ import styles from './MilkdownEditor.module.css';
 // ── 型別定義 ──────────────────────────────────────────────────
 
 export interface MilkdownEditorProps {
-  /** 初始 markdown 內容 */
   value: string;
-  /** 內容變更時回呼 */
   onChange?: (markdown: string) => void;
-  /** 唯讀模式 */
   readOnly?: boolean;
 }
 
-// ── 工具列定義 ────────────────────────────────────────────────
+// ── 工具列按鈕定義 ────────────────────────────────────────────
 
-interface ToolbarItem {
+interface ToolbarItemDef {
   id: string;
   label: string;
   icon: string;
@@ -53,7 +57,10 @@ interface ToolbarItem {
   group: string;
 }
 
-const TOOLBAR_ITEMS: ToolbarItem[] = [
+const TOOLBAR_ITEMS: ToolbarItemDef[] = [
+  // 復原 / 重做
+  { id: 'undo', label: '復原', icon: '↩', shortcut: 'Ctrl+Z', group: 'history' },
+  { id: 'redo', label: '重做', icon: '↪', shortcut: 'Ctrl+Y', group: 'history' },
   // 標題
   { id: 'h1', label: '主標題', icon: 'H1', group: 'heading' },
   { id: 'h2', label: '次標題', icon: 'H2', group: 'heading' },
@@ -62,17 +69,35 @@ const TOOLBAR_ITEMS: ToolbarItem[] = [
   // 文字格式
   { id: 'bold', label: '粗體', icon: 'B', shortcut: 'Ctrl+B', group: 'inline' },
   { id: 'italic', label: '斜體', icon: 'I', shortcut: 'Ctrl+I', group: 'inline' },
-  { id: 'strikethrough', label: '刪除線', icon: 'S', group: 'inline' },
-  { id: 'inlineCode', label: '行內程式碼', icon: '<>', group: 'inline' },
+  { id: 'strikethrough', label: '刪除線', icon: 'S̶', group: 'inline' },
+  { id: 'inlineCode', label: '行內程式碼', icon: '`c`', group: 'inline' },
+  { id: 'link', label: '插入連結', icon: '🔗', shortcut: 'Ctrl+K', group: 'inline' },
   // 區塊
-  { id: 'bulletList', label: '項目清單', icon: '•', group: 'block' },
-  { id: 'orderedList', label: '編號清單', icon: '1.', group: 'block' },
+  { id: 'bulletList', label: '項目清單', icon: '• ≡', group: 'block' },
+  { id: 'orderedList', label: '編號清單', icon: '1. ≡', group: 'block' },
   { id: 'blockquote', label: '引用', icon: '❝', group: 'block' },
-  { id: 'codeBlock', label: '程式碼區塊', icon: '{ }', group: 'block' },
-  { id: 'hr', label: '分隔線', icon: '—', group: 'block' },
+  { id: 'codeBlock', label: '程式碼區塊', icon: '⌨', group: 'block' },
+  { id: 'hr', label: '分隔線', icon: '──', group: 'block' },
   // 插入
-  { id: 'image', label: '插入圖片', icon: '🖼', group: 'insert' },
+  { id: 'image', label: '插入圖片', icon: '📷', group: 'insert' },
   { id: 'table', label: '插入表格', icon: '▦', group: 'insert' },
+];
+
+// 表格編輯用（當在表格中時顯示）
+const TABLE_ITEMS: ToolbarItemDef[] = [
+  { id: 'addRowBefore', label: '上方插入列', icon: '⬆行', group: 'table' },
+  { id: 'addRowAfter', label: '下方插入列', icon: '⬇行', group: 'table' },
+  { id: 'addColBefore', label: '左方插入欄', icon: '⬅欄', group: 'table' },
+  { id: 'addColAfter', label: '右方插入欄', icon: '➡欄', group: 'table' },
+  { id: 'deleteCells', label: '刪除選取格', icon: '🗑', group: 'table' },
+];
+
+// 圖片尺寸選項
+const IMAGE_SIZES = [
+  { label: '100%', value: '100%' },
+  { label: '75%', value: '75%' },
+  { label: '50%', value: '50%' },
+  { label: '25%', value: '25%' },
 ];
 
 // ── 工具列元件 ────────────────────────────────────────────────
@@ -80,14 +105,20 @@ const TOOLBAR_ITEMS: ToolbarItem[] = [
 interface ToolbarProps {
   onCommand: (id: string) => void;
   onImageUpload: () => void;
+  onImageResize: (width: string) => void;
   uploading: boolean;
+  showTableTools: boolean;
+  showImageTools: boolean;
 }
 
-function Toolbar({ onCommand, onImageUpload, uploading }: ToolbarProps) {
+function Toolbar({
+  onCommand, onImageUpload, onImageResize,
+  uploading, showTableTools, showImageTools,
+}: ToolbarProps) {
   const [showGuide, setShowGuide] = useState(false);
 
-  const groups = ['heading', 'inline', 'block', 'insert'] as const;
-  const groupedItems: Record<string, ToolbarItem[]> = {};
+  const groups = ['history', 'heading', 'inline', 'block', 'insert'] as const;
+  const groupedItems: Record<string, ToolbarItemDef[]> = {};
   for (const item of TOOLBAR_ITEMS) {
     if (!groupedItems[item.group]) groupedItems[item.group] = [];
     groupedItems[item.group].push(item);
@@ -95,7 +126,7 @@ function Toolbar({ onCommand, onImageUpload, uploading }: ToolbarProps) {
 
   return (
     <div className={styles.toolbar}>
-      <div className={styles.toolbarInner}>
+      <div className={styles.toolbarRow}>
         {groups.map((group, gi) => (
           <div key={group} className={styles.toolbarGroup}>
             {gi > 0 && <span className={styles.toolbarSep} />}
@@ -132,6 +163,42 @@ function Toolbar({ onCommand, onImageUpload, uploading }: ToolbarProps) {
         </div>
       </div>
 
+      {/* 表格編輯工具列 */}
+      {showTableTools && (
+        <div className={styles.toolbarRowSub}>
+          <span className={styles.subLabel}>📊 表格編輯：</span>
+          {TABLE_ITEMS.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={styles.toolbarBtnSub}
+              title={item.label}
+              onClick={() => onCommand(item.id)}
+            >
+              {item.icon}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 圖片縮放工具列 */}
+      {showImageTools && (
+        <div className={styles.toolbarRowSub}>
+          <span className={styles.subLabel}>🖼 圖片寬度：</span>
+          {IMAGE_SIZES.map((s) => (
+            <button
+              key={s.value}
+              type="button"
+              className={styles.toolbarBtnSub}
+              onClick={() => onImageResize(s.value)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* 快捷鍵指引面板 */}
       {showGuide && (
         <div className={styles.guidePanel}>
           <div className={styles.guidePanelHeader}>
@@ -140,29 +207,46 @@ function Toolbar({ onCommand, onImageUpload, uploading }: ToolbarProps) {
           </div>
           <div className={styles.guideGrid}>
             <div className={styles.guideSection}>
-              <h4>快捷鍵</h4>
+              <h4>鍵盤快捷鍵</h4>
               <div className={styles.guideItem}><kbd>Ctrl+B</kbd> 粗體</div>
               <div className={styles.guideItem}><kbd>Ctrl+I</kbd> 斜體</div>
+              <div className={styles.guideItem}><kbd>Ctrl+K</kbd> 插入連結</div>
               <div className={styles.guideItem}><kbd>Ctrl+Z</kbd> 復原</div>
-              <div className={styles.guideItem}><kbd>Ctrl+Y</kbd> 重做</div>
+              <div className={styles.guideItem}><kbd>Ctrl+Shift+Z</kbd> 重做</div>
               <div className={styles.guideItem}><kbd>Enter</kbd> 新段落</div>
               <div className={styles.guideItem}><kbd>Shift+Enter</kbd> 換行</div>
-              <div className={styles.guideItem}><kbd>Tab</kbd> 縮排清單</div>
+              <div className={styles.guideItem}><kbd>Tab</kbd> 縮排</div>
+              <div className={styles.guideItem}><kbd>Shift+Tab</kbd> 反縮排</div>
             </div>
             <div className={styles.guideSection}>
-              <h4>Markdown 語法</h4>
-              <div className={styles.guideItem}><code># 標題</code> 主標題</div>
-              <div className={styles.guideItem}><code>## 標題</code> 次標題</div>
-              <div className={styles.guideItem}><code>**粗體**</code> 粗體文字</div>
-              <div className={styles.guideItem}><code>*斜體*</code> 斜體文字</div>
-              <div className={styles.guideItem}><code>~~刪除~~</code> 刪除線</div>
+              <h4>Markdown 語法（直接輸入）</h4>
+              <div className={styles.guideItem}><code># 空格</code> 主標題</div>
+              <div className={styles.guideItem}><code>## 空格</code> 次標題</div>
+              <div className={styles.guideItem}><code>### 空格</code> 三級標題</div>
+              <div className={styles.guideItem}><code>**文字**</code> 粗體</div>
+              <div className={styles.guideItem}><code>*文字*</code> 斜體</div>
+              <div className={styles.guideItem}><code>~~文字~~</code> 刪除線</div>
               <div className={styles.guideItem}><code>`程式碼`</code> 行內程式碼</div>
-              <div className={styles.guideItem}><code>- 項目</code> 項目清單</div>
-              <div className={styles.guideItem}><code>1. 項目</code> 編號清單</div>
-              <div className={styles.guideItem}><code>&gt; 引用</code> 引用區塊</div>
+              <div className={styles.guideItem}><code>- 空格</code> 項目清單</div>
+              <div className={styles.guideItem}><code>1. 空格</code> 編號清單</div>
+              <div className={styles.guideItem}><code>&gt; 空格</code> 引用區塊</div>
               <div className={styles.guideItem}><code>---</code> 分隔線</div>
-              <div className={styles.guideItem}><code>```code```</code> 程式碼區塊</div>
-              <div className={styles.guideItem}><code>![alt](url)</code> 圖片</div>
+              <div className={styles.guideItem}><code>```語言</code> 程式碼區塊</div>
+              <div className={styles.guideItem}><code>[文字](網址)</code> 連結</div>
+              <div className={styles.guideItem}><code>![說明](圖片網址)</code> 圖片</div>
+            </div>
+            <div className={styles.guideSection}>
+              <h4>表格語法</h4>
+              <div className={styles.guideItem}>用工具列 <b>▦</b> 插入後可直接編輯</div>
+              <div className={styles.guideItem}>點擊表格時上方出現表格工具列</div>
+              <div className={styles.guideItem}><kbd>Tab</kbd> 跳到下一格</div>
+              <div className={styles.guideItem}><kbd>Shift+Tab</kbd> 跳到上一格</div>
+            </div>
+            <div className={styles.guideSection}>
+              <h4>圖片操作</h4>
+              <div className={styles.guideItem}>用工具列 <b>📷</b> 上傳圖片</div>
+              <div className={styles.guideItem}>點擊圖片後可調整寬度</div>
+              <div className={styles.guideItem}>支援複製貼上圖片</div>
             </div>
           </div>
         </div>
@@ -177,6 +261,8 @@ function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps)
   const editorGetRef = useRef<(() => Editor | undefined) | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [showTableTools, setShowTableTools] = useState(false);
+  const [showImageTools, setShowImageTools] = useState(false);
 
   const { get } = useEditor((root) => {
     const editor = Editor.make()
@@ -184,7 +270,6 @@ function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps)
         ctx.set(rootCtx, root);
         ctx.set(defaultValueCtx, value);
 
-        // 唯讀模式
         if (readOnly) {
           ctx.update(editorViewOptionsCtx, (prev) => ({
             ...prev,
@@ -192,25 +277,72 @@ function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps)
           }));
         }
 
-        // 監聽內容變更
         if (onChange && !readOnly) {
           ctx.get(listenerCtx).markdownUpdated((_ctx, markdown) => {
             onChange(markdown);
           });
         }
+
+        // 縮排設定
+        ctx.update(indentConfig.key, (prev) => ({
+          ...prev,
+          type: 'space' as const,
+          size: 2,
+        }));
       })
       .config(nord)
       .use(commonmark)
       .use(gfm)
       .use(history)
       .use(listener)
-      .use(clipboard);
+      .use(clipboard)
+      .use(indent);
 
     return editor;
   }, []);
 
-  // 儲存 get 函式供工具列使用
   editorGetRef.current = get;
+
+  // ── 偵測游標位置（表格/圖片）──────────────────────
+
+  const checkCursorContext = useCallback(() => {
+    const editor = editorGetRef.current?.();
+    if (!editor) return;
+
+    editor.action((ctx) => {
+      try {
+        const view = ctx.get(editorViewCtx);
+        const { state } = view;
+        const { $from } = state.selection;
+
+        // 檢查是否在表格內
+        let inTable = false;
+        let onImage = false;
+
+        for (let d = $from.depth; d > 0; d--) {
+          const node = $from.node(d);
+          if (node.type.name === 'table') {
+            inTable = true;
+            break;
+          }
+        }
+
+        // 檢查是否選中圖片
+        const selectedNode = state.selection instanceof Object
+          && 'node' in state.selection
+          ? (state.selection as unknown as { node: { type: { name: string } } }).node
+          : null;
+        if (selectedNode?.type?.name === 'image') {
+          onImage = true;
+        }
+
+        setShowTableTools(inTable);
+        setShowImageTools(onImage);
+      } catch {
+        // 忽略
+      }
+    });
+  }, []);
 
   // ── 執行編輯器命令 ──────────────────────────────────
 
@@ -222,51 +354,45 @@ function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps)
       const commands = ctx.get(commandsCtx);
 
       switch (id) {
-        case 'h1':
-          commands.call(wrapInHeadingCommand.key, 1);
+        // 歷史
+        case 'undo': commands.call(undoCommand.key); break;
+        case 'redo': commands.call(redoCommand.key); break;
+        // 標題
+        case 'h1': commands.call(wrapInHeadingCommand.key, 1); break;
+        case 'h2': commands.call(wrapInHeadingCommand.key, 2); break;
+        case 'h3': commands.call(wrapInHeadingCommand.key, 3); break;
+        case 'paragraph': commands.call(turnIntoTextCommand.key); break;
+        // 文字格式
+        case 'bold': commands.call(toggleStrongCommand.key); break;
+        case 'italic': commands.call(toggleEmphasisCommand.key); break;
+        case 'strikethrough': commands.call(toggleStrikethroughCommand.key); break;
+        case 'inlineCode': commands.call(toggleInlineCodeCommand.key); break;
+        case 'link': {
+          const url = prompt('請輸入連結網址：', 'https://');
+          if (url) {
+            commands.call(toggleLinkCommand.key, { href: url });
+          }
           break;
-        case 'h2':
-          commands.call(wrapInHeadingCommand.key, 2);
-          break;
-        case 'h3':
-          commands.call(wrapInHeadingCommand.key, 3);
-          break;
-        case 'paragraph':
-          commands.call(turnIntoTextCommand.key);
-          break;
-        case 'bold':
-          commands.call(toggleStrongCommand.key);
-          break;
-        case 'italic':
-          commands.call(toggleEmphasisCommand.key);
-          break;
-        case 'strikethrough':
-          commands.call(toggleStrikethroughCommand.key);
-          break;
-        case 'inlineCode':
-          commands.call(toggleInlineCodeCommand.key);
-          break;
-        case 'bulletList':
-          commands.call(wrapInBulletListCommand.key);
-          break;
-        case 'orderedList':
-          commands.call(wrapInOrderedListCommand.key);
-          break;
-        case 'blockquote':
-          commands.call(wrapInBlockquoteCommand.key);
-          break;
-        case 'codeBlock':
-          commands.call(createCodeBlockCommand.key);
-          break;
-        case 'hr':
-          commands.call(insertHrCommand.key);
-          break;
-        case 'table':
-          commands.call(insertTableCommand.key);
-          break;
+        }
+        // 區塊
+        case 'bulletList': commands.call(wrapInBulletListCommand.key); break;
+        case 'orderedList': commands.call(wrapInOrderedListCommand.key); break;
+        case 'blockquote': commands.call(wrapInBlockquoteCommand.key); break;
+        case 'codeBlock': commands.call(createCodeBlockCommand.key, 'text'); break;
+        case 'hr': commands.call(insertHrCommand.key); break;
+        // 表格
+        case 'table': commands.call(insertTableCommand.key, { row: 3, col: 3 }); break;
+        case 'addRowBefore': commands.call(addRowBeforeCommand.key); break;
+        case 'addRowAfter': commands.call(addRowAfterCommand.key); break;
+        case 'addColBefore': commands.call(addColBeforeCommand.key); break;
+        case 'addColAfter': commands.call(addColAfterCommand.key); break;
+        case 'deleteCells': commands.call(deleteSelectedCellsCommand.key); break;
       }
     });
-  }, []);
+
+    // 更新游標上下文
+    setTimeout(checkCursorContext, 100);
+  }, [checkCursorContext]);
 
   // ── 圖片上傳 ────────────────────────────────────────
 
@@ -274,27 +400,40 @@ function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps)
     fileInputRef.current?.click();
   }, []);
 
+  const insertImageNode = useCallback((url: string, alt: string) => {
+    const editor = editorGetRef.current?.();
+    if (!editor) return;
+
+    editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      const { state, dispatch } = view;
+      const imageType = state.schema.nodes.image;
+      if (imageType) {
+        const node = imageType.create({
+          src: url,
+          alt: alt,
+          title: alt,
+        });
+        dispatch(state.tr.replaceSelectionWith(node));
+      }
+    });
+  }, []);
+
   const handleFileChange = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // 重置 input 以便可以重複選同一檔案
     e.target.value = '';
 
-    // 驗證檔案類型
     if (!file.type.startsWith('image/')) {
       alert('請選擇圖片檔案');
       return;
     }
-
-    // 驗證檔案大小 (20MB)
     if (file.size > 20 * 1024 * 1024) {
       alert('圖片大小不可超過 20MB');
       return;
     }
 
     setUploading(true);
-
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -311,32 +450,87 @@ function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps)
 
       const data = await res.json();
       const imageUrl = data.media?.url;
-
       if (!imageUrl) throw new Error('未取得圖片網址');
 
-      // 插入圖片到編輯器
-      const editor = editorGetRef.current?.();
-      if (editor) {
-        editor.action((ctx) => {
-          const view = ctx.get(editorViewCtx);
-          const { state, dispatch } = view;
-          const imageType = state.schema.nodes.image;
-          if (imageType) {
-            const node = imageType.create({
-              src: imageUrl,
-              alt: file.name,
-              title: file.name,
-            });
-            dispatch(state.tr.replaceSelectionWith(node));
-          }
-        });
-      }
+      insertImageNode(imageUrl, file.name);
     } catch (err) {
       alert(err instanceof Error ? err.message : '圖片上傳失敗');
     } finally {
       setUploading(false);
     }
+  }, [insertImageNode]);
+
+  // ── 圖片縮放 ────────────────────────────────────────
+
+  const handleImageResize = useCallback((width: string) => {
+    const editor = editorGetRef.current?.();
+    if (!editor) return;
+
+    editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      const { state, dispatch } = view;
+      const sel = state.selection as unknown as { node?: { type: { name: string }; attrs: Record<string, unknown> }; from: number };
+
+      if (sel.node?.type?.name === 'image') {
+        // 使用 ProseMirror 的 setNodeMarkup 更新圖片屬性
+        const pos = sel.from;
+        const tr = state.tr.setNodeMarkup(pos, undefined, {
+          ...sel.node.attrs,
+          width,
+        });
+        dispatch(tr);
+      }
+    });
   }, []);
+
+  // ── 貼上圖片處理 ────────────────────────────────────
+
+  const handlePaste = useCallback(async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (const item of Array.from(items)) {
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) continue;
+
+        setUploading(true);
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+
+          const res = await fetch('/api/upload', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!res.ok) throw new Error('上傳失敗');
+
+          const data = await res.json();
+          const imageUrl = data.media?.url;
+          if (imageUrl) {
+            insertImageNode(imageUrl, file.name || 'pasted-image');
+          }
+        } catch {
+          alert('圖片貼上上傳失敗');
+        } finally {
+          setUploading(false);
+        }
+        break;
+      }
+    }
+  }, [insertImageNode]);
+
+  // ── 編輯器點擊事件（偵測表格/圖片）─────────────────
+
+  const handleEditorClick = useCallback(() => {
+    setTimeout(checkCursorContext, 50);
+  }, [checkCursorContext]);
+
+  const handleEditorKeyUp = useCallback(() => {
+    setTimeout(checkCursorContext, 50);
+  }, [checkCursorContext]);
 
   return (
     <>
@@ -344,10 +538,19 @@ function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps)
         <Toolbar
           onCommand={handleCommand}
           onImageUpload={handleImageUpload}
+          onImageResize={handleImageResize}
           uploading={uploading}
+          showTableTools={showTableTools}
+          showImageTools={showImageTools}
         />
       )}
-      <div className={readOnly ? styles.editorReadOnly : styles.editorArea}>
+      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+      <div
+        className={readOnly ? styles.editorReadOnly : styles.editorArea}
+        onClick={handleEditorClick}
+        onKeyUp={handleEditorKeyUp}
+        onPaste={!readOnly ? handlePaste : undefined}
+      >
         <Milkdown />
       </div>
       <input
