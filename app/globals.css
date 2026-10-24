@@ -285,3 +285,11 @@ a.hashtag:hover {
   text-decoration: underline;
 }
 
+/* ── Main Content Area ─────────────────────────────────── */
+/* 底部導航只在手機版顯示（<768px），所以 padding 也只在手機版需要 */
+@media (max-width: 767px) {
+  main.mainContent {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+}
+

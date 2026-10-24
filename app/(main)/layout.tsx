@@ -25,10 +25,8 @@ export default async function MainLayout({
       <TopNav />
       <MobileToolbar />
       <main
-        style={{
-          minHeight: '100vh',
-          paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))',
-        }}
+        className="mainContent"
+        style={{ minHeight: '100vh' }}
       >
         {children}
       </main>

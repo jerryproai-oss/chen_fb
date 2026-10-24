@@ -520,3 +520,169 @@
   outline-offset: 2px;
   border-radius: var(--radius-md);
 }
+
+/* ── Responsive ────────────────────────────────────────────── */
+
+/* ── 平板（768px 以下）──────────────────────────────────── */
+@media (max-width: 768px) {
+  .editorArea :global(.milkdown) {
+    padding: 16px 18px;
+    min-height: 380px;
+  }
+
+  .editorArea {
+    min-height: 380px;
+  }
+
+  /* 表格在平板可水平捲動 */
+  .editorArea :global(.milkdown) table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ── 手機（640px 以下）──────────────────────────────────── */
+@media (max-width: 640px) {
+  .toolbar {
+    top: 0;
+  }
+
+  .toolbarRow {
+    padding: 6px 8px;
+    gap: 2px;
+  }
+
+  .toolbarBtn {
+    min-width: 36px;
+    height: 36px;
+    padding: 0 6px;
+    font-size: 14px;
+  }
+
+  .toolbarBtnBold {
+    font-size: 16px;
+  }
+
+  .toolbarBtnItalic {
+    font-size: 16px;
+  }
+
+  .toolbarSep {
+    margin: 0 3px;
+    height: 22px;
+  }
+
+  .guideBtn {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+  }
+
+  .editorArea :global(.milkdown) {
+    padding: 14px 16px;
+    min-height: 300px;
+    font-size: 14px;
+  }
+
+  .editorArea {
+    min-height: 300px;
+  }
+
+  /* 標題在手機略小 */
+  .editorArea :global(.milkdown) h1 {
+    font-size: 22px;
+    margin: 20px 0 10px;
+  }
+
+  .editorArea :global(.milkdown) h2 {
+    font-size: 19px;
+    margin: 18px 0 8px;
+  }
+
+  .editorArea :global(.milkdown) h3 {
+    font-size: 16px;
+    margin: 14px 0 6px;
+  }
+
+  /* 程式碼區塊 */
+  .editorArea :global(.milkdown) pre {
+    padding: 12px 14px;
+    font-size: 12px;
+  }
+
+  /* 表格格子手機版 padding 縮小 */
+  .editorArea :global(.milkdown) th,
+  .editorArea :global(.milkdown) td {
+    padding: 8px 10px;
+    min-width: 60px;
+    font-size: 13px;
+  }
+
+  /* 次工具列（表格/圖片）按鈕 */
+  .toolbarBtnSub {
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+
+  .subLabel {
+    font-size: 11px;
+  }
+
+  /* 引用區塊 */
+  .editorArea :global(.milkdown) blockquote {
+    padding: 8px 14px;
+    margin: 10px 0;
+  }
+
+  /* 清單 */
+  .editorArea :global(.milkdown) ul,
+  .editorArea :global(.milkdown) ol {
+    padding-left: 20px;
+  }
+
+  /* placeholder 文字縮短 */
+  .editorArea :global(.milkdown) :global(.ProseMirror) > p:first-child:empty::before {
+    content: '在這裡輸入內容...';
+    font-size: 14px;
+  }
+
+  /* 圖片 */
+  .editorArea :global(.milkdown) img {
+    margin: 8px 0;
+  }
+}
+
+/* ── 極小螢幕（375px 以下）──────────────────────────────── */
+@media (max-width: 375px) {
+  .toolbarBtn {
+    min-width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .toolbarBtnBold {
+    font-size: 14px;
+  }
+
+  .toolbarBtnItalic {
+    font-size: 14px;
+  }
+
+  .toolbarSep {
+    margin: 0 2px;
+  }
+
+  .editorArea :global(.milkdown) {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+
+  .editorArea :global(.milkdown) h1 {
+    font-size: 20px;
+  }
+
+  .editorArea :global(.milkdown) h2 {
+    font-size: 17px;
+  }
+}

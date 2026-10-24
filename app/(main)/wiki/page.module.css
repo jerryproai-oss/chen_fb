@@ -4,7 +4,6 @@
   max-width: 900px;
   margin: 0 auto;
   padding: var(--space-md);
-  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
 }
 
 .header {
@@ -712,10 +711,21 @@
 
 /* ── Responsive ────────────────────────────────────────────── */
 
+/* ── 平板（768px 以下）──────────────────────────────────── */
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .viewActions {
+    flex-wrap: wrap;
+  }
+}
+
+/* ── 手機（640px 以下）──────────────────────────────────── */
 @media (max-width: 640px) {
   .container {
     padding: var(--space-sm);
-    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
   }
 
   .headerRow {
@@ -723,23 +733,89 @@
     align-items: stretch;
   }
 
-  .grid {
-    grid-template-columns: 1fr;
-  }
-
   .tabRow {
     gap: 0;
+  }
+
+  .tabBtn {
+    padding: 6px 10px;
+    font-size: var(--font-size-xs);
   }
 
   .viewCard {
     padding: var(--space-md);
   }
 
-  .viewActions {
-    flex-wrap: wrap;
+  .viewTitle {
+    font-size: var(--font-size-xl);
+  }
+
+  .viewMeta {
+    gap: var(--space-sm);
   }
 
   .visibilityGroup {
     flex-direction: column;
+  }
+
+  /* 表單頁面調整 */
+  .formCard {
+    padding: var(--space-sm);
+  }
+
+  .formInput,
+  .formSelect {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .editorWrap {
+    min-height: 250px;
+  }
+
+  .actionRow {
+    flex-direction: column;
+  }
+
+  .btnCancel,
+  .btnSave {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* 版本歷史列表 */
+  .versionItem {
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+  }
+
+  .versionDate {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .versionEditor {
+    order: 3;
+  }
+
+  /* 檢視頁面按鈕 */
+  .btnEdit,
+  .btnDanger,
+  .btnBack {
+    flex: 1;
+    justify-content: center;
+    min-width: 0;
+    padding: 10px 12px;
+  }
+
+  /* 載入更多按鈕 */
+  .loadMoreBtn {
+    width: 100%;
+  }
+
+  /* 搜尋列 */
+  .searchBar {
+    padding: 6px 12px;
   }
 }
