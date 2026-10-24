@@ -54,6 +54,8 @@ function addSecurityHeaders(response: NextResponse): NextResponse {
   for (const [key, value] of SECURITY_HEADERS) {
     response.headers.set(key, value);
   }
+  // 移除不必要的 X-Powered-By header
+  response.headers.delete('X-Powered-By');
   return response;
 }
 
@@ -68,16 +70,19 @@ export function middleware(request: NextRequest) {
     pathname.endsWith('.png') ||
     pathname.endsWith('.svg')
   ) {
-    return addSecurityHeaders(NextResponse.next());
+    const response = NextResponse.next();
+    return addSecurityHeaders(response);
   }
 
   // 公開路由直接放行
   if (PUBLIC_PATHS.has(pathname)) {
-    return addSecurityHeaders(NextResponse.next());
+    const response = NextResponse.next();
+    return addSecurityHeaders(response);
   }
   for (const prefix of PUBLIC_PREFIXES) {
     if (pathname.startsWith(prefix)) {
-      return addSecurityHeaders(NextResponse.next());
+      const response = NextResponse.next();
+      return addSecurityHeaders(response);
     }
   }
 
@@ -87,17 +92,18 @@ export function middleware(request: NextRequest) {
   if (!sessionToken) {
     // API 請求：回傳 401
     if (pathname.startsWith('/api/')) {
-      return addSecurityHeaders(
-        NextResponse.json({ error: '未登入' }, { status: 401 }),
-      );
+      const response = NextResponse.json({ error: '未登入' }, { status: 401 });
+      return addSecurityHeaders(response);
     }
     // 頁面請求：導向登入頁
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
-    return addSecurityHeaders(NextResponse.redirect(loginUrl));
+    const response = NextResponse.redirect(loginUrl);
+    return addSecurityHeaders(response);
   }
 
-  return addSecurityHeaders(NextResponse.next());
+  const response = NextResponse.next();
+  return addSecurityHeaders(response);
 }
 
 export const config = {
