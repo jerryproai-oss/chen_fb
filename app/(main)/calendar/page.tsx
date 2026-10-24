@@ -390,7 +390,7 @@ export default function CalendarPage() {
     row: number;      // 在事件層中的垂直位置
   }
 
-  const { weekSegments, singleEventsByDate } = useMemo(() => {
+  const { weekSegments, singleEventsByDate, multiDayEvents } = useMemo(() => {
     const dateToCol = new Map<string, { weekIdx: number; col: number }>();
     weeks.forEach((week, weekIdx) => {
       week.forEach((cell, col) => {
@@ -476,8 +476,17 @@ export default function CalendarPage() {
       }
     }
 
-    return { weekSegments: segMap, singleEventsByDate: singleMap };
+    return { weekSegments: segMap, singleEventsByDate: singleMap, multiDayEvents };
   }, [events, weeks]);
+
+  // 取得某日期的所有事件（含跨日事件），用於 tooltip
+  const getAllEventsForDate = useCallback((date: string) => {
+    const singles = singleEventsByDate[date] || [];
+    const multis = multiDayEvents.filter(ev => {
+      return date >= ev.eventDate && date <= (ev.endDate || ev.eventDate);
+    });
+    return [...multis, ...singles];
+  }, [singleEventsByDate, multiDayEvents]);
 
   const dayEvents = eventsByDate[selectedDate] || [];
 
@@ -618,8 +627,10 @@ export default function CalendarPage() {
                             const isToday = cell.date === today;
                             const isSelected = cell.date === selectedDate;
                             const singleEvents = singleEventsByDate[cell.date] || [];
-                            const maxShow = maxRow > 0 ? 2 : 3;
+                            const maxShow = maxRow > 0 ? 3 : 4;
                             const lunarLabel = getLunarLabel(cell.date);
+                            const allDayEvents = getAllEventsForDate(cell.date);
+                            const hasEvents = allDayEvents.length > 0;
 
                             return (
                               <div
@@ -670,6 +681,30 @@ export default function CalendarPage() {
                                     </div>
                                   )}
                                 </div>
+                                {/* Hover 預覽所有行程 */}
+                                {hasEvents && (
+                                  <div className={styles.dayTooltip}>
+                                    <div className={styles.dayTooltipHeader}>
+                                      {parseDateStr(cell.date).m}/{parseDateStr(cell.date).d} 行程（{allDayEvents.length}）
+                                    </div>
+                                    {allDayEvents.map((ev) => (
+                                      <div key={ev.id} className={styles.dayTooltipItem}>
+                                        <span
+                                          className={styles.dayTooltipDot}
+                                          style={{ backgroundColor: ev.color || '#5a7a5a' }}
+                                        />
+                                        <span className={styles.dayTooltipTime}>
+                                          {ev.isAllDay
+                                            ? '全天'
+                                            : ev.endDate && ev.endDate !== ev.eventDate
+                                              ? '跨日'
+                                              : ev.eventTime || ''}
+                                        </span>
+                                        <span className={styles.dayTooltipTitle}>{ev.title}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
