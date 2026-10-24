@@ -82,6 +82,17 @@ export const DELETE = withAuth(
       data: { deletedAt: new Date() },
     });
 
+    // ── 清理關聯通知的留言內容 ────────────────────────
+    await prisma.notification.updateMany({
+      where: {
+        type: 'COMMENT',
+        resourceId: commentId,
+      },
+      data: {
+        body: '（此留言已刪除）',
+      },
+    });
+
     // ── 稽核 ──────────────────────────────────────────
     await logAudit({
       actorId: user.id,

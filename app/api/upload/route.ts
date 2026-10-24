@@ -210,7 +210,7 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
 
     await writeFile(absolutePath, buffer);
   } catch (error) {
-    console.error('[upload] 檔案寫入失敗:', error);
+    console.error('[upload] 檔案寫入失敗:', error instanceof Error ? error.message : 'unknown error');
     return NextResponse.json(
       { error: '檔案儲存失敗' },
       { status: 500 },
@@ -234,7 +234,7 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
       },
     });
   } catch (error) {
-    console.error('[upload] 資料庫寫入失敗:', error);
+    console.error('[upload] 資料庫寫入失敗:', error instanceof Error ? error.message : 'unknown error');
     return NextResponse.json(
       { error: '媒體記錄建立失敗' },
       { status: 500 },

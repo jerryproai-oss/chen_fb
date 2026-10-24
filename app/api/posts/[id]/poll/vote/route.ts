@@ -168,6 +168,7 @@ export const DELETE = withAuth(async ({ user }, _req: NextRequest, routeCtx) => 
   const post = await prisma.post.findUnique({
     where: { id },
     include: {
+      audiences: { select: { userId: true } },
       poll: {
         include: {
           options: { select: { id: true } },
@@ -180,6 +181,15 @@ export const DELETE = withAuth(async ({ user }, _req: NextRequest, routeCtx) => 
     return NextResponse.json(
       { error: '貼文或投票不存在' },
       { status: 404 },
+    );
+  }
+
+  // 權限檢查
+  const audienceUserIds = post.audiences.map((a) => a.userId);
+  if (!canViewPost(user, post, audienceUserIds)) {
+    return NextResponse.json(
+      { error: '無權存取此貼文' },
+      { status: 403 },
     );
   }
 

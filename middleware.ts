@@ -68,6 +68,15 @@ function secureResponse(response: NextResponse): NextResponse {
   return response;
 }
 
+/** JSON API body 上限 1MB（upload / avatar 等 multipart 端點排除） */
+const MAX_JSON_BODY_BYTES = 1 * 1024 * 1024;
+
+/** 不受 body size 限制的路徑前綴（multipart / 大檔上傳） */
+const BODY_SIZE_EXEMPT_PREFIXES = [
+  '/api/upload',
+  '/api/me/avatar',
+];
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -89,6 +98,19 @@ export function middleware(request: NextRequest) {
   for (const prefix of PUBLIC_PREFIXES) {
     if (pathname.startsWith(prefix)) {
       return secureNext();
+    }
+  }
+
+  // ── API body size 限制（排除 multipart 上傳端點）────
+  if (pathname.startsWith('/api/')) {
+    const isExempt = BODY_SIZE_EXEMPT_PREFIXES.some((p) => pathname.startsWith(p));
+    if (!isExempt) {
+      const contentLength = parseInt(request.headers.get('content-length') || '0', 10);
+      if (contentLength > MAX_JSON_BODY_BYTES) {
+        return secureResponse(
+          NextResponse.json({ error: '請求內容過大' }, { status: 413 }),
+        );
+      }
     }
   }
 

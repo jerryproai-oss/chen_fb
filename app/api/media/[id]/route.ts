@@ -77,7 +77,7 @@ export const GET = withAuth(async ({ user }, _req: NextRequest, routeCtx) => {
     const stat = statSync(absolutePath);
     fileSize = stat.size;
   } catch (error) {
-    console.error('[media] 檔案不存在或無法存取:', error);
+    console.error('[media] 檔案不存在或無法存取:', error instanceof Error ? error.message : 'unknown error');
     return NextResponse.json(
       { error: '檔案讀取失敗' },
       { status: 500 },

@@ -219,7 +219,7 @@ export const PUT = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
           resourceId: postId,
         },
       })
-      .catch((err) => console.error('[notification] 心情回應通知建立失敗:', err));
+      .catch((err) => console.error('[notification] 心情回應通知建立失敗:', err instanceof Error ? err.message : 'unknown error'));
   }
 
   // ── 稽核 ────────────────────────────────────────────

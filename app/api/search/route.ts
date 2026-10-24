@@ -29,7 +29,16 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
   const q = trimmedQ.length > 100 ? trimmedQ.slice(0, 100) : trimmedQ;
 
   // ── 分頁與範圍參數 ──────────────────────────────────
+  const VALID_SCOPES = ['all', 'journal', 'family'] as const;
   const scope = (searchParams.get('scope') || 'all').toLowerCase();
+
+  if (!VALID_SCOPES.includes(scope as (typeof VALID_SCOPES)[number])) {
+    return NextResponse.json(
+      { error: '無效的搜尋範圍，可用值：all, journal, family' },
+      { status: 400 },
+    );
+  }
+
   const cursor = searchParams.get('cursor');
   const limitParam = searchParams.get('limit');
   const limit = Math.min(Math.max(parseInt(limitParam || '20', 10) || 20, 1), 50);

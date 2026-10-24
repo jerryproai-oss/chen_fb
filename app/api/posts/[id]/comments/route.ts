@@ -215,7 +215,7 @@ export const POST = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
           resourceId: comment.id,
         },
       })
-      .catch((err) => console.error('[notification] 留言通知建立失敗:', err));
+      .catch((err) => console.error('[notification] 留言通知建立失敗:', err instanceof Error ? err.message : 'unknown error'));
   }
 
   // ── 稽核 ────────────────────────────────────────────

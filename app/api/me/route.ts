@@ -96,7 +96,7 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest) => {
       createdAt: updated.createdAt,
     });
   } catch (error) {
-    console.error('[PATCH /api/me] 更新失敗:', error);
+    console.error('[PATCH /api/me] 更新失敗:', error instanceof Error ? error.message : 'unknown error');
     await logAudit({
       actorId: user.id,
       action: AuditActions.PROFILE_UPDATE,
