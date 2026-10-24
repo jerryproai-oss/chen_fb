@@ -7,7 +7,7 @@ import {
   Trash2, ChevronLeft, Search, Copy, Eye, EyeOff,
   Users, UserPlus, UserMinus, Shield, Settings,
   Download, Landmark, CreditCard, TrendingUp, ExternalLink,
-  Pencil, Upload, CheckSquare, Square, X, Pin,
+  Pencil, Upload, CheckSquare, Square, X, Pin, FolderInput,
 } from 'lucide-react';
 import { deriveKey, decrypt, encrypt, generateSalt } from '@/lib/vault/crypto';
 import { getVaultKey, clearVaultKey, setOnLockCallback, initIdleMonitor } from '@/lib/vault/keystore';
@@ -156,7 +156,7 @@ export default function VaultListPage() {
   const [showContent, setShowContent] = useState<Set<string>>(new Set());
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
   const [batchMode, setBatchMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [batchDeleting, setBatchDeleting] = useState(false);
@@ -759,6 +759,88 @@ export default function VaultListPage() {
       setError(e instanceof Error ? e.message : '刪除失敗');
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  /** 移動項目到其他分類 */
+  const handleMoveCategory = async (item: DecryptedItem) => {
+    const token = getVaultToken();
+    const key = cryptoKeyRef.current;
+    if (!token || !key) { router.replace('/vault'); return; }
+
+    // 收集目前所有自訂分類名稱供選擇
+    const existingLabels = new Set<string>();
+    for (const it of items) {
+      if (it.category === 'CUSTOM') {
+        const s = parseStructured(it.content);
+        if (s?.categoryLabel) existingLabels.add(s.categoryLabel);
+      }
+    }
+
+    // 建立選項列表
+    const labelList = [...existingLabels].sort();
+    let promptMsg = '請輸入要移動到的分類名稱';
+    if (labelList.length > 0) {
+      promptMsg += `\n\n目前的分類：\n${labelList.map((l, i) => `${i + 1}. ${l}`).join('\n')}\n\n輸入編號或新的分類名稱：`;
+    }
+
+    const input = window.prompt(promptMsg);
+    if (!input || !input.trim()) return;
+
+    let targetLabel = input.trim();
+    // 如果輸入的是數字，對應到現有分類
+    const num = parseInt(targetLabel, 10);
+    if (!isNaN(num) && num >= 1 && num <= labelList.length) {
+      targetLabel = labelList[num - 1];
+    }
+
+    // 取得原有的 structured content
+    const s = parseStructured(item.content);
+    const currentLabel = s?.categoryLabel || '';
+    if (targetLabel === currentLabel) {
+      setError('該項目已在此分類中');
+      return;
+    }
+
+    try {
+      // 更新 content 中的 categoryLabel
+      let newContentObj: Record<string, unknown>;
+      if (s) {
+        newContentObj = { ...s, categoryLabel: targetLabel };
+      } else {
+        // 非結構化內容 → 包裝為結構化
+        newContentObj = { categoryLabel: targetLabel, note: item.content };
+      }
+
+      const contentStr = JSON.stringify(newContentObj);
+      const encTitle = await encrypt(key, item.title);
+      const encContent = await encrypt(key, contentStr);
+
+      const res = await fetch(`/api/vault/items/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-vault-token': token },
+        body: JSON.stringify({
+          titleEnc: encTitle.ciphertext,
+          contentEnc: encContent.ciphertext,
+          iv: encContent.iv,
+          category: 'CUSTOM',
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || '移動失敗');
+        return;
+      }
+
+      // 更新本地列表
+      setItems(prev => prev.map(it => {
+        if (it.id !== item.id) return it;
+        return { ...it, title: item.title, content: contentStr, category: 'CUSTOM' };
+      }));
+      setExpandedId(null);
+    } catch {
+      setError('移動分類失敗');
     }
   };
 
@@ -1889,7 +1971,7 @@ export default function VaultListPage() {
           }
 
           const toggleGroup = (label: string) => {
-            setCollapsedGroups(prev => {
+            setExpandedGroups(prev => {
               const next = new Set(prev);
               if (next.has(label)) next.delete(label); else next.add(label);
               return next;
@@ -2067,6 +2149,14 @@ export default function VaultListPage() {
                           <button
                             type="button"
                             className={styles.itemActionBtn}
+                            onClick={() => handleMoveCategory(item)}
+                            title="移動分類"
+                          >
+                            <FolderInput size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.itemActionBtn}
                             onClick={() => handleStartEdit(item)}
                             title="編輯"
                           >
@@ -2125,6 +2215,14 @@ export default function VaultListPage() {
                         <button
                           type="button"
                           className={styles.itemActionBtn}
+                          onClick={() => handleMoveCategory(item)}
+                          title="移動分類"
+                        >
+                          <FolderInput size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.itemActionBtn}
                           onClick={() => handleStartEdit(item)}
                           title="編輯"
                         >
@@ -2173,13 +2271,13 @@ export default function VaultListPage() {
                     ) : (
                       <ChevronLeft
                         size={16}
-                        className={`${styles.groupChevron} ${!collapsedGroups.has(label) ? styles.groupChevronOpen : ''}`}
+                        className={`${styles.groupChevron} ${expandedGroups.has(label) ? styles.groupChevronOpen : ''}`}
                       />
                     )}
                     <span className={styles.groupLabel}>{label}</span>
                     <span className={styles.groupCount}>{batchMode ? `${groupIds.filter(id => selectedIds.has(id)).length}/${groupItems.length}` : groupItems.length}</span>
                   </div>
-                  {!collapsedGroups.has(label) && (
+                  {expandedGroups.has(label) && (
                     <div className={styles.groupItems}>
                       {groupItems.map(item => renderItemCard(item))}
                     </div>
