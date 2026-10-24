@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import {
   Plus, X, Pencil, Trash2, Download, Share2,
   Heart, Activity, Droplets, Thermometer, Weight, Wind,
+  FileText,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import styles from './page.module.css';
@@ -13,6 +14,12 @@ import styles from './page.module.css';
 const HealthCharts = dynamic(
   () => import('./HealthCharts'),
   { ssr: false, loading: () => <div className={styles.chartWrap} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-secondary)', fontSize: '13px' }}>載入圖表中...</div> }
+);
+
+// PDF 匯出元件 — 動態載入（含 jspdf）
+const PdfExport = dynamic(
+  () => import('./PdfExport'),
+  { ssr: false }
 );
 
 // ── 指標定義（含說明）─────────────────────────────────────────
@@ -157,6 +164,7 @@ export default function HealthPage() {
   const [form, setForm] = useState<FormData>(defaultForm());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [showPdfExport, setShowPdfExport] = useState(false);
 
   // 分享
   const [sharedTo, setSharedTo] = useState<ShareUser[]>([]);
@@ -417,6 +425,9 @@ export default function HealthPage() {
         <div className={styles.actionRow}>
           <button type="button" className={styles.exportBtn} onClick={handleExportCSV}>
             <Download size={14} /> CSV
+          </button>
+          <button type="button" className={styles.exportBtn} onClick={() => setShowPdfExport(true)}>
+            <FileText size={14} /> PDF
           </button>
           <button type="button" className={styles.addBtn} onClick={handleOpenAdd}>
             <Plus size={16} /> 新增量測
@@ -892,6 +903,11 @@ export default function HealthPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* PDF Export Modal */}
+      {showPdfExport && (
+        <PdfExport onClose={() => setShowPdfExport(false)} />
       )}
     </div>
   );
