@@ -181,6 +181,10 @@ export default function VaultListPage() {
   const [changePinProgress, setChangePinProgress] = useState('');
   const [showBackupMenu, setShowBackupMenu] = useState(false);
 
+  // 匯出分類選擇
+  const [showExportPicker, setShowExportPicker] = useState(false);
+  const [exportSelectedLabels, setExportSelectedLabels] = useState<Set<string>>(new Set());
+
   const getVaultToken = useCallback(() => sessionStorage.getItem('vault-token'), []);
   const getSalt = useCallback(() => sessionStorage.getItem('vault-salt'), []);
 
@@ -976,52 +980,42 @@ export default function VaultListPage() {
     return `${d.getFullYear()}${(d.getMonth() + 1).toString().padStart(2, '0')}${d.getDate().toString().padStart(2, '0')}_${d.getHours().toString().padStart(2, '0')}${d.getMinutes().toString().padStart(2, '0')}`;
   };
 
-  /** 匯出為 Word (.docx) 檔案下載 */
-  const handleExportFile = async () => {
+  /** 收集所有分類標籤及其項目數 */
+  const getExportCategories = useCallback(() => {
+    const grouped: Record<string, { catKey: string; items: DecryptedItem[] }> = {};
+    for (const item of items) {
+      let label: string;
+      const catKey = item.category;
+      if (item.category === 'CUSTOM') {
+        const s = parseStructured(item.content);
+        label = s?.categoryLabel || '自訂';
+      } else {
+        label = getCategoryLabel(item.category);
+      }
+      if (!grouped[label]) grouped[label] = { catKey, items: [] };
+      grouped[label].items.push(item);
+    }
+    return grouped;
+  }, [items]);
+
+  /** 開啟匯出分類選擇面板 */
+  const handleExportFile = () => {
     if (items.length === 0) { setError('沒有可匯出的項目'); return; }
     setShowBackupMenu(false);
+    const cats = getExportCategories();
+    setExportSelectedLabels(new Set(Object.keys(cats))); // 預設全選
+    setShowExportPicker(true);
+  };
+
+  /** 執行匯出（由勾選面板呼叫） */
+  const doExport = async () => {
+    setShowExportPicker(false);
+    const selectedLabels = [...exportSelectedLabels];
+    if (selectedLabels.length === 0) { setError('未選擇任何分類'); return; }
 
     try {
-      // ── 先按分類分組，供使用者選擇 ──
-      const allGrouped: Record<string, { catKey: string; items: DecryptedItem[] }> = {};
-      for (const item of items) {
-        let label: string;
-        const catKey = item.category;
-        if (item.category === 'CUSTOM') {
-          const s = parseStructured(item.content);
-          label = s?.categoryLabel || '自訂';
-        } else {
-          label = getCategoryLabel(item.category);
-        }
-        if (!allGrouped[label]) allGrouped[label] = { catKey, items: [] };
-        allGrouped[label].items.push(item);
-      }
-
-      // ── 讓使用者選擇要匯出的分類 ──
+      const allGrouped = getExportCategories();
       const labels = Object.keys(allGrouped);
-      const labelOptions = labels.map((l, i) =>
-        `${i + 1}. ${l}（${allGrouped[l].items.length} 項）`
-      ).join('\n');
-      const input = window.prompt(
-        `請選擇要匯出的分類（輸入編號，多個用逗號分隔，留空匯出全部）：\n\n` +
-        `${labelOptions}\n\n` +
-        `例如：1,3,5 或直接按確定匯出全部`
-      );
-      if (input === null) return; // 取消
-
-      let selectedLabels: string[];
-      if (input.trim() === '') {
-        selectedLabels = labels; // 匯出全部
-      } else {
-        const nums = input.split(/[,，\s]+/).map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
-        selectedLabels = nums
-          .filter(n => n >= 1 && n <= labels.length)
-          .map(n => labels[n - 1]);
-        if (selectedLabels.length === 0) {
-          setError('未選擇有效的分類');
-          return;
-        }
-      }
 
       // ── 篩選要匯出的分類 ──
       const grouped: Record<string, { catKey: string; items: DecryptedItem[] }> = {};
@@ -1642,6 +1636,75 @@ export default function VaultListPage() {
           ) : vaultMembers.length === 0 ? (
             <p className={styles.memberPanelHint}>目前沒有其他家庭成員可加入</p>
           ) : null}
+        </div>
+      )}
+
+      {/* 匯出分類選擇面板 */}
+      {showExportPicker && (
+        <div className={styles.exportPickerOverlay} onClick={() => setShowExportPicker(false)}>
+          <div className={styles.exportPickerModal} onClick={e => e.stopPropagation()}>
+            <div className={styles.exportPickerHeader}>
+              <Download size={16} />
+              <span>選擇匯出分類</span>
+              <button
+                type="button"
+                className={styles.exportPickerClose}
+                onClick={() => setShowExportPicker(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className={styles.exportPickerBody}>
+              <label className={styles.exportPickerSelectAll}>
+                <input
+                  type="checkbox"
+                  checked={exportSelectedLabels.size === Object.keys(getExportCategories()).length}
+                  onChange={e => {
+                    if (e.target.checked) {
+                      setExportSelectedLabels(new Set(Object.keys(getExportCategories())));
+                    } else {
+                      setExportSelectedLabels(new Set());
+                    }
+                  }}
+                />
+                <span>{exportSelectedLabels.size === Object.keys(getExportCategories()).length ? '取消全選' : '全選'}</span>
+              </label>
+              <div className={styles.exportPickerList}>
+                {Object.entries(getExportCategories()).map(([label, { items: catItems }]) => (
+                  <label key={label} className={styles.exportPickerItem}>
+                    <input
+                      type="checkbox"
+                      checked={exportSelectedLabels.has(label)}
+                      onChange={e => {
+                        const next = new Set(exportSelectedLabels);
+                        if (e.target.checked) next.add(label); else next.delete(label);
+                        setExportSelectedLabels(next);
+                      }}
+                    />
+                    <span className={styles.exportPickerLabel}>{label}</span>
+                    <span className={styles.exportPickerCount}>{catItems.length} 項</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className={styles.exportPickerActions}>
+              <button
+                type="button"
+                className={styles.formCancelBtn}
+                onClick={() => setShowExportPicker(false)}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className={styles.formSaveBtn}
+                onClick={doExport}
+                disabled={exportSelectedLabels.size === 0}
+              >
+                匯出（{exportSelectedLabels.size} 個分類）
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
