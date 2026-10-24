@@ -982,15 +982,8 @@ export default function VaultListPage() {
     setShowBackupMenu(false);
 
     try {
-      const { Document, Packer, Paragraph, Table, TableRow, TableCell,
-              WidthType, TextRun, HeadingLevel, BorderStyle,
-              AlignmentType, ShadingType } = await import('docx');
-
-      const now = new Date();
-      const nowFmt = `${now.getFullYear()}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-      // ── 按分類分組（CUSTOM 依 categoryLabel 細分） ──
-      const grouped: Record<string, { catKey: string; items: DecryptedItem[] }> = {};
+      // ── 先按分類分組，供使用者選擇 ──
+      const allGrouped: Record<string, { catKey: string; items: DecryptedItem[] }> = {};
       for (const item of items) {
         let label: string;
         const catKey = item.category;
@@ -1000,9 +993,49 @@ export default function VaultListPage() {
         } else {
           label = getCategoryLabel(item.category);
         }
-        if (!grouped[label]) grouped[label] = { catKey, items: [] };
-        grouped[label].items.push(item);
+        if (!allGrouped[label]) allGrouped[label] = { catKey, items: [] };
+        allGrouped[label].items.push(item);
       }
+
+      // ── 讓使用者選擇要匯出的分類 ──
+      const labels = Object.keys(allGrouped);
+      const labelOptions = labels.map((l, i) =>
+        `${i + 1}. ${l}（${allGrouped[l].items.length} 項）`
+      ).join('\n');
+      const input = window.prompt(
+        `請選擇要匯出的分類（輸入編號，多個用逗號分隔，留空匯出全部）：\n\n` +
+        `${labelOptions}\n\n` +
+        `例如：1,3,5 或直接按確定匯出全部`
+      );
+      if (input === null) return; // 取消
+
+      let selectedLabels: string[];
+      if (input.trim() === '') {
+        selectedLabels = labels; // 匯出全部
+      } else {
+        const nums = input.split(/[,，\s]+/).map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
+        selectedLabels = nums
+          .filter(n => n >= 1 && n <= labels.length)
+          .map(n => labels[n - 1]);
+        if (selectedLabels.length === 0) {
+          setError('未選擇有效的分類');
+          return;
+        }
+      }
+
+      // ── 篩選要匯出的分類 ──
+      const grouped: Record<string, { catKey: string; items: DecryptedItem[] }> = {};
+      for (const label of selectedLabels) {
+        if (allGrouped[label]) grouped[label] = allGrouped[label];
+      }
+      const exportItemCount = Object.values(grouped).reduce((sum, g) => sum + g.items.length, 0);
+
+      const { Document, Packer, Paragraph, Table, TableRow, TableCell,
+              WidthType, TextRun, HeadingLevel, BorderStyle,
+              AlignmentType, ShadingType } = await import('docx');
+
+      const now = new Date();
+      const nowFmt = `${now.getFullYear()}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
 
       // ── helper: 建立表格 cell ──
       const cellBorders = {
@@ -1038,7 +1071,7 @@ export default function VaultListPage() {
       docChildren.push(new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { after: 200 },
-        children: [new TextRun({ text: `匯出：${nowFmt}　｜　共 ${items.length} 項`, size: 18, color: '888888', font: 'Microsoft JhengHei' })],
+        children: [new TextRun({ text: `匯出：${nowFmt}　｜　共 ${exportItemCount} 項${selectedLabels.length < labels.length ? `（已選 ${selectedLabels.length}/${labels.length} 分類）` : ''}`, size: 18, color: '888888', font: 'Microsoft JhengHei' })],
       }));
       docChildren.push(new Paragraph({
         alignment: AlignmentType.CENTER,
