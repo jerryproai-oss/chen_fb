@@ -1,17 +1,19 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 import {
   Plus, X, Pencil, Trash2, Download, Share2,
   Heart, Activity, Droplets, Thermometer, Weight, Wind,
 } from 'lucide-react';
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, ReferenceLine, ReferenceArea, ScatterChart,
-  Scatter, Legend,
-} from 'recharts';
 import Avatar from '@/components/ui/Avatar';
 import styles from './page.module.css';
+
+// recharts 圖表元件 — 動態載入避免 SSR 問題
+const HealthCharts = dynamic(
+  () => import('./HealthCharts'),
+  { ssr: false, loading: () => <div className={styles.chartWrap} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-secondary)', fontSize: '13px' }}>載入圖表中...</div> }
+);
 
 // ── 指標定義（含說明）─────────────────────────────────────────
 
@@ -402,101 +404,7 @@ export default function HealthPage() {
           <span className={styles.normalRange}>正常：{info.normalRange}</span>
         </div>
         <p className={styles.chartDesc}>{info.desc}</p>
-        <div className={styles.chartWrap}>
-          {activeTab === 'bp' && (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData.filter(d => d.systolic != null)}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-light)" />
-                <XAxis dataKey="date" fontSize={11} />
-                <YAxis domain={[50, 200]} fontSize={11} />
-                <Tooltip />
-                <ReferenceArea y1={90} y2={120} fill="#4caf50" fillOpacity={0.08} />
-                <ReferenceLine y={140} stroke="#e53935" strokeDasharray="5 5" label={{ value: '高血壓', fontSize: 10, fill: '#e53935' }} />
-                <ReferenceLine y={90} stroke="#ff9800" strokeDasharray="5 5" label={{ value: '高舒張壓', fontSize: 10, fill: '#ff9800' }} />
-                <Line type="monotone" dataKey="systolic" stroke="#e53935" strokeWidth={2} dot={{ r: 3 }} name="收縮壓" />
-                <Line type="monotone" dataKey="diastolic" stroke="#ff9800" strokeWidth={2} dot={{ r: 3 }} name="舒張壓" />
-                <Legend />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-          {activeTab === 'hr' && (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData.filter(d => d.heartRate != null)}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-light)" />
-                <XAxis dataKey="date" fontSize={11} />
-                <YAxis domain={[40, 150]} fontSize={11} />
-                <Tooltip />
-                <ReferenceArea y1={60} y2={100} fill="#4caf50" fillOpacity={0.08} />
-                <ReferenceLine y={100} stroke="#e53935" strokeDasharray="5 5" label={{ value: '偏高', fontSize: 10, fill: '#e53935' }} />
-                <ReferenceLine y={60} stroke="#2196f3" strokeDasharray="5 5" label={{ value: '偏低', fontSize: 10, fill: '#2196f3' }} />
-                <Line type="monotone" dataKey="heartRate" stroke="#ff9800" strokeWidth={2} dot={{ r: 3 }} name="心率" />
-                <Legend />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-          {activeTab === 'sugar' && (
-            <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-light)" />
-                <XAxis dataKey="date" fontSize={11} type="category" allowDuplicatedCategory={false} />
-                <YAxis domain={[40, 300]} fontSize={11} name="mg/dL" />
-                <Tooltip />
-                <ReferenceLine y={126} stroke="#e53935" strokeDasharray="5 5" label={{ value: '空腹偏高', fontSize: 10, fill: '#e53935' }} />
-                <ReferenceArea y1={70} y2={100} fill="#4caf50" fillOpacity={0.08} />
-                <Scatter name="血糖" data={chartData.filter(d => d.bloodSugar != null)} fill="#9c27b0">
-                  {chartData.filter(d => d.bloodSugar != null).map((entry, idx) => {
-                    const color = entry.mealTiming === 'fasting' ? '#e53935' :
-                      entry.mealTiming === 'after' ? '#ff9800' : '#9c27b0';
-                    return <circle key={idx} r={5} fill={color} />;
-                  })}
-                </Scatter>
-                <Legend />
-              </ScatterChart>
-            </ResponsiveContainer>
-          )}
-          {activeTab === 'weight' && (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData.filter(d => d.weight != null)}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-light)" />
-                <XAxis dataKey="date" fontSize={11} />
-                <YAxis domain={['auto', 'auto']} fontSize={11} />
-                <Tooltip />
-                <Line type="monotone" dataKey="weight" stroke="#2196f3" strokeWidth={2} dot={{ r: 3 }} name="體重 (kg)" />
-                <Line type="monotone" dataKey="bodyFat" stroke="#ff9800" strokeWidth={2} dot={{ r: 3 }} name="體脂率 (%)" />
-                <Legend />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-          {activeTab === 'temp' && (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData.filter(d => d.temperature != null)}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-light)" />
-                <XAxis dataKey="date" fontSize={11} />
-                <YAxis domain={[35, 42]} fontSize={11} />
-                <Tooltip />
-                <ReferenceArea y1={36.1} y2={37.2} fill="#4caf50" fillOpacity={0.08} />
-                <ReferenceLine y={37.5} stroke="#e53935" strokeDasharray="5 5" label={{ value: '發燒', fontSize: 10, fill: '#e53935' }} />
-                <Line type="monotone" dataKey="temperature" stroke="#ff5722" strokeWidth={2} dot={{ r: 3 }} name="體溫 (°C)" />
-                <Legend />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-          {activeTab === 'oxygen' && (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData.filter(d => d.oxygenSat != null)}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border-light)" />
-                <XAxis dataKey="date" fontSize={11} />
-                <YAxis domain={[85, 100]} fontSize={11} />
-                <Tooltip />
-                <ReferenceArea y1={95} y2={100} fill="#4caf50" fillOpacity={0.08} />
-                <ReferenceLine y={94} stroke="#ff9800" strokeDasharray="5 5" label={{ value: '偏低', fontSize: 10, fill: '#ff9800' }} />
-                <ReferenceLine y={90} stroke="#e53935" strokeDasharray="5 5" label={{ value: '危險', fontSize: 10, fill: '#e53935' }} />
-                <Line type="monotone" dataKey="oxygenSat" stroke="#009688" strokeWidth={2} dot={{ r: 3 }} name="血氧 (%)" />
-                <Legend />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </div>
+        <HealthCharts activeTab={activeTab} chartData={chartData} />
       </div>
 
       {/* Stats */}
