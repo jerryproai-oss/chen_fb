@@ -112,7 +112,7 @@ function drawLineChart(
   ctx.fillRect(0, 0, W, H);
 
   // 找出 y 軸範圍
-  let allValues: number[] = [];
+  const allValues: number[] = [];
   for (const s of series) {
     for (const v of s.data) {
       if (v != null) allValues.push(v);
