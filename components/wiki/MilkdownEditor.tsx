@@ -59,8 +59,8 @@ interface ToolbarItemDef {
 
 const TOOLBAR_ITEMS: ToolbarItemDef[] = [
   // 復原 / 重做
-  { id: 'undo', label: '復原', icon: '↩', shortcut: 'Ctrl+Z', group: 'history' },
-  { id: 'redo', label: '重做', icon: '↪', shortcut: 'Ctrl+Y', group: 'history' },
+  { id: 'undo', label: '復原', icon: '⟲', shortcut: 'Ctrl+Z', group: 'history' },
+  { id: 'redo', label: '重做', icon: '⟳', shortcut: 'Ctrl+Y', group: 'history' },
   // 標題
   { id: 'h1', label: '主標題', icon: 'H1', group: 'heading' },
   { id: 'h2', label: '次標題', icon: 'H2', group: 'heading' },
@@ -69,18 +69,18 @@ const TOOLBAR_ITEMS: ToolbarItemDef[] = [
   // 文字格式
   { id: 'bold', label: '粗體', icon: 'B', shortcut: 'Ctrl+B', group: 'inline' },
   { id: 'italic', label: '斜體', icon: 'I', shortcut: 'Ctrl+I', group: 'inline' },
-  { id: 'strikethrough', label: '刪除線', icon: 'S̶', group: 'inline' },
-  { id: 'inlineCode', label: '行內程式碼', icon: '`c`', group: 'inline' },
+  { id: 'strikethrough', label: '刪除線', icon: 'S', group: 'inline' },
+  { id: 'inlineCode', label: '行內程式碼', icon: '< >', group: 'inline' },
   { id: 'link', label: '插入連結', icon: '🔗', shortcut: 'Ctrl+K', group: 'inline' },
   // 區塊
-  { id: 'bulletList', label: '項目清單', icon: '• ≡', group: 'block' },
+  { id: 'bulletList', label: '項目清單', icon: '● ≡', group: 'block' },
   { id: 'orderedList', label: '編號清單', icon: '1. ≡', group: 'block' },
   { id: 'blockquote', label: '引用', icon: '❝', group: 'block' },
   { id: 'codeBlock', label: '程式碼區塊', icon: '⌨', group: 'block' },
-  { id: 'hr', label: '分隔線', icon: '──', group: 'block' },
+  { id: 'hr', label: '分隔線', icon: '───', group: 'block' },
   // 插入
   { id: 'image', label: '插入圖片', icon: '📷', group: 'insert' },
-  { id: 'table', label: '插入表格', icon: '▦', group: 'insert' },
+  { id: 'table', label: '插入表格', icon: '📊', group: 'insert' },
 ];
 
 // 表格編輯用（當在表格中時顯示）
