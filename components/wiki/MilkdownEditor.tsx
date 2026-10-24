@@ -260,6 +260,7 @@ function Toolbar({
 function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps) {
   const editorGetRef = useRef<(() => Editor | undefined) | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const selectedImageRef = useRef<HTMLImageElement | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showTableTools, setShowTableTools] = useState(false);
   const [showImageTools, setShowImageTools] = useState(false);
@@ -303,46 +304,9 @@ function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps)
 
   editorGetRef.current = get;
 
-  // ── 偵測游標位置（表格/圖片）──────────────────────
+  // ── 偵測點擊位置（表格/圖片）— 使用 DOM 偵測 ──────
 
-  const checkCursorContext = useCallback(() => {
-    const editor = editorGetRef.current?.();
-    if (!editor) return;
-
-    editor.action((ctx) => {
-      try {
-        const view = ctx.get(editorViewCtx);
-        const { state } = view;
-        const { $from } = state.selection;
-
-        // 檢查是否在表格內
-        let inTable = false;
-        let onImage = false;
-
-        for (let d = $from.depth; d > 0; d--) {
-          const node = $from.node(d);
-          if (node.type.name === 'table') {
-            inTable = true;
-            break;
-          }
-        }
-
-        // 檢查是否選中圖片
-        const selectedNode = state.selection instanceof Object
-          && 'node' in state.selection
-          ? (state.selection as unknown as { node: { type: { name: string } } }).node
-          : null;
-        if (selectedNode?.type?.name === 'image') {
-          onImage = true;
-        }
-
-        setShowTableTools(inTable);
-        setShowImageTools(onImage);
-      } catch {
-        // 忽略
-      }
-    });
-  }, []);
+  // (checkCursorContext removed — replaced by DOM-based handleEditorClick below)
 
   // ── 執行編輯器命令 ──────────────────────────────────
 
@@ -389,10 +353,7 @@ function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps)
         case 'deleteCells': commands.call(deleteSelectedCellsCommand.key); break;
       }
     });
-
-    // 更新游標上下文
-    setTimeout(checkCursorContext, 100);
-  }, [checkCursorContext]);
+  }, []);
 
   // ── 圖片上傳 ────────────────────────────────────────
 
@@ -460,27 +421,14 @@ function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps)
     }
   }, [insertImageNode]);
 
-  // ── 圖片縮放 ────────────────────────────────────────
+  // ── 圖片縮放（直接操作 DOM）──────────────────────
 
   const handleImageResize = useCallback((width: string) => {
-    const editor = editorGetRef.current?.();
-    if (!editor) return;
-
-    editor.action((ctx) => {
-      const view = ctx.get(editorViewCtx);
-      const { state, dispatch } = view;
-      const sel = state.selection as unknown as { node?: { type: { name: string }; attrs: Record<string, unknown> }; from: number };
-
-      if (sel.node?.type?.name === 'image') {
-        // 使用 ProseMirror 的 setNodeMarkup 更新圖片屬性
-        const pos = sel.from;
-        const tr = state.tr.setNodeMarkup(pos, undefined, {
-          ...sel.node.attrs,
-          width,
-        });
-        dispatch(tr);
-      }
-    });
+    const img = selectedImageRef.current;
+    if (!img) return;
+    img.style.maxWidth = width;
+    img.style.width = width;
+    img.style.height = 'auto';
   }, []);
 
   // ── 貼上圖片處理 ────────────────────────────────────
@@ -522,15 +470,50 @@ function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps)
     }
   }, [insertImageNode]);
 
-  // ── 編輯器點擊事件（偵測表格/圖片）─────────────────
+  // ── 編輯器點擊事件（DOM 偵測表格/圖片）─────────────
 
-  const handleEditorClick = useCallback(() => {
-    setTimeout(checkCursorContext, 50);
-  }, [checkCursorContext]);
+  const handleEditorClick = useCallback((e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+
+    // 偵測是否點擊圖片
+    if (target.tagName === 'IMG') {
+      selectedImageRef.current = target as HTMLImageElement;
+      setShowImageTools(true);
+      // 高亮選中的圖片
+      target.style.outline = '3px solid var(--color-primary, #557c55)';
+      target.style.outlineOffset = '2px';
+    } else {
+      // 清除上一張圖片的高亮
+      if (selectedImageRef.current) {
+        selectedImageRef.current.style.outline = '';
+        selectedImageRef.current.style.outlineOffset = '';
+      }
+      selectedImageRef.current = null;
+      setShowImageTools(false);
+    }
+
+    // 偵測是否在表格內
+    let el: HTMLElement | null = target;
+    let inTable = false;
+    while (el) {
+      if (el.tagName === 'TABLE') {
+        inTable = true;
+        break;
+      }
+      el = el.parentElement;
+    }
+    setShowTableTools(inTable);
+  }, []);
 
   const handleEditorKeyUp = useCallback(() => {
-    setTimeout(checkCursorContext, 50);
-  }, [checkCursorContext]);
+    // 鍵盤移動後清除圖片選擇
+    if (selectedImageRef.current) {
+      selectedImageRef.current.style.outline = '';
+      selectedImageRef.current.style.outlineOffset = '';
+      selectedImageRef.current = null;
+      setShowImageTools(false);
+    }
+  }, []);
 
   return (
     <>
@@ -544,7 +527,7 @@ function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps)
           showImageTools={showImageTools}
         />
       )}
-      {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div
         className={readOnly ? styles.editorReadOnly : styles.editorArea}
         onClick={handleEditorClick}
