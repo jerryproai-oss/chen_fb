@@ -859,7 +859,20 @@ export default function CalendarPage() {
                               <div className={styles.dayViewEventTitle}>{ev.title}</div>
                               <div className={styles.dayViewEventMeta}>
                                 {ev.eventTime}{ev.endTime ? ` — ${ev.endTime}` : ''}
-                                {ev.location ? ` · ${ev.location}` : ''}
+                                {ev.location ? (
+                                  <>
+                                    {' · '}
+                                    <a
+                                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ev.location)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={styles.locationLink}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      {ev.location}
+                                    </a>
+                                  </>
+                                ) : ''}
                               </div>
                             </div>
                           ))}
@@ -1188,10 +1201,16 @@ function EventsSection({
                       </span>
                     )}
                     {event.location && (
-                      <span className={styles.locationBadge}>
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.location)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.locationBadge}
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <MapPin size={12} />
                         {event.location}
-                      </span>
+                      </a>
                     )}
                   </div>
 
