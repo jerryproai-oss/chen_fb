@@ -170,7 +170,17 @@ export default function HealthPage() {
       const res = await fetch(`/api/health/stats?days=${days}`);
       if (res.ok) {
         const data = await res.json();
-        setStats(data);
+        // API 回傳 { stats: {...}, anomalies: {...} }，合併成 UI 需要的 HealthStats 結構
+        const s = data.stats || {};
+        setStats({
+          bp: s.bp || { avg_sys: 0, avg_dia: 0, max_sys: 0, max_dia: 0, min_sys: 0, min_dia: 0, count: 0 },
+          heartRate: s.heartRate || { avg: 0, max: 0, min: 0, count: 0 },
+          bloodSugar: s.bloodSugar || { avg: 0, max: 0, min: 0, count: 0 },
+          weight: s.weight || { avg: 0, max: 0, min: 0, count: 0 },
+          temperature: s.temperature || { avg: 0, max: 0, min: 0, count: 0 },
+          oxygenSat: s.oxygenSat || { avg: 0, max: 0, min: 0, count: 0 },
+          anomalies: data.anomalies || { highBp: 0, lowHr: 0, highHr: 0, highSugar: 0, fever: 0, lowOxygen: 0 },
+        });
       }
     } catch { /* ignore */ }
   }, [days]);

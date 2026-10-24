@@ -145,12 +145,29 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
     }
   }
 
+  // 血氧偏低統計
+  let lowOxygenCount = 0;
+  for (const v of oxygenSatValues) {
+    if (v < 94) lowOxygenCount++;
+  }
+
+  const systolicStats = computeStats(systolicValues);
+  const diastolicStats = computeStats(diastolicValues);
+
   return NextResponse.json({
     days,
     totalRecords: records.length,
     stats: {
-      systolic: computeStats(systolicValues),
-      diastolic: computeStats(diastolicValues),
+      // 血壓合併為 UI 所需的結構
+      bp: {
+        avg_sys: systolicStats.avg,
+        avg_dia: diastolicStats.avg,
+        max_sys: systolicStats.max,
+        max_dia: diastolicStats.max,
+        min_sys: systolicStats.min,
+        min_dia: diastolicStats.min,
+        count: systolicStats.count,
+      },
       heartRate: computeStats(heartRateValues),
       bloodSugar: computeStats(bloodSugarValues),
       temperature: computeStats(temperatureValues),
@@ -158,12 +175,13 @@ export const GET = withAuth(async ({ user }, req: NextRequest) => {
       bodyFat: computeStats(bodyFatValues),
       oxygenSat: computeStats(oxygenSatValues),
     },
-    abnormal: {
-      highBloodPressure: highBpCount,
-      highHeartRate: highHeartRateCount,
-      lowHeartRate: lowHeartRateCount,
-      highFastingBloodSugar: highFastingBsCount,
-      highTemperature: highTempCount,
+    anomalies: {
+      highBp: highBpCount,
+      highHr: highHeartRateCount,
+      lowHr: lowHeartRateCount,
+      highSugar: highFastingBsCount,
+      fever: highTempCount,
+      lowOxygen: lowOxygenCount,
     },
   });
 });
