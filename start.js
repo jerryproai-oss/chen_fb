@@ -24,20 +24,28 @@ const SECURITY_HEADERS = {
   ].join('; '),
 };
 
-http.createServer = function (...args) {
-  const server = originalCreateServer.apply(this, args);
-  const originalEmit = server.emit.bind(server);
-
-  server.emit = function (event, req, res, ...rest) {
-    if (event === 'request' && res && typeof res.setHeader === 'function') {
+http.createServer = function (requestListener) {
+  // 包裝 requestListener，在每個請求中注入安全 headers
+  const wrappedListener = (req, res) => {
+    // 在回應發送前設定安全 headers
+    const originalWriteHead = res.writeHead;
+    res.writeHead = function (statusCode, ...args) {
       for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
-        res.setHeader(key, value);
+        if (!res.getHeader(key)) {
+          res.setHeader(key, value);
+        }
       }
+      // 移除 X-Powered-By
+      res.removeHeader('X-Powered-By');
+      return originalWriteHead.call(this, statusCode, ...args);
+    };
+
+    if (requestListener) {
+      requestListener(req, res);
     }
-    return originalEmit(event, req, res, ...rest);
   };
 
-  return server;
+  return originalCreateServer.call(this, wrappedListener);
 };
 
 // 載入 Next.js standalone server
