@@ -49,12 +49,21 @@ const SECURITY_HEADERS: [string, string][] = [
   ].join('; ')],
 ];
 
-/** 為 response 加上安全 headers */
-function addSecurityHeaders(response: NextResponse): NextResponse {
+/** 建立帶安全 headers 的 pass-through response */
+function secureNext(): NextResponse {
+  const response = NextResponse.next();
   for (const [key, value] of SECURITY_HEADERS) {
     response.headers.set(key, value);
   }
-  // 移除不必要的 X-Powered-By header
+  response.headers.delete('X-Powered-By');
+  return response;
+}
+
+/** 為直接回應加上安全 headers */
+function secureResponse(response: NextResponse): NextResponse {
+  for (const [key, value] of SECURITY_HEADERS) {
+    response.headers.set(key, value);
+  }
   response.headers.delete('X-Powered-By');
   return response;
 }
@@ -70,19 +79,16 @@ export function middleware(request: NextRequest) {
     pathname.endsWith('.png') ||
     pathname.endsWith('.svg')
   ) {
-    const response = NextResponse.next();
-    return addSecurityHeaders(response);
+    return secureNext();
   }
 
   // 公開路由直接放行
   if (PUBLIC_PATHS.has(pathname)) {
-    const response = NextResponse.next();
-    return addSecurityHeaders(response);
+    return secureNext();
   }
   for (const prefix of PUBLIC_PREFIXES) {
     if (pathname.startsWith(prefix)) {
-      const response = NextResponse.next();
-      return addSecurityHeaders(response);
+      return secureNext();
     }
   }
 
@@ -92,18 +98,17 @@ export function middleware(request: NextRequest) {
   if (!sessionToken) {
     // API 請求：回傳 401
     if (pathname.startsWith('/api/')) {
-      const response = NextResponse.json({ error: '未登入' }, { status: 401 });
-      return addSecurityHeaders(response);
+      return secureResponse(
+        NextResponse.json({ error: '未登入' }, { status: 401 }),
+      );
     }
     // 頁面請求：導向登入頁
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
-    const response = NextResponse.redirect(loginUrl);
-    return addSecurityHeaders(response);
+    return secureResponse(NextResponse.redirect(loginUrl));
   }
 
-  const response = NextResponse.next();
-  return addSecurityHeaders(response);
+  return secureNext();
 }
 
 export const config = {
