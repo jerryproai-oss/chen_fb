@@ -563,6 +563,27 @@
   margin: var(--space-md) 0;
 }
 
+/* ── 圖片樣式 ──────────────────────────────────────────── */
+
+.viewContent .md-image {
+  margin: var(--space-md) 0;
+  text-align: center;
+}
+
+.viewContent .md-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.viewContent .md-image figcaption {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--space-xs);
+  font-style: italic;
+}
+
 /* ── 表格樣式 ──────────────────────────────────────────── */
 
 .viewContent .table-wrapper {

@@ -94,6 +94,16 @@ export function renderMarkdown(text: string): string {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
+    // 圖片 ![alt](url)
+    const imgMatch = line.trim().match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
+    if (imgMatch) {
+      closeBlocks();
+      const alt = escapeHtml(imgMatch[1]);
+      const src = escapeHtml(imgMatch[2]);
+      htmlParts.push(`<figure class="md-image"><img src="${src}" alt="${alt}" loading="lazy" />${alt ? `<figcaption>${alt}</figcaption>` : ''}</figure>`);
+      continue;
+    }
+
     // 程式碼區塊 ```
     if (line.trim().startsWith('```')) {
       closeBlocks();
