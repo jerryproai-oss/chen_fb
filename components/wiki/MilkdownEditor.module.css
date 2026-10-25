@@ -29,18 +29,7 @@
   align-items: center;
   gap: 3px;
   padding: 8px 10px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: thin;
-}
-
-.toolbarRow::-webkit-scrollbar {
-  height: 3px;
-}
-
-.toolbarRow::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 3px;
+  flex-wrap: wrap;
 }
 
 /* 次工具列（表格/圖片編輯）*/
@@ -52,7 +41,7 @@
   border-top: 1px solid var(--color-border);
   background: rgba(var(--color-primary-rgb, 85, 124, 85), 0.06);
   font-size: 12px;
-  overflow-x: auto;
+  flex-wrap: wrap;
 }
 
 .subLabel {
@@ -88,13 +77,14 @@
   display: flex;
   align-items: center;
   gap: 1px;
+  flex-wrap: wrap;
 }
 
 .toolbarSep {
   width: 1px;
   height: 26px;
   background: var(--color-border);
-  margin: 0 6px;
+  margin: 0 4px;
   flex-shrink: 0;
 }
 
@@ -102,14 +92,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
-  height: 40px;
-  padding: 0 8px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 6px;
   border: none;
   border-radius: 6px;
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: 16px;
+  font-size: 15px;
   font-family: 'Segoe UI', system-ui, sans-serif;
   cursor: pointer;
   transition: all 0.12s;
@@ -130,13 +120,13 @@
 
 .toolbarBtnBold {
   font-weight: 800;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .toolbarBtnItalic {
   font-style: italic;
   font-family: Georgia, 'Times New Roman', serif;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .toolbarBtnStrike {
@@ -549,28 +539,28 @@
   }
 
   .toolbarRow {
-    padding: 6px 8px;
+    padding: 5px 6px;
     gap: 2px;
   }
 
   .toolbarBtn {
-    min-width: 36px;
-    height: 36px;
-    padding: 0 6px;
-    font-size: 14px;
+    min-width: 32px;
+    height: 32px;
+    padding: 0 5px;
+    font-size: 13px;
   }
 
   .toolbarBtnBold {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .toolbarBtnItalic {
-    font-size: 16px;
+    font-size: 14px;
   }
 
   .toolbarSep {
-    margin: 0 3px;
-    height: 22px;
+    margin: 0 2px;
+    height: 20px;
   }
 
   .guideBtn {
@@ -656,21 +646,22 @@
 /* ── 極小螢幕（375px 以下）──────────────────────────────── */
 @media (max-width: 375px) {
   .toolbarBtn {
-    min-width: 32px;
-    height: 32px;
-    font-size: 13px;
+    min-width: 30px;
+    height: 30px;
+    font-size: 12px;
   }
 
   .toolbarBtnBold {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .toolbarBtnItalic {
-    font-size: 14px;
+    font-size: 13px;
   }
 
   .toolbarSep {
-    margin: 0 2px;
+    margin: 0 1px;
+    height: 18px;
   }
 
   .editorArea :global(.milkdown) {
