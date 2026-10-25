@@ -267,6 +267,8 @@ export interface FamilyEventItem {
   isRecurring: boolean;
   recurringType: string | null;
   recurringEndDate: string | null;
+  needsCar: boolean;
+  isImportant: boolean;
 }
 
 // ── 生日 ──────────────────────────────────────────────────────

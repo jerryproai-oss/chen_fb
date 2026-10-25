@@ -13,6 +13,8 @@ import {
   Calendar as CalendarIcon,
   MapPin,
   Check,
+  Car,
+  Star,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import { solarToLunar } from '@/lib/lunar';
@@ -136,6 +138,11 @@ export default function CalendarPage() {
   const [formDescription, setFormDescription] = useState('');
   const [formColor, setFormColor] = useState('#5a7a5a');
   const [formLocation, setFormLocation] = useState('');
+  const [formNeedsCar, setFormNeedsCar] = useState(false);
+  const [formIsImportant, setFormIsImportant] = useState(false);
+  const [carConflicts, setCarConflicts] = useState<Array<{ id: string; title: string; author: { displayName: string }; authorId: string; eventTime: string | null; endTime: string | null; isAllDay: boolean }>>([]);
+  const [showCarConflictDialog, setShowCarConflictDialog] = useState(false);
+  const [carConflictConfirmed, setCarConflictConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // 取得目前使用者
@@ -241,6 +248,10 @@ export default function CalendarPage() {
     setFormDescription('');
     setFormColor('#5a7a5a');
     setFormLocation('');
+    setFormNeedsCar(false);
+    setFormIsImportant(false);
+    setCarConflicts([]);
+    setCarConflictConfirmed(false);
     setIsModalOpen(true);
   }
 
@@ -259,6 +270,10 @@ export default function CalendarPage() {
     setFormDescription(event.description || '');
     setFormColor(event.color || '#5a7a5a');
     setFormLocation(event.location || '');
+    setFormNeedsCar(event.needsCar || false);
+    setFormIsImportant(event.isImportant || false);
+    setCarConflicts([]);
+    setCarConflictConfirmed(false);
     setIsModalOpen(true);
   }
 
@@ -283,6 +298,8 @@ export default function CalendarPage() {
         description: formDescription.trim() || null,
         color: formColor,
         location: formLocation.trim() || null,
+        needsCar: formNeedsCar,
+        isImportant: formIsImportant,
       };
 
       let res: Response;
@@ -672,6 +689,8 @@ export default function CalendarPage() {
                                         handleOpenEditModal(ev);
                                       }}
                                     >
+                                      {ev.needsCar && <Car size={9} style={{ flexShrink: 0 }} />}
+                                      {ev.isImportant && <Star size={9} style={{ flexShrink: 0 }} />}
                                       {!ev.isAllDay && ev.eventTime ? `${ev.eventTime} ` : ''}{ev.title}
                                     </div>
                                   ))}
@@ -1097,6 +1116,73 @@ export default function CalendarPage() {
                 />
               </div>
 
+              {/* 🚗 需要用車 + ⭐ 重要行程 */}
+              <div style={{ marginTop: 'var(--space-sm)' }}>
+                <label className={styles.checkboxRow}>
+                  <input
+                    type="checkbox"
+                    className={styles.checkbox}
+                    checked={formNeedsCar}
+                    onChange={async (e) => {
+                      const checked = e.target.checked;
+                      if (checked && formDate) {
+                        // 查詢衝突
+                        try {
+                          const res = await fetch(`/api/calendar/car-conflicts?date=${formDate}`);
+                          if (res.ok) {
+                            const conflictData = await res.json();
+                            // 排除自己（編輯模式）
+                            const otherConflicts = editingEvent
+                              ? conflictData.conflicts.filter((c: { id: string }) => c.id !== editingEvent.id)
+                              : conflictData.conflicts;
+                            if (otherConflicts.length > 0) {
+                              setCarConflicts(otherConflicts);
+                              setShowCarConflictDialog(true);
+                              return; // 等待對話框確認
+                            }
+                          }
+                        } catch {
+                          // 查詢失敗也允許勾選
+                        }
+                      }
+                      setFormNeedsCar(checked);
+                      if (!checked) {
+                        setCarConflictConfirmed(false);
+                        setCarConflicts([]);
+                      }
+                    }}
+                  />
+                  <span className={styles.checkboxLabel}>
+                    <Car size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                    需要用車
+                  </span>
+                </label>
+
+                {/* 衝突靜態提示 */}
+                {formNeedsCar && carConflictConfirmed && carConflicts.length > 0 && (
+                  <div className={styles.carConflictHint}>
+                    ⚠️ 當日{' '}
+                    {carConflicts.map((c) =>
+                      `${c.author.displayName}${c.isAllDay ? '' : ` ${c.eventTime || ''}${c.endTime ? '–' + c.endTime : ''}`}`
+                    ).join('、')}{' '}
+                    也需要用車，請注意協調
+                  </div>
+                )}
+
+                <label className={styles.checkboxRow}>
+                  <input
+                    type="checkbox"
+                    className={styles.checkbox}
+                    checked={formIsImportant}
+                    onChange={(e) => setFormIsImportant(e.target.checked)}
+                  />
+                  <span className={styles.checkboxLabel}>
+                    <Star size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                    重要行程（顯示於公佈欄）
+                  </span>
+                </label>
+              </div>
+
               {/* 循環 */}
               <div style={{ marginTop: 'var(--space-sm)' }}>
                 <label className={styles.checkboxRow}>
@@ -1169,6 +1255,90 @@ export default function CalendarPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* ── 用車衝突確認對話視窗 ─────────────────────────────── */}
+      {showCarConflictDialog && (
+        <div
+          className={styles.modalBackdrop}
+          style={{ zIndex: 1100 }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowCarConflictDialog(false);
+            }
+          }}
+        >
+          <div className={styles.modalContent} style={{ maxWidth: 420 }} role="alertdialog" aria-modal="true">
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>
+                <Car size={20} style={{ marginRight: 6, color: '#039be5' }} />
+                用車時段提醒
+              </h3>
+              <button
+                type="button"
+                className={styles.modalCloseBtn}
+                onClick={() => setShowCarConflictDialog(false)}
+                aria-label="關閉"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
+              <p style={{ marginBottom: 'var(--space-sm)' }}>當日已有其他家人預約用車：</p>
+              {carConflicts.map((c) => (
+                <div key={c.id} style={{
+                  padding: '8px 12px',
+                  background: 'rgba(3, 155, 229, 0.08)',
+                  borderRadius: 'var(--radius-md)',
+                  marginBottom: 'var(--space-xs)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 'var(--space-sm)',
+                }}>
+                  <Car size={16} style={{ color: '#039be5', flexShrink: 0 }} />
+                  <div>
+                    <strong style={{ color: 'var(--color-text)' }}>{c.author.displayName}</strong>
+                    {' '}
+                    {c.isAllDay
+                      ? '（全天）'
+                      : `${c.eventTime || ''}${c.endTime ? ' — ' + c.endTime : ''}`
+                    }
+                    {' '}
+                    {c.title}
+                  </div>
+                </div>
+              ))}
+              <p style={{ marginTop: 'var(--space-sm)', color: 'var(--color-text)' }}>
+                請先與對方確認溝通，避免用車時間衝突。
+              </p>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button
+                type="button"
+                className={styles.cancelBtn}
+                onClick={() => {
+                  setShowCarConflictDialog(false);
+                  setFormNeedsCar(false);
+                  setCarConflicts([]);
+                }}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className={styles.saveBtn}
+                onClick={() => {
+                  setShowCarConflictDialog(false);
+                  setFormNeedsCar(true);
+                  setCarConflictConfirmed(true);
+                }}
+              >
+                ✅ 已確認，繼續登錄
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1246,6 +1416,18 @@ function EventsSection({
                         <MapPin size={12} />
                         {event.location}
                       </a>
+                    )}
+                    {event.needsCar && (
+                      <span className={styles.carBadge}>
+                        <Car size={12} />
+                        用車
+                      </span>
+                    )}
+                    {event.isImportant && (
+                      <span className={styles.importantBadge}>
+                        <Star size={12} />
+                        重要
+                      </span>
                     )}
                   </div>
 

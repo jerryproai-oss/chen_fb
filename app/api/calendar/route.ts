@@ -41,6 +41,8 @@ function formatEvent(ev: {
   isRecurring: boolean;
   recurringType: string | null;
   recurringEndDate: Date | null;
+  needsCar: boolean;
+  isImportant: boolean;
 }, overrideDateStr?: string): FamilyEventItem {
   return {
     id: ev.id,
@@ -58,6 +60,8 @@ function formatEvent(ev: {
     isRecurring: ev.isRecurring,
     recurringType: ev.recurringType,
     recurringEndDate: ev.recurringEndDate ? ev.recurringEndDate.toISOString().split('T')[0] : null,
+    needsCar: ev.needsCar,
+    isImportant: ev.isImportant,
   };
 }
 
@@ -208,6 +212,8 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
         isRecurring: false,
         recurringType: null,
         recurringEndDate: null,
+        needsCar: false,
+        isImportant: false,
       });
     }
 
@@ -258,6 +264,8 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
     isRecurring = false,
     recurringType,
     recurringEndDate,
+    needsCar: needsCarInput,
+    isImportant: isImportantInput,
   } = body;
 
   // 驗證 title
@@ -352,6 +360,9 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
   }
 
   try {
+    const needsCar = needsCarInput === true;
+    const isImportant = isImportantInput === true;
+
     const newEvent = await prisma.familyEvent.create({
       data: {
         authorId: user.id,
@@ -367,6 +378,8 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
         isRecurring: Boolean(isRecurring),
         recurringType: isRecurring && typeof recurringType === 'string' ? recurringType : null,
         recurringEndDate: parsedRecurringEndDate,
+        needsCar,
+        isImportant,
       },
       include: {
         author: {

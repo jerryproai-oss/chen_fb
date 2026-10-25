@@ -30,6 +30,8 @@ function formatEvent(ev: {
   isRecurring: boolean;
   recurringType: string | null;
   recurringEndDate: Date | null;
+  needsCar: boolean;
+  isImportant: boolean;
 }): FamilyEventItem {
   return {
     id: ev.id,
@@ -47,6 +49,8 @@ function formatEvent(ev: {
     isRecurring: ev.isRecurring,
     recurringType: ev.recurringType,
     recurringEndDate: ev.recurringEndDate ? ev.recurringEndDate.toISOString().split('T')[0] : null,
+    needsCar: ev.needsCar,
+    isImportant: ev.isImportant,
   };
 }
 
@@ -101,6 +105,8 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     isRecurring,
     recurringType,
     recurringEndDate,
+    needsCar,
+    isImportant,
   } = body;
 
   const updateData: Record<string, unknown> = {};
@@ -229,6 +235,14 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
       }
       updateData.recurringEndDate = parsed;
     }
+  }
+
+  if (typeof needsCar === 'boolean') {
+    updateData.needsCar = needsCar;
+  }
+
+  if (typeof isImportant === 'boolean') {
+    updateData.isImportant = isImportant;
   }
 
   try {

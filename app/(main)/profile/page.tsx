@@ -15,6 +15,7 @@ import {
   Trash2,
   Heart,
   FileText,
+  ClipboardList,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import ImageLightbox from '@/components/ui/ImageLightbox';
@@ -341,6 +342,16 @@ export default function ProfilePage() {
             <Heart size={18} />
           </span>
           <span className={styles.menuItemLabel}>健康記錄</span>
+          <span className={styles.menuItemArrow}>
+            <ChevronRight size={18} />
+          </span>
+        </Link>
+
+        <Link href="/bulletin" className={styles.menuItem}>
+          <span className={styles.menuItemIcon}>
+            <ClipboardList size={18} />
+          </span>
+          <span className={styles.menuItemLabel}>家庭公佈欄</span>
           <span className={styles.menuItemArrow}>
             <ChevronRight size={18} />
           </span>
