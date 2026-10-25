@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   FileText, Lock, Users, Eye, Pin, Pencil, Trash2,
-  ArrowLeft, History, ChevronDown, ChevronUp,
+  ArrowLeft, History, ChevronDown, ChevronUp, ArrowUp,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import { renderMarkdown } from '@/lib/markdown';
@@ -92,6 +92,21 @@ export default function WikiViewPage({
 
   // 刪除確認
   const [deleting, setDeleting] = useState(false);
+
+  // 回到頂部
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // ── 取得目前使用者 ID ──────────────────────────────────────
 
@@ -289,6 +304,17 @@ export default function WikiViewPage({
           )
         )}
       </div>
+
+      {/* Back to Top Button */}
+      <button
+        type="button"
+        className={`${styles.backToTop} ${showBackToTop ? styles.visible : ''}`}
+        onClick={scrollToTop}
+        aria-label="回到頂部"
+        title="回到頂部"
+      >
+        <ArrowUp size={22} />
+      </button>
     </div>
   );
 }

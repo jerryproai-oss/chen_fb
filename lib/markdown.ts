@@ -8,7 +8,8 @@ function slugifyTag(name: string): string {
  * 將 TextToolbar 產生的 markdown 語法轉換為安全的 HTML
  * 
  * 支援：**粗體**、*斜體*、~~刪除線~~、## 標題、
- *       - 清單、1. 編號清單、> 引用、---、emoji
+ *       - 清單、1. 編號清單、> 引用、---、emoji、
+ *       | 表格 |、子清單（縮排）
  */
 
 /** 轉義 HTML 特殊字元 */
@@ -48,6 +49,37 @@ function renderInline(text: string): string {
 }
 
 /**
+ * 檢查一行是否為表格分隔行（如 |------|------|）
+ */
+function isTableSeparator(line: string): boolean {
+  return /^\|?[\s-:|]+\|[\s-:|]*\|?$/.test(line.trim());
+}
+
+/**
+ * 解析表格行，回傳各欄位內容（去除首尾 pipe 和空白）
+ */
+function parseTableRow(line: string): string[] {
+  let trimmed = line.trim();
+  // 移除首尾的 |
+  if (trimmed.startsWith('|')) trimmed = trimmed.slice(1);
+  if (trimmed.endsWith('|')) trimmed = trimmed.slice(0, -1);
+  return trimmed.split('|').map((cell) => cell.trim());
+}
+
+/**
+ * 解析表格對齊方式
+ */
+function parseTableAlignments(separatorLine: string): string[] {
+  const cells = parseTableRow(separatorLine);
+  return cells.map((cell) => {
+    const trimmed = cell.trim().replace(/\s/g, '');
+    if (trimmed.startsWith(':') && trimmed.endsWith(':')) return 'center';
+    if (trimmed.endsWith(':')) return 'right';
+    return 'left';
+  });
+}
+
+/**
  * 將 markdown 文字轉為安全的 HTML 字串
  */
 export function renderMarkdown(text: string): string {
@@ -81,6 +113,45 @@ export function renderMarkdown(text: string): string {
       continue;
     }
 
+    // ── 表格偵測 ──────────────────────────────────────────
+    // 表格：當前行含 |，且下一行是分隔行（|---|---|）
+    if (line.includes('|') && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+      closeBlocks();
+      const headerCells = parseTableRow(line);
+      const alignments = parseTableAlignments(lines[i + 1]);
+      i += 2; // 跳過 header 和分隔行
+
+      // 開始表格
+      htmlParts.push('<div class="table-wrapper"><table>');
+
+      // 表頭
+      htmlParts.push('<thead><tr>');
+      headerCells.forEach((cell, idx) => {
+        const align = alignments[idx] || 'left';
+        htmlParts.push(`<th style="text-align:${align}">${renderInline(cell)}</th>`);
+      });
+      htmlParts.push('</tr></thead>');
+
+      // 表身
+      htmlParts.push('<tbody>');
+      while (i < lines.length && lines[i].includes('|') && lines[i].trim() !== '') {
+        const bodyCells = parseTableRow(lines[i]);
+        htmlParts.push('<tr>');
+        // 填充到與 header 同樣的欄數
+        for (let col = 0; col < headerCells.length; col++) {
+          const align = alignments[col] || 'left';
+          const cellContent = bodyCells[col] !== undefined ? bodyCells[col] : '';
+          htmlParts.push(`<td style="text-align:${align}">${renderInline(cellContent)}</td>`);
+        }
+        htmlParts.push('</tr>');
+        i++;
+      }
+      htmlParts.push('</tbody></table></div>');
+
+      i--; // 回退一行，讓 for 迴圈的 i++ 處理
+      continue;
+    }
+
     // 分隔線 ---
     if (/^-{3,}$/.test(line.trim())) {
       closeBlocks();
@@ -89,10 +160,10 @@ export function renderMarkdown(text: string): string {
     }
 
     // 標題 ## text
-    const headingMatch = line.match(/^(#{1,3})\s+(.+)$/);
+    const headingMatch = line.match(/^(#{1,6})\s+(.+)$/);
     if (headingMatch) {
       closeBlocks();
-      const level = headingMatch[1].length + 1; // ## -> h3
+      const level = Math.min(headingMatch[1].length + 1, 6); // ## -> h3, 最大 h6
       htmlParts.push(`<h${level}>${renderInline(headingMatch[2])}</h${level}>`);
       continue;
     }
@@ -111,6 +182,19 @@ export function renderMarkdown(text: string): string {
     } else if (inBlockquote) {
       htmlParts.push('</blockquote>');
       inBlockquote = false;
+    }
+
+    // 子清單（縮排兩空格以上的 - 或數字）
+    if (/^\s{2,}[-*]\s+/.test(line)) {
+      // 當作清單項目處理（屬於上一個清單的子項）
+      const content = line.replace(/^\s+[-*]\s+/, '');
+      if (!inList) {
+        closeBlocks();
+        htmlParts.push('<ul>');
+        inList = true;
+      }
+      htmlParts.push(`<li style="margin-left:1.5em">${renderInline(content)}</li>`);
+      continue;
     }
 
     // 無序清單 - text
