@@ -232,10 +232,12 @@
 /* ── Month Weeks — 多天事件橫跨結構 ─────────────────────── */
 
 .monthWeeks {
-  /* 取代 .daysGrid 在月視圖中的角色 */
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
 }
 
 .weekRow {
+  grid-column: 1 / -1;
   position: relative;
 }
 
@@ -244,14 +246,11 @@
   top: 0;
   left: 0;
   right: 0;
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  pointer-events: none;
   z-index: 2;
+  pointer-events: none;
 }
 
 .weekSegmentRow {
-  grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
 }
@@ -291,8 +290,9 @@
 }
 
 .weekDayCells {
+  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: subgrid;
 }
 
 /* ── Day Cell (Month View) ────────────────────────────────── */

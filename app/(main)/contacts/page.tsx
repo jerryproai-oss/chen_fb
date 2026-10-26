@@ -806,10 +806,12 @@ function BusinessCardScanner({
     try {
       // 動態載入 Tesseract.js
       const Tesseract = await import('tesseract.js');
-      const worker = await Tesseract.createWorker('chi_tra+eng', undefined, {
+      const worker = await Tesseract.createWorker('chi_tra+eng', 1, {
         logger: (m: any) => {
           if (m.status === 'recognizing text') {
             setProgress(Math.round(m.progress * 100));
+          } else if (m.status === 'loading language traineddata') {
+            setProgress(Math.round(m.progress * 30)); // 下載語言包進度
           }
         },
       });
@@ -829,7 +831,7 @@ function BusinessCardScanner({
       }
     } catch (err) {
       console.error('OCR 失敗:', err);
-      alert('辨識失敗，請確認圖片清晰度');
+      alert('辨識失敗，請確認圖片清晰度。\n錯誤訊息: ' + (err instanceof Error ? err.message : String(err)));
       setScanning(false);
     }
   };
