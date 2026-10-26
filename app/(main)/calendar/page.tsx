@@ -580,7 +580,8 @@ export default function CalendarPage() {
         <>
           {/* ── 月視圖 ─────────────────────────────────────── */}
           {viewMode === 'month' && (
-            <>
+            <div className={styles.calendarLayout}>
+              <div className={styles.calendarPane}>
               <div className={styles.calendarCard}>
                 <div className={styles.weekdaysGrid}>
                   {WEEKDAYS.map((day, idx) => (
@@ -749,8 +750,10 @@ export default function CalendarPage() {
                   })}
                 </div>
               </div>
+              </div>
 
-              {/* 當日事件列表 */}
+              {/* 當日事件列表 — 桌面版在右側 */}
+              <div className={styles.eventsPane}>
               <EventsSection
                 title={selectedDateTitle}
                 events={dayEvents}
@@ -759,12 +762,14 @@ export default function CalendarPage() {
                 onEdit={handleOpenEditModal}
                 onDelete={handleDeleteEvent}
               />
-            </>
+              </div>
+            </div>
           )}
 
           {/* ── 週視圖 ─────────────────────────────────────── */}
           {viewMode === 'week' && (
-            <>
+            <div className={styles.calendarLayout}>
+              <div className={styles.calendarPane}>
               <div className={styles.weekViewContainer}>
                 {/* 週標頭 */}
                 <div className={styles.weekHeader}>
@@ -861,8 +866,10 @@ export default function CalendarPage() {
                   ))}
                 </div>
               </div>
+              </div>
 
               {/* 選取日事件列表 */}
+              <div className={styles.eventsPane}>
               <EventsSection
                 title={selectedDateTitle}
                 events={dayEvents}
@@ -871,12 +878,14 @@ export default function CalendarPage() {
                 onEdit={handleOpenEditModal}
                 onDelete={handleDeleteEvent}
               />
-            </>
+              </div>
+            </div>
           )}
 
           {/* ── 日視圖 ─────────────────────────────────────── */}
           {viewMode === 'day' && (
-            <>
+            <div className={styles.calendarLayout}>
+              <div className={styles.calendarPane}>
               <div className={styles.dayViewContainer}>
                 <div className={styles.dayViewHeader}>
                   <div className={styles.dayViewTitle}>{selectedDateTitle}</div>
@@ -952,8 +961,10 @@ export default function CalendarPage() {
                   })}
                 </div>
               </div>
+              </div>
 
               {/* 完整事件列表 */}
+              <div className={styles.eventsPane}>
               <EventsSection
                 title={selectedDateTitle}
                 events={dayEvents}
@@ -962,7 +973,8 @@ export default function CalendarPage() {
                 onEdit={handleOpenEditModal}
                 onDelete={handleDeleteEvent}
               />
-            </>
+              </div>
+            </div>
           )}
         </>
       )}

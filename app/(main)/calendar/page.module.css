@@ -8,6 +8,61 @@
   position: relative;
 }
 
+/* ── Desktop/Tablet Two-Column Layout ─────────────────────── */
+
+.calendarLayout {
+  /* 手機版：正常流（上下排列） */
+}
+
+.calendarPane {
+  /* 手機版：不需特別樣式 */
+}
+
+.eventsPane {
+  /* 手機版：不需特別樣式 */
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 1400px;
+  }
+
+  .calendarLayout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: var(--space-lg);
+    align-items: start;
+  }
+
+  .calendarPane {
+    position: sticky;
+    top: var(--space-md);
+    z-index: 5;
+  }
+
+  .eventsPane {
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    padding-right: var(--space-xs);
+    /* 自訂捲軸 */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(90, 122, 90, 0.3) transparent;
+  }
+
+  .eventsPane::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .eventsPane::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .eventsPane::-webkit-scrollbar-thumb {
+    background-color: rgba(90, 122, 90, 0.3);
+    border-radius: 4px;
+  }
+}
+
 .header {
   margin-bottom: var(--space-md);
 }
@@ -936,6 +991,12 @@
   .fab {
     bottom: var(--space-xl);
     right: calc((100vw - 900px) / 2 + var(--space-md));
+  }
+}
+
+@media (min-width: 1024px) {
+  .fab {
+    right: calc((100vw - 1400px) / 2 + var(--space-md));
   }
 }
 
