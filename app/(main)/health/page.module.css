@@ -304,6 +304,27 @@
   color: var(--color-text);
 }
 
+/* ── 日期分隔線和每日摘要 ──────────────────────────── */
+
+.dateSeparator {
+  padding: 10px var(--space-md) 4px;
+  border-bottom: 1px solid var(--color-border-light);
+  background: rgba(90, 122, 90, 0.03);
+}
+
+.dateSepLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.daySummary {
+  font-size: 0.72rem;
+  color: var(--color-accent);
+  margin-top: 2px;
+  padding: 2px 0;
+}
+
 .recordItem {
   display: flex;
   align-items: center;

@@ -368,24 +368,45 @@ export default function HealthPage() {
     } catch { /* ignore */ }
   };
 
-  // ── Chart Data ─────────────────────────────────────────────
+  // ── Chart Data（同日多筆量測取均值） ────────────────────────
 
-  const chartData = records
-    .slice()
-    .sort((a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime())
-    .map((r) => ({
-      date: new Date(r.recordedAt).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' }),
-      fullDate: new Date(r.recordedAt).toLocaleString('zh-TW'),
-      systolic: r.systolic,
-      diastolic: r.diastolic,
-      heartRate: r.heartRate,
-      bloodSugar: r.bloodSugar,
-      mealTiming: r.mealTiming,
-      temperature: r.temperature,
-      weight: r.weight,
-      bodyFat: r.bodyFat,
-      oxygenSat: r.oxygenSat,
-    }));
+  const chartData = (() => {
+    const sorted = records
+      .slice()
+      .sort((a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime());
+
+    // 按日期分組
+    const dayMap = new Map<string, typeof records>();
+    for (const r of sorted) {
+      const dateKey = new Date(r.recordedAt).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' });
+      if (!dayMap.has(dateKey)) dayMap.set(dateKey, []);
+      dayMap.get(dateKey)!.push(r);
+    }
+
+    // 各日取平均
+    return Array.from(dayMap.entries()).map(([date, recs]) => {
+      const avg = (values: (number | null)[]) => {
+        const valid = values.filter((v): v is number => v != null);
+        return valid.length > 0 ? Math.round(valid.reduce((a, b) => a + b, 0) / valid.length * 10) / 10 : null;
+      };
+
+      const count = recs.length;
+      return {
+        date,
+        fullDate: count > 1 ? `${date}（${count} 筆平均）` : new Date(recs[0].recordedAt).toLocaleString('zh-TW'),
+        systolic: avg(recs.map(r => r.systolic)),
+        diastolic: avg(recs.map(r => r.diastolic)),
+        heartRate: avg(recs.map(r => r.heartRate)),
+        bloodSugar: avg(recs.map(r => r.bloodSugar)),
+        mealTiming: recs[0].mealTiming,
+        temperature: avg(recs.map(r => r.temperature)),
+        weight: avg(recs.map(r => r.weight)),
+        bodyFat: avg(recs.map(r => r.bodyFat)),
+        oxygenSat: avg(recs.map(r => r.oxygenSat)),
+        count,
+      };
+    });
+  })();
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -675,8 +696,52 @@ export default function HealthPage() {
             )}
           </div>
         ) : (
-          records.map((rec) => (
-            <div key={rec.id} className={styles.recordItem}>
+          (() => {
+            // 按日分組，增加日分隔線和當日摘要
+            let lastDateLabel = '';
+            return records.map((rec, idx) => {
+              const dateLabel = new Date(rec.recordedAt).toLocaleDateString('zh-TW', {
+                year: 'numeric', month: 'long', day: 'numeric',
+                weekday: 'short',
+              });
+              const showDaySep = dateLabel !== lastDateLabel;
+              lastDateLabel = dateLabel;
+
+              // 計算當日摘要（僅在日分隔線時計算）
+              let daySummary: React.ReactNode = null;
+              if (showDaySep) {
+                const dayKey = new Date(rec.recordedAt).toDateString();
+                const dayRecs = records.filter(r => new Date(r.recordedAt).toDateString() === dayKey);
+                if (dayRecs.length > 1) {
+                  const avgField = (vals: (number | null)[]) => {
+                    const v = vals.filter((x): x is number => x != null);
+                    return v.length > 0 ? Math.round(v.reduce((a, b) => a + b, 0) / v.length) : null;
+                  };
+                  const avgSys = avgField(dayRecs.map(r => r.systolic));
+                  const avgDia = avgField(dayRecs.map(r => r.diastolic));
+                  const avgHr = avgField(dayRecs.map(r => r.heartRate));
+                  const parts: string[] = [];
+                  if (avgSys != null && avgDia != null) parts.push(`血壓均值 ${avgSys}/${avgDia}`);
+                  if (avgHr != null) parts.push(`心率均值 ${avgHr}`);
+                  if (parts.length > 0) {
+                    daySummary = (
+                      <div className={styles.daySummary}>
+                        📊 {dayRecs.length} 筆量測 · {parts.join(' · ')}
+                      </div>
+                    );
+                  }
+                }
+              }
+
+              return (
+                <div key={rec.id}>
+                  {showDaySep && (
+                    <div className={styles.dateSeparator}>
+                      <span className={styles.dateSepLabel}>{dateLabel}</span>
+                      {daySummary}
+                    </div>
+                  )}
+                  <div className={styles.recordItem}>
               <span className={styles.recordDate}>{formatDate(rec.recordedAt)}</span>
               <div className={styles.recordValues}>
                 {rec.systolic != null && (
@@ -723,7 +788,10 @@ export default function HealthPage() {
                 </div>
               )}
             </div>
-          ))
+                </div>
+              );
+            });
+          })()
         )}
       </div>
 
