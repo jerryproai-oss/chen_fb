@@ -139,6 +139,14 @@ export default function CalendarPage() {
     });
   }, []);
 
+  /** 用車事件在行事曆中的顯示標題：「暱稱 用車」 */
+  const evDisplayTitle = useCallback((ev: FamilyEventItem): string => {
+    if (ev.needsCar && ev.author?.displayName) {
+      return `${ev.author.displayName} 用車`;
+    }
+    return ev.title;
+  }, []);
+
   // 取得目前使用者
   useEffect(() => {
     fetch('/api/me')
@@ -633,14 +641,14 @@ export default function CalendarPage() {
                                             backgroundColor: evColor(seg.event),
                                             gridColumn: `${seg.startCol + 1} / ${seg.startCol + seg.span + 1}`,
                                           }}
-                                          title={seg.event.title}
+                                          title={evDisplayTitle(seg.event)}
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             setSelectedDate(seg.event.eventDate);
                                             handleOpenEditModal(seg.event);
                                           }}
                                         >
-                                          {seg.isStart ? seg.event.title : seg.event.title}
+                                          {seg.isStart ? evDisplayTitle(seg.event) : evDisplayTitle(seg.event)}
                                         </div>
                                       );
                                       col = seg.startCol + seg.span;
@@ -699,7 +707,7 @@ export default function CalendarPage() {
                                       key={ev.id}
                                       className={styles.eventChip}
                                       style={{ backgroundColor: evColor(ev) }}
-                                      title={ev.title}
+                                      title={evDisplayTitle(ev)}
                                       onClick={(e) => {
                                         e.stopPropagation();
                                         setSelectedDate(cell.date);
@@ -708,7 +716,7 @@ export default function CalendarPage() {
                                     >
                                       {ev.needsCar && <Car size={9} style={{ flexShrink: 0 }} />}
                                       {ev.isImportant && <Star size={9} style={{ flexShrink: 0 }} />}
-                                      {!ev.isAllDay && ev.eventTime ? `${ev.eventTime} ` : ''}{ev.title}
+                                      {!ev.isAllDay && ev.eventTime ? `${ev.eventTime} ` : ''}{evDisplayTitle(ev)}
                                     </div>
                                   ))}
                                   {singleEvents.length > maxShow && (
@@ -736,7 +744,7 @@ export default function CalendarPage() {
                                               ? '跨日'
                                               : ev.eventTime || ''}
                                         </span>
-                                        <span className={styles.dayTooltipTitle}>{ev.title}</span>
+                                        <span className={styles.dayTooltipTitle}>{evDisplayTitle(ev)}</span>
                                       </div>
                                     ))}
                                   </div>
@@ -802,7 +810,7 @@ export default function CalendarPage() {
                             style={{ backgroundColor: evColor(ev) }}
                             onClick={() => handleOpenEditModal(ev)}
                           >
-                            {ev.title}
+                            {evDisplayTitle(ev)}
                           </div>
                         ))}
                       </div>
@@ -853,9 +861,9 @@ export default function CalendarPage() {
                                     e.stopPropagation();
                                     handleOpenEditModal(ev);
                                   }}
-                                  title={`${ev.eventTime}${ev.endTime ? ' - ' + ev.endTime : ''} ${ev.title}`}
+                                  title={`${ev.eventTime}${ev.endTime ? ' - ' + ev.endTime : ''} ${evDisplayTitle(ev)}`}
                                 >
-                                  {ev.title}
+                                  {evDisplayTitle(ev)}
                                 </div>
                               );
                             })}
@@ -902,7 +910,7 @@ export default function CalendarPage() {
                         style={{ backgroundColor: evColor(ev), padding: '4px 8px' }}
                         onClick={() => handleOpenEditModal(ev)}
                       >
-                        {ev.title}
+                        {evDisplayTitle(ev)}
                       </div>
                     ))}
                   </div>
@@ -935,7 +943,7 @@ export default function CalendarPage() {
                                 handleOpenEditModal(ev);
                               }}
                             >
-                              <div className={styles.dayViewEventTitle}>{ev.title}</div>
+                              <div className={styles.dayViewEventTitle}>{evDisplayTitle(ev)}</div>
                               <div className={styles.dayViewEventMeta}>
                                 {ev.eventTime}{ev.endTime ? ` — ${ev.endTime}` : ''}
                                 {ev.location ? (
@@ -1496,7 +1504,11 @@ function EventsSection({
                   )}
                 </div>
 
-                <div className={styles.eventTitle}>{event.title}</div>
+                <div className={styles.eventTitle}>
+                  {event.needsCar && event.author?.displayName
+                    ? `${event.author.displayName} 用車`
+                    : event.title}
+                </div>
                 {event.description && (
                   <div className={styles.eventDescription}>{event.description}</div>
                 )}
