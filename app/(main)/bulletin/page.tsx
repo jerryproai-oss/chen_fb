@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { ClipboardList, Car, Star, AlertTriangle, Plus, Calendar } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
+import { getEventDisplayColor } from '@/lib/constants/calendar-colors';
 import type { FamilyEventItem } from '@/lib/types';
 import styles from './page.module.css';
 
@@ -242,7 +243,15 @@ export default function BulletinPage() {
                   key={ev.id}
                   href={`/calendar?date=${ev.eventDate}`}
                   className={styles.eventCard}
-                  style={{ textDecoration: 'none' }}
+                  style={{
+                    textDecoration: 'none',
+                    borderLeftColor: getEventDisplayColor({
+                      needsCar: ev.needsCar,
+                      id: ev.id,
+                      color: ev.color,
+                      authorCalendarColor: ev.author?.calendarColor,
+                    }),
+                  }}
                 >
                   <div className={styles.eventIcon}>
                     {ev.needsCar && ev.isImportant ? '🚗⭐' : ev.needsCar ? '🚗' : '⭐'}

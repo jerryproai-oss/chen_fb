@@ -51,6 +51,7 @@ model User {
   usernameNormalized         String      @unique @map("username_normalized")
   displayName                String      @map("display_name")
   avatarUrl                  String?     @map("avatar_url")
+  calendarColor              String?     @map("calendar_color")
   birthday                   DateTime?   @map("birthday") @db.Date
   passwordHash               String      @map("password_hash")
   role                       Role        @default(MEMBER)

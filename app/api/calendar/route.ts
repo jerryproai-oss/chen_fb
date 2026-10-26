@@ -3,32 +3,17 @@ import { prisma } from '@/lib/db/client';
 import { withAuth } from '@/lib/auth/middleware';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
 import { getTaiwanHolidays } from '@/lib/holidays';
+import { HOLIDAY_COLORS } from '@/lib/constants/calendar-colors';
 import type { FamilyEventItem } from '@/lib/types';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_PATTERN = /^\d{2}:\d{2}$/;
 const VALID_RECURRING_TYPES = ['YEARLY', 'MONTHLY', 'WEEKLY', 'DAILY'] as const;
 
-// Google Calendar 風格的 12 種事件顏色
-const VALID_COLORS = [
-  '#5a7a5a', // 鼠尾草綠 (預設)
-  '#d50000', // 番茄紅
-  '#e67c73', // 火鶴粉
-  '#f4511e', // 橘柑橙
-  '#f6bf26', // 香蕉黃
-  '#33b679', // 羅勒綠
-  '#039be5', // 孔雀藍
-  '#7986cb', // 藍莓紫
-  '#8e24aa', // 葡萄紫
-  '#616161', // 石墨灰
-  '#8b6f47', // 木棕色
-  '#3f51b5', // 薰衣草
-];
-
 function formatEvent(ev: {
   id: string;
   authorId: string;
-  author: { displayName: string; avatarUrl: string | null };
+  author: { displayName: string; avatarUrl: string | null; calendarColor?: string | null };
   title: string;
   description: string | null;
   eventDate: Date;
@@ -47,7 +32,11 @@ function formatEvent(ev: {
   return {
     id: ev.id,
     authorId: ev.authorId,
-    author: ev.author,
+    author: {
+      displayName: ev.author.displayName,
+      avatarUrl: ev.author.avatarUrl,
+      calendarColor: ev.author.calendarColor ?? null,
+    },
     title: ev.title,
     description: ev.description,
     eventDate: overrideDateStr || ev.eventDate.toISOString().split('T')[0],
@@ -94,7 +83,7 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
   const startOfMonth = new Date(Date.UTC(targetYear, targetMonth - 1, 1));
   const endOfMonth = new Date(Date.UTC(targetYear, targetMonth, 0, 23, 59, 59, 999));
 
-  const authorInclude = { author: { select: { displayName: true, avatarUrl: true } } };
+  const authorInclude = { author: { select: { displayName: true, avatarUrl: true, calendarColor: true } } };
 
   try {
     const [rangeEvents, recurringEvents] = await Promise.all([
@@ -192,7 +181,6 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
     const holidays = getTaiwanHolidays(targetYear, targetMonth);
     for (const h of holidays) {
       // 依類型設定顏色與圖示
-      const colorMap: Record<string, string> = { holiday: '#d50000', compensatory: '#f4511e', memorial: '#7986cb', international: '#33b679', folk: '#e67c73' };
       const emojiMap: Record<string, string> = { holiday: '🇹🇼', compensatory: '🔄', memorial: '📌', international: '🌍', folk: '🏮' };
       const labelMap: Record<string, string> = { holiday: '國定假日', compensatory: '彈性放假', memorial: '紀念日', international: '國際節日', folk: '民俗節日' };
 
@@ -207,7 +195,7 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
         eventTime: null,
         endTime: null,
         isAllDay: true,
-        color: colorMap[h.type],
+        color: HOLIDAY_COLORS[h.type] || HOLIDAY_COLORS.holiday,
         location: null,
         isRecurring: false,
         recurringType: null,
@@ -259,7 +247,6 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
     eventTime,
     endTime,
     isAllDay = true,
-    color,
     location,
     isRecurring = false,
     recurringType,
@@ -328,12 +315,8 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
     }
   }
 
-  // 驗證 color
-  if (color !== undefined && color !== null && color !== '') {
-    if (typeof color !== 'string' || !VALID_COLORS.includes(color)) {
-      return NextResponse.json({ error: '無效的事件顏色' }, { status: 400 });
-    }
-  }
+  // color 由使用者個人的 calendarColor 決定（不再使用 per-event 顏色）
+  const eventColor = user.calendarColor || '#5a7a5a';
 
   // 驗證 recurringType
   if (isRecurring && recurringType) {
@@ -377,7 +360,7 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
         eventTime: typeof eventTime === 'string' && eventTime.trim() !== '' ? eventTime.trim() : null,
         endTime: typeof endTime === 'string' && endTime.trim() !== '' ? endTime.trim() : null,
         isAllDay: Boolean(isAllDay),
-        color: typeof color === 'string' && color.trim() !== '' ? color.trim() : '#5a7a5a',
+        color: eventColor,
         location: typeof location === 'string' && location.trim() !== '' ? location.trim() : null,
         isRecurring: Boolean(isRecurring),
         recurringType: isRecurring && typeof recurringType === 'string' ? recurringType : null,

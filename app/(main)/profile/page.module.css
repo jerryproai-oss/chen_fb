@@ -324,3 +324,115 @@
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
 }
+
+
+/* ── 行事曆顏色選擇 ──────────────────────────────────────────── */
+
+.colorSection {
+  background-color: var(--color-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border-light);
+  padding: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.colorSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-sm);
+}
+
+.colorEditBtn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  padding: 2px 10px;
+  font-size: var(--font-size-xs);
+  color: var(--color-primary);
+  cursor: pointer;
+  font-family: inherit;
+  min-height: 28px;
+}
+
+.colorEditBtn:hover {
+  background-color: rgba(90, 122, 90, 0.08);
+}
+
+.currentColorDisplay {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--font-size-sm);
+}
+
+.currentColorDot {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+}
+
+.currentColorName {
+  color: var(--color-text-secondary);
+}
+
+.colorHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.colorPickerGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-top: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.paletteColor {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  min-height: 36px;
+}
+
+.paletteColor:hover:not(:disabled) {
+  transform: scale(1.15);
+}
+
+.paletteColorActive {
+  border-color: var(--color-text);
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-text);
+}
+
+.paletteColorTaken {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.paletteColorTakenLabel {
+  position: absolute;
+  bottom: -16px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  pointer-events: none;
+}

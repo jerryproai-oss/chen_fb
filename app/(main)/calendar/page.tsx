@@ -12,33 +12,18 @@ import {
   X,
   Calendar as CalendarIcon,
   MapPin,
-  Check,
   Car,
   Star,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import { solarToLunar } from '@/lib/lunar';
+import { getEventDisplayColor, CAR_EVENT_COLOR } from '@/lib/constants/calendar-colors';
 import type { FamilyEventItem, UserProfile } from '@/lib/types';
 import styles from './page.module.css';
 
 // ── 常數 ────────────────────────────────────────────────────
 
 const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
-
-const EVENT_COLORS = [
-  { value: '#5a7a5a', label: '鼠尾草綠' },
-  { value: '#d50000', label: '番茄紅' },
-  { value: '#e67c73', label: '火鶴粉' },
-  { value: '#f4511e', label: '橘柑橙' },
-  { value: '#f6bf26', label: '香蕉黃' },
-  { value: '#33b679', label: '羅勒綠' },
-  { value: '#039be5', label: '孔雀藍' },
-  { value: '#7986cb', label: '藍莓紫' },
-  { value: '#8e24aa', label: '葡萄紫' },
-  { value: '#616161', label: '石墨灰' },
-  { value: '#8b6f47', label: '木棕色' },
-  { value: '#3f51b5', label: '薰衣草' },
-];
 
 const RECURRING_LABELS: Record<string, string> = {
   DAILY: '每日重複',
@@ -136,7 +121,6 @@ export default function CalendarPage() {
   const [formRecurringType, setFormRecurringType] = useState<string>('WEEKLY');
   const [formRecurringEndDate, setFormRecurringEndDate] = useState('');
   const [formDescription, setFormDescription] = useState('');
-  const [formColor, setFormColor] = useState('#5a7a5a');
   const [formLocation, setFormLocation] = useState('');
   const [formNeedsCar, setFormNeedsCar] = useState(false);
   const [formIsImportant, setFormIsImportant] = useState(false);
@@ -144,6 +128,16 @@ export default function CalendarPage() {
   const [showCarConflictDialog, setShowCarConflictDialog] = useState(false);
   const [carConflictConfirmed, setCarConflictConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  /** 取得事件的顯示顏色（用車→固定色 / 假日→依類型 / 一般→作者色） */
+  const evColor = useCallback((ev: FamilyEventItem): string => {
+    return getEventDisplayColor({
+      needsCar: ev.needsCar,
+      id: ev.id,
+      color: ev.color,
+      authorCalendarColor: ev.author?.calendarColor,
+    });
+  }, []);
 
   // 取得目前使用者
   useEffect(() => {
@@ -246,7 +240,6 @@ export default function CalendarPage() {
     setFormRecurringType('WEEKLY');
     setFormRecurringEndDate('');
     setFormDescription('');
-    setFormColor('#5a7a5a');
     setFormLocation('');
     setFormNeedsCar(false);
     setFormIsImportant(false);
@@ -268,7 +261,6 @@ export default function CalendarPage() {
     setFormRecurringType(event.recurringType || 'WEEKLY');
     setFormRecurringEndDate(event.recurringEndDate || '');
     setFormDescription(event.description || '');
-    setFormColor(event.color || '#5a7a5a');
     setFormLocation(event.location || '');
     setFormNeedsCar(event.needsCar || false);
     setFormIsImportant(event.isImportant || false);
@@ -298,7 +290,6 @@ export default function CalendarPage() {
         recurringType: formIsRecurring ? formRecurringType : null,
         recurringEndDate: formIsRecurring && formRecurringEndDate ? formRecurringEndDate : null,
         description: formDescription.trim() || null,
-        color: formColor,
         location: formLocation.trim() || null,
         needsCar: formNeedsCar,
         isImportant: formIsImportant,
@@ -620,7 +611,7 @@ export default function CalendarPage() {
                                 key={`${seg.event.id}-${segIdx}`}
                                 className={`${styles.spanBar} ${seg.isStart ? styles.spanBarStart : ''} ${seg.isEnd ? styles.spanBarEnd : ''}`}
                                 style={{
-                                  backgroundColor: seg.event.color || '#5a7a5a',
+                                backgroundColor: evColor(seg.event),
                                   left: `${(seg.startCol / 7) * 100}%`,
                                   width: `${(seg.span / 7) * 100}%`,
                                   top: seg.row * 20,
@@ -683,7 +674,7 @@ export default function CalendarPage() {
                                     <div
                                       key={ev.id}
                                       className={styles.eventChip}
-                                      style={{ backgroundColor: ev.color || '#5a7a5a' }}
+                                      style={{ backgroundColor: evColor(ev) }}
                                       title={ev.title}
                                       onClick={(e) => {
                                         e.stopPropagation();
@@ -712,7 +703,7 @@ export default function CalendarPage() {
                                       <div key={ev.id} className={styles.dayTooltipItem}>
                                         <span
                                           className={styles.dayTooltipDot}
-                                          style={{ backgroundColor: ev.color || '#5a7a5a' }}
+                                          style={{ backgroundColor: evColor(ev) }}
                                         />
                                         <span className={styles.dayTooltipTime}>
                                           {ev.isAllDay
@@ -780,7 +771,7 @@ export default function CalendarPage() {
                           <div
                             key={ev.id}
                             className={styles.eventChip}
-                            style={{ backgroundColor: ev.color || '#5a7a5a' }}
+                            style={{ backgroundColor: evColor(ev) }}
                             onClick={() => handleOpenEditModal(ev)}
                           >
                             {ev.title}
@@ -826,7 +817,7 @@ export default function CalendarPage() {
                                   key={ev.id}
                                   className={styles.weekTimeEvent}
                                   style={{
-                                    backgroundColor: ev.color || '#5a7a5a',
+                                    backgroundColor: evColor(ev),
                                     top: `${topPx}px`,
                                     height: `${heightPx}px`,
                                   }}
@@ -876,7 +867,7 @@ export default function CalendarPage() {
                       <div
                         key={ev.id}
                         className={styles.eventChip}
-                        style={{ backgroundColor: ev.color || '#5a7a5a', padding: '4px 8px' }}
+                        style={{ backgroundColor: evColor(ev), padding: '4px 8px' }}
                         onClick={() => handleOpenEditModal(ev)}
                       >
                         {ev.title}
@@ -906,7 +897,7 @@ export default function CalendarPage() {
                             <div
                               key={ev.id}
                               className={styles.dayViewTimeEvent}
-                              style={{ backgroundColor: ev.color || '#5a7a5a' }}
+                              style={{ backgroundColor: evColor(ev) }}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleOpenEditModal(ev);
@@ -1002,25 +993,27 @@ export default function CalendarPage() {
                 />
               </div>
 
-              {/* 事件顏色 */}
-              <div className={styles.formGroup} style={{ marginTop: 'var(--space-sm)' }}>
-                <label className={styles.label}>事件顏色</label>
-                <div className={styles.colorPicker}>
-                  {EVENT_COLORS.map((c) => (
-                    <button
-                      key={c.value}
-                      type="button"
-                      className={`${styles.colorDot} ${formColor === c.value ? styles.colorDotActive : ''}`}
-                      style={{ backgroundColor: c.value }}
-                      onClick={() => setFormColor(c.value)}
-                      title={c.label}
-                      aria-label={c.label}
-                    >
-                      {formColor === c.value && <Check size={14} className={styles.colorDotCheck} />}
-                    </button>
-                  ))}
+              {/* 事件顏色提示 — 依個人設定自動帶入 */}
+              {currentUser?.calendarColor && (
+                <div className={styles.formGroup} style={{ marginTop: 'var(--space-sm)' }}>
+                  <label className={styles.label}>事件顏色</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        width: 20,
+                        height: 20,
+                        borderRadius: '50%',
+                        backgroundColor: formNeedsCar ? CAR_EVENT_COLOR : currentUser.calendarColor,
+                        border: '2px solid rgba(0,0,0,0.15)',
+                      }}
+                    />
+                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                      {formNeedsCar ? '用車專用色（固定）' : '依個人設定（可於個人頁修改）'}
+                    </span>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* 全天開關 */}
               <div style={{ marginTop: 'var(--space-sm)' }}>
@@ -1400,7 +1393,7 @@ function EventsSection({
               <div
                 key={event.id}
                 className={styles.eventCard}
-                style={{ borderLeftColor: event.color || 'var(--color-primary)' }}
+                style={{ borderLeftColor: getEventDisplayColor({ needsCar: event.needsCar, id: event.id, color: event.color, authorCalendarColor: event.author?.calendarColor }) }}
               >
                 <div className={styles.eventMetaRow}>
                   <div className={styles.eventBadges}>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/client';
 import { withAuth, withAuthAllowRestricted } from '@/lib/auth/middleware';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
+import { VALID_PALETTE_HEXES } from '@/lib/constants/calendar-colors';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -18,6 +19,7 @@ export const GET = withAuthAllowRestricted(async ({ user }) => {
     displayName: user.displayName,
     role: user.role,
     avatarUrl: user.avatarUrl,
+    calendarColor: user.calendarColor,
     birthday: user.birthday ? user.birthday.toISOString().split('T')[0] : null,
     mustChangePassword: user.mustChangePassword,
     createdAt: user.createdAt,
@@ -37,8 +39,8 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest) => {
     return NextResponse.json({ error: '無效的請求格式' }, { status: 400 });
   }
 
-  const { birthday, displayName } = body;
-  const updateData: { birthday?: Date | null; displayName?: string } = {};
+  const { birthday, displayName, calendarColor } = body;
+  const updateData: { birthday?: Date | null; displayName?: string; calendarColor?: string | null } = {};
 
   if (birthday !== undefined) {
     if (birthday === null || birthday === '') {
@@ -67,6 +69,24 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest) => {
     updateData.displayName = displayName.trim();
   }
 
+  if (calendarColor !== undefined) {
+    if (calendarColor === null || calendarColor === '') {
+      updateData.calendarColor = null;
+    } else if (typeof calendarColor === 'string' && VALID_PALETTE_HEXES.has(calendarColor)) {
+      // 檢查是否已被其他使用者使用
+      const existingUser = await prisma.user.findFirst({
+        where: { calendarColor, id: { not: user.id } },
+        select: { id: true },
+      });
+      if (existingUser) {
+        return NextResponse.json({ error: '此顏色已被其他家人選用' }, { status: 409 });
+      }
+      updateData.calendarColor = calendarColor;
+    } else {
+      return NextResponse.json({ error: '無效的行事曆顏色' }, { status: 400 });
+    }
+  }
+
   if (Object.keys(updateData).length === 0) {
     return NextResponse.json({ error: '無有效的更新欄位' }, { status: 400 });
   }
@@ -91,6 +111,7 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest) => {
       displayName: updated.displayName,
       role: updated.role,
       avatarUrl: updated.avatarUrl,
+      calendarColor: updated.calendarColor,
       birthday: updated.birthday ? updated.birthday.toISOString().split('T')[0] : null,
       mustChangePassword: updated.mustChangePassword,
       createdAt: updated.createdAt,

@@ -31,6 +31,7 @@ export interface MediaItem {
 // ── 使用者 ────────────────────────────────────────────────────
 
 export interface UserProfile {
+  calendarColor?: string | null;
   id: string;
   username: string;
   displayName: string;
@@ -254,7 +255,7 @@ export interface MediaPoolResponse {
 export interface FamilyEventItem {
   id: string;
   authorId: string;
-  author: { displayName: string; avatarUrl: string | null };
+  author: { displayName: string; avatarUrl: string | null; calendarColor?: string | null };
   title: string;
   description: string | null;
   eventDate: string;        // "YYYY-MM-DD" 開始日期

@@ -34,7 +34,7 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
       },
       include: {
         author: {
-          select: { displayName: true, avatarUrl: true },
+          select: { displayName: true, avatarUrl: true, calendarColor: true },
         },
       },
       orderBy: [{ eventDate: 'asc' }, { eventTime: 'asc' }],

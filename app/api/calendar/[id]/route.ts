@@ -9,15 +9,11 @@ const UUID_PATTERN =
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 const TIME_PATTERN = /^\d{2}:\d{2}$/;
 const VALID_RECURRING_TYPES = ['YEARLY', 'MONTHLY', 'WEEKLY', 'DAILY'] as const;
-const VALID_COLORS = [
-  '#5a7a5a', '#d50000', '#e67c73', '#f4511e', '#f6bf26', '#33b679',
-  '#039be5', '#7986cb', '#8e24aa', '#616161', '#8b6f47', '#3f51b5',
-];
 
 function formatEvent(ev: {
   id: string;
   authorId: string;
-  author: { displayName: string; avatarUrl: string | null };
+  author: { displayName: string; avatarUrl: string | null; calendarColor?: string | null };
   title: string;
   description: string | null;
   eventDate: Date;
@@ -36,7 +32,11 @@ function formatEvent(ev: {
   return {
     id: ev.id,
     authorId: ev.authorId,
-    author: ev.author,
+    author: {
+      displayName: ev.author.displayName,
+      avatarUrl: ev.author.avatarUrl,
+      calendarColor: ev.author.calendarColor ?? null,
+    },
     title: ev.title,
     description: ev.description,
     eventDate: ev.eventDate.toISOString().split('T')[0],
@@ -179,12 +179,12 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
   }
 
   if (color !== undefined) {
+    // color 欄位保留向下相容，但不再做 VALID_COLORS 驗證
+    // 事件顏色由使用者的 calendarColor 決定
     if (color === null || color === '') {
-      updateData.color = '#5a7a5a';
-    } else if (typeof color === 'string' && VALID_COLORS.includes(color)) {
+      updateData.color = user.calendarColor || '#5a7a5a';
+    } else if (typeof color === 'string') {
       updateData.color = color;
-    } else {
-      return NextResponse.json({ error: '無效的事件顏色' }, { status: 400 });
     }
   }
 
@@ -251,7 +251,7 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
       data: updateData,
       include: {
         author: {
-          select: { displayName: true, avatarUrl: true },
+          select: { displayName: true, avatarUrl: true, calendarColor: true },
         },
       },
     });

@@ -16,11 +16,14 @@ import {
   Heart,
   FileText,
   ClipboardList,
+  Palette,
+  Check,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import ImageLightbox from '@/components/ui/ImageLightbox';
 import FontSizeSwitcher from '@/components/ui/FontSizeSwitcher';
 import ThemeSwitcher from '@/components/ui/ThemeSwitcher';
+import { CALENDAR_PALETTE, type CalendarColor } from '@/lib/constants/calendar-colors';
 import type { UserProfile } from '@/lib/types';
 import styles from './page.module.css';
 
@@ -39,6 +42,9 @@ export default function ProfilePage() {
   const [isEditingBirthday, setIsEditingBirthday] = useState(false);
   const [birthdayInput, setBirthdayInput] = useState('');
   const [savingBirthday, setSavingBirthday] = useState(false);
+  const [savingColor, setSavingColor] = useState(false);
+  const [usedColors, setUsedColors] = useState<Array<{ userId: string; displayName: string; color: string }>>([]);
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -76,6 +82,48 @@ export default function ProfilePage() {
       alert(err instanceof Error ? err.message : '更新生日失敗');
     } finally {
       setSavingBirthday(false);
+    }
+  }
+
+  /** 開啟顏色選擇器並載入已用顏色 */
+  async function handleOpenColorPicker() {
+    setShowColorPicker(true);
+    try {
+      const res = await fetch('/api/calendar/used-colors');
+      if (res.ok) {
+        const data = await res.json();
+        setUsedColors(data.colors || []);
+      }
+    } catch { /* ignore */ }
+  }
+
+  /** 選擇行事曆顏色 */
+  async function handleSelectColor(color: CalendarColor) {
+    if (!user) return;
+    // 如果選的是已用色，不處理
+    if (usedColors.some(uc => uc.color === color.hex && uc.userId !== user.id)) return;
+    // 如果已是目前色，取消選色器
+    if (user.calendarColor === color.hex) {
+      setShowColorPicker(false);
+      return;
+    }
+    setSavingColor(true);
+    try {
+      const res = await fetch('/api/me', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ calendarColor: color.hex }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || '儲存失敗');
+      }
+      setUser(prev => prev ? { ...prev, calendarColor: color.hex } : prev);
+      setShowColorPicker(false);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '更新顏色失敗');
+    } finally {
+      setSavingColor(false);
     }
   }
 
@@ -286,6 +334,61 @@ export default function ProfilePage() {
             </Link>
           </div>
         </div>
+      </div>
+
+      {/* 行事曆顏色選擇 */}
+      <div className={styles.colorSection}>
+        <div className={styles.colorSectionHeader}>
+          <Palette size={16} />
+          <span>行事曆顏色</span>
+          <button
+            type="button"
+            className={styles.colorEditBtn}
+            onClick={handleOpenColorPicker}
+          >
+            {user.calendarColor ? '更換' : '選擇'}
+          </button>
+        </div>
+        {user.calendarColor ? (
+          <div className={styles.currentColorDisplay}>
+            <span
+              className={styles.currentColorDot}
+              style={{ backgroundColor: user.calendarColor }}
+            />
+            <span className={styles.currentColorName}>
+              {CALENDAR_PALETTE.find(c => c.hex === user.calendarColor)?.name || '自訂色'}
+            </span>
+          </div>
+        ) : (
+          <div className={styles.colorHint}>
+            尚未選擇行事曆顏色，點擊「選擇」設定
+          </div>
+        )}
+
+        {showColorPicker && (
+          <div className={styles.colorPickerGrid}>
+            {CALENDAR_PALETTE.map((color) => {
+              const takenBy = usedColors.find(uc => uc.color === color.hex && uc.userId !== user.id);
+              const isSelected = user.calendarColor === color.hex;
+              const isTaken = !!takenBy;
+              return (
+                <button
+                  key={color.id}
+                  type="button"
+                  className={`${styles.paletteColor} ${isSelected ? styles.paletteColorActive : ''} ${isTaken ? styles.paletteColorTaken : ''}`}
+                  style={{ backgroundColor: color.hex }}
+                  onClick={() => !isTaken && handleSelectColor(color)}
+                  disabled={isTaken || savingColor}
+                  title={isTaken ? `${color.name}（${takenBy.displayName} 使用中）` : color.name}
+                  aria-label={color.name}
+                >
+                  {isSelected && <Check size={14} style={{ color: '#fff' }} />}
+                  {isTaken && <span className={styles.paletteColorTakenLabel}>{takenBy.displayName}</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* 大頭照錯誤訊息 */}
