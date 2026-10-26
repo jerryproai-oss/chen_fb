@@ -42,19 +42,19 @@ const nextConfig: NextConfig = {
           // 限制瀏覽器功能存取
           {
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=(), payment=()",
+            value: "camera=(self), microphone=(), geolocation=(), payment=()",
           },
           // CSP — 限制資源來源（允許 self + inline styles for Next.js）
           {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.jsdelivr.net",
               "worker-src 'self' blob:",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob:",
               "font-src 'self'",
-              "connect-src 'self'",
+              "connect-src 'self' https://cdn.jsdelivr.net https://tessdata.projectnaptha.com",
               "media-src 'self' blob:",
               "object-src 'none'",
               "frame-ancestors 'none'",
