@@ -177,8 +177,20 @@ export default function MediaUploader({
         });
 
         if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
-          throw new Error(data.error || `上傳失敗 (${res.status})`);
+          // 嘗試解析 JSON 錯誤訊息
+          let errorMessage = `上傳失敗 (${res.status})`;
+          try {
+            const data = await res.json();
+            if (data.error) errorMessage = data.error;
+          } catch {
+            // 非 JSON 回應（例如 Nginx 413 錯誤頁面）
+            if (res.status === 413) {
+              errorMessage = '檔案過大，伺服器無法處理。請嘗試壓縮影片後再上傳';
+            } else if (res.status >= 500) {
+              errorMessage = '伺服器發生錯誤，請稍後再試';
+            }
+          }
+          throw new Error(errorMessage);
         }
 
         const data = await res.json();

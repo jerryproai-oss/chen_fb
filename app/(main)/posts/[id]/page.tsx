@@ -48,6 +48,15 @@ function formatDate(dateStr: string): string {
   return `${y}/${m}/${day}`;
 }
 
+function formatRecordDate(dateStr: string): string {
+  // recordDate 是 @db.Date（YYYY-MM-DDT00:00:00.000Z），使用 UTC 避免時區偏移
+  const d = new Date(dateStr);
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${y}/${m}/${day}`;
+}
+
 function formatDateTime(dateStr: string): string {
   const d = new Date(dateStr);
   const y = d.getFullYear();
@@ -311,10 +320,8 @@ export default function PostDetailPage({
           <div className={styles.authorInfo}>
             <div className={styles.authorName}>{post.author.displayName}</div>
             <div className={styles.meta}>
-              <span>
-                {post.publishedAt
-                  ? formatDateTime(post.publishedAt)
-                  : formatDateTime(post.createdAt)}
+              <span className={styles.recordDate}>
+                📅 {formatRecordDate(post.recordDate)}
               </span>
               <span className={styles.metaIcon}>
                 <VisibilityIcon visibility={post.visibility} />
@@ -329,6 +336,15 @@ export default function PostDetailPage({
                 <span className={styles.locationMeta}>📍 {post.locationName}</span>
               )}
             </div>
+            {/* 發布/編輯時間（小字） */}
+            {post.publishedAt && (
+              <div className={styles.publishedMeta}>
+                {post.updatedAt && post.updatedAt !== post.publishedAt
+                  ? `編輯於 ${formatDateTime(post.updatedAt)}`
+                  : `發布於 ${formatDateTime(post.publishedAt)}`
+                }
+              </div>
+            )}
           </div>
         </div>
 

@@ -8,6 +8,16 @@ interface DatePickerProps {
   onChange: (date: string) => void;
 }
 
+/** 使用 Asia/Taipei 時區取得今日日期字串 */
+function todayInTaipei(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
 /**
  * 日期選擇器 — 使用原生 date input
  */
@@ -27,7 +37,7 @@ export default function DatePicker({ value, onChange }: DatePickerProps) {
           className={styles.input}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          max={new Date().toISOString().split('T')[0]}
+          max={todayInTaipei()}
         />
       </div>
     </div>

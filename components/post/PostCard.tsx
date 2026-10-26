@@ -32,6 +32,7 @@ function VisibilityIcon({ visibility }: { visibility: Visibility }) {
 }
 
 function formatDate(dateStr: string): string {
+  // 處理 @db.Date 格式（YYYY-MM-DD 或帶時區的 ISO string）
   const d = new Date(dateStr);
   return new Intl.DateTimeFormat('zh-TW', {
     timeZone: 'Asia/Taipei',
@@ -39,6 +40,15 @@ function formatDate(dateStr: string): string {
     month: '2-digit',
     day: '2-digit',
   }).format(d).replace(/-/g, '/');
+}
+
+function formatRecordDate(dateStr: string): string {
+  // recordDate 是 @db.Date（YYYY-MM-DDT00:00:00.000Z），只取日期部分
+  const d = new Date(dateStr);
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${y}/${m}/${day}`;
 }
 
 function formatDateTime(dateStr: string): string {
@@ -247,10 +257,8 @@ export default function PostCard({
               {post.author.displayName}
             </div>
             <div className={styles.meta}>
-              <span>
-                {post.publishedAt
-                  ? formatDateTime(post.publishedAt)
-                  : formatDateTime(post.createdAt)}
+              <span className={styles.recordDate}>
+                📅 {formatRecordDate(post.recordDate)}
               </span>
               <span className={styles.metaDot}>·</span>
               <span className={styles.metaIcon}>
@@ -270,6 +278,15 @@ export default function PostCard({
                 </>
               )}
             </div>
+            {/* 顯示發布/編輯時間（小字） */}
+            {post.publishedAt && (
+              <div className={styles.publishedMeta}>
+                {post.updatedAt && post.updatedAt !== post.publishedAt
+                  ? `編輯於 ${formatDateTime(post.updatedAt)}`
+                  : `發布於 ${formatDateTime(post.publishedAt)}`
+                }
+              </div>
+            )}
           </div>
           <button
             type="button"

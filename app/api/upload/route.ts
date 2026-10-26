@@ -6,6 +6,12 @@ import { prisma } from '@/lib/db/client';
 import { withAuth } from '@/lib/auth/middleware';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
 
+/**
+ * Route Segment Config — 允許大檔案上傳
+ * maxDuration: 影片上傳可能需要較長時間
+ */
+export const maxDuration = 300; // 5 分鐘
+
 /** 允許的 MIME 類型 */
 const ALLOWED_MIME_TYPES = new Set([
   // 圖片
@@ -148,9 +154,20 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
   let formData: FormData;
   try {
     formData = await req.formData();
-  } catch {
+  } catch (parseError) {
+    const errMsg = parseError instanceof Error ? parseError.message : 'unknown';
+    console.error('[upload] formData 解析失敗:', errMsg);
+
+    // 常見錯誤：檔案過大導致 body 被截斷
+    if (errMsg.includes('size') || errMsg.includes('limit') || errMsg.includes('too large')) {
+      return NextResponse.json(
+        { error: '檔案過大，伺服器無法處理。請嘗試壓縮影片後再上傳' },
+        { status: 413 },
+      );
+    }
+
     return NextResponse.json(
-      { error: '無法解析上傳資料' },
+      { error: '無法解析上傳資料，請確認檔案完整性後重試' },
       { status: 400 },
     );
   }
