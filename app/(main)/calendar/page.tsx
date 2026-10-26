@@ -651,7 +651,7 @@ export default function CalendarPage() {
                             {Array.from({ length: maxRow }, (_, rowIdx) => {
                               const rowSegs = segs.filter(s => s.row === rowIdx);
                               return (
-                                <React.Fragment key={rowIdx}>
+                                <div key={rowIdx} className={styles.weekSegmentRow}>
                                   {/* 用空白格填充 + 事件格 */}
                                   {(() => {
                                     const cells: React.ReactNode[] = [];
@@ -687,7 +687,7 @@ export default function CalendarPage() {
                                     }
                                     return cells;
                                   })()}
-                                </React.Fragment>
+                                </div>
                               );
                             })}
                           </div>

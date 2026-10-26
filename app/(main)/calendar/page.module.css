@@ -249,6 +249,12 @@
   z-index: 2;
 }
 
+.weekSegmentRow {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+}
+
 .spanBar {
   height: 18px;
   color: #fff;
