@@ -232,13 +232,13 @@
 /* ── Month Weeks — 多天事件橫跨結構 ─────────────────────── */
 
 .monthWeeks {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  /* 容器，不設 grid — 每週用獨立 grid 確保 7 等分 */
 }
 
 .weekRow {
-  grid-column: 1 / -1;
   position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
 }
 
 .weekSegmentLayer {
@@ -290,9 +290,7 @@
 }
 
 .weekDayCells {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: subgrid;
+  display: contents;
 }
 
 /* ── Day Cell (Month View) ────────────────────────────────── */

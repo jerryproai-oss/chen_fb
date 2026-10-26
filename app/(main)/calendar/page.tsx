@@ -694,7 +694,7 @@ export default function CalendarPage() {
                         )}
 
                         {/* 日期格子 */}
-                        <div className={styles.weekDayCells} style={segLayerHeight > 0 ? { paddingTop: segLayerHeight } : undefined}>
+                        <div className={styles.weekDayCells}>
                           {week.map((cell) => {
                             const { m } = parseDateStr(cell.date);
                             const isCurrentMonth = m === currentMonth;
@@ -710,6 +710,7 @@ export default function CalendarPage() {
                               <div
                                 key={cell.date}
                                 className={`${styles.dayCell} ${!isCurrentMonth ? styles.dayDisabled : ''}`}
+                                style={segLayerHeight > 0 ? { paddingTop: segLayerHeight } : undefined}
                                 onClick={() => {
                                   setSelectedDate(cell.date);
                                   if (!isCurrentMonth) {
