@@ -268,11 +268,16 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
     isImportant: isImportantInput,
   } = body;
 
-  // 驗證 title
-  if (typeof title !== 'string' || title.trim().length === 0) {
+  // 驗證 title（勾選「需要用車」時標題可省略，自動填入「用車」）
+  const needsCar = needsCarInput === true;
+  let eventTitle = typeof title === 'string' ? title.trim() : '';
+  if (!eventTitle && needsCar) {
+    eventTitle = '用車';
+  }
+  if (!eventTitle) {
     return NextResponse.json({ error: '標題為必填' }, { status: 400 });
   }
-  if (title.trim().length > 100) {
+  if (eventTitle.length > 100) {
     return NextResponse.json({ error: '標題長度不能超過 100 字' }, { status: 400 });
   }
 
@@ -360,13 +365,12 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
   }
 
   try {
-    const needsCar = needsCarInput === true;
     const isImportant = isImportantInput === true;
 
     const newEvent = await prisma.familyEvent.create({
       data: {
         authorId: user.id,
-        title: title.trim(),
+        title: eventTitle,
         description: typeof description === 'string' ? description.trim() : null,
         eventDate: parsedDate,
         endDate: parsedEndDate,
