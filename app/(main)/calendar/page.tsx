@@ -694,7 +694,7 @@ export default function CalendarPage() {
                         )}
 
                         {/* 日期格子 */}
-                        <div className={styles.weekDayCells}>
+                        <div className={styles.weekDayCells} style={segLayerHeight > 0 ? { paddingTop: segLayerHeight } : undefined}>
                           {week.map((cell) => {
                             const { m } = parseDateStr(cell.date);
                             const isCurrentMonth = m === currentMonth;
