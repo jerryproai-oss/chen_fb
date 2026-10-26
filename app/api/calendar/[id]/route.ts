@@ -112,6 +112,7 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     recurringEndDate,
     needsCar,
     isImportant,
+    authorId: newAuthorId,
   } = body;
 
   const updateData: Record<string, unknown> = {};
@@ -248,6 +249,26 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
 
   if (typeof isImportant === 'boolean') {
     updateData.isImportant = isImportant;
+  }
+
+  // 管理員可變更用車事件的擁有者（authorId）
+  if (newAuthorId !== undefined && isAdmin && isCarEvent) {
+    if (typeof newAuthorId !== 'string' || !UUID_PATTERN.test(newAuthorId)) {
+      return NextResponse.json({ error: '無效的使用者 ID' }, { status: 400 });
+    }
+    // 確認目標使用者存在且為啟用狀態
+    const targetUser = await prisma.user.findUnique({
+      where: { id: newAuthorId },
+      select: { id: true, status: true, calendarColor: true, displayName: true },
+    });
+    if (!targetUser || targetUser.status !== 'ACTIVE') {
+      return NextResponse.json({ error: '指定的使用者不存在或已停用' }, { status: 400 });
+    }
+    updateData.authorId = newAuthorId;
+    // 同步更新事件顏色為新擁有者的行事曆顏色
+    updateData.color = targetUser.calendarColor || '#5a7a5a';
+    // 自動更新標題為「新暱稱 用車」
+    updateData.title = `${targetUser.displayName} 用車`;
   }
 
   try {

@@ -128,6 +128,9 @@ export default function CalendarPage() {
   const [showCarConflictDialog, setShowCarConflictDialog] = useState(false);
   const [carConflictConfirmed, setCarConflictConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // 管理員變更用車帳號
+  const [formAuthorId, setFormAuthorId] = useState('');
+  const [familyMembers, setFamilyMembers] = useState<Array<{ id: string; displayName: string }>>([]);
 
   /** 取得事件的顯示顏色（用車→固定色 / 假日→依類型 / 一般→作者色） */
   const evColor = useCallback((ev: FamilyEventItem): string => {
@@ -274,6 +277,24 @@ export default function CalendarPage() {
     setFormIsImportant(event.isImportant || false);
     setCarConflicts([]);
     setCarConflictConfirmed(false);
+    // 設定用車帳號（管理員編輯用車事件時使用）
+    setFormAuthorId(event.authorId);
+    // 管理員編輯用車事件時，載入家庭成員列表
+    if (currentUser?.role === 'ADMIN' && event.needsCar) {
+      fetch('/api/family/members')
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          if (data?.members && currentUser) {
+            // 加入自己到列表中
+            const allMembers = [
+              { id: currentUser.id, displayName: currentUser.displayName },
+              ...data.members.map((m: { id: string; displayName: string }) => ({ id: m.id, displayName: m.displayName })),
+            ];
+            setFamilyMembers(allMembers);
+          }
+        })
+        .catch(() => {});
+    }
     setIsModalOpen(true);
   }
 
@@ -287,7 +308,7 @@ export default function CalendarPage() {
     }
     setSubmitting(true);
     try {
-      const payload = {
+      const payload: Record<string, unknown> = {
         title: effectiveTitle,
         eventDate: formDate,
         endDate: formEndDate || null,
@@ -302,6 +323,11 @@ export default function CalendarPage() {
         needsCar: formNeedsCar,
         isImportant: formIsImportant,
       };
+
+      // 管理員編輯用車事件時，若變更了用車帳號，帶上 authorId
+      if (editingEvent && currentUser?.role === 'ADMIN' && formNeedsCar && formAuthorId && formAuthorId !== editingEvent.authorId) {
+        payload.authorId = formAuthorId;
+      }
 
       let res: Response;
       if (editingEvent) {
@@ -1198,6 +1224,26 @@ export default function CalendarPage() {
                     需要用車
                   </span>
                 </label>
+
+                {/* 管理員：用車帳號選擇器 */}
+                {editingEvent && currentUser?.role === 'ADMIN' && formNeedsCar && familyMembers.length > 0 && (
+                  <div className={styles.formGroup} style={{ marginTop: 'var(--space-xs)', marginLeft: 'calc(20px + var(--space-sm))' }}>
+                    <label className={styles.label} htmlFor="car-author">
+                      <Car size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                      用車帳號
+                    </label>
+                    <select
+                      id="car-author"
+                      className={styles.select}
+                      value={formAuthorId}
+                      onChange={(e) => setFormAuthorId(e.target.value)}
+                    >
+                      {familyMembers.map((m) => (
+                        <option key={m.id} value={m.id}>{m.displayName}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* 衝突靜態提示 */}
                 {formNeedsCar && carConflictConfirmed && carConflicts.length > 0 && (
