@@ -536,14 +536,18 @@ export default function CalendarPage() {
 
   const dayEvents = eventsByDate[selectedDate] || [];
 
-  // 選取日期的格式化標題
-  const selectedDateTitle = useMemo(() => {
+  // 選取日期的格式化標題（主標題 + 農曆副標題）
+  const selectedDateInfo = useMemo(() => {
     const { y, m, d } = parseDateStr(selectedDate);
     const date = new Date(y, m - 1, d);
     const lunarText = getLunarFullText(selectedDate);
-    const base = `${y}年${m}月${d}日（${WEEKDAYS[date.getDay()]}）`;
-    return lunarText ? `${base} ${lunarText}` : base;
+    const main = `${y}年${m}月${d}日（${WEEKDAYS[date.getDay()]}）`;
+    return { main, lunar: lunarText || '' };
   }, [selectedDate]);
+  // 保留相容
+  const selectedDateTitle = selectedDateInfo.lunar
+    ? `${selectedDateInfo.main} ${selectedDateInfo.lunar}`
+    : selectedDateInfo.main;
 
   // ── 週視圖資料 ────────────────────────────────────────────
 
@@ -791,7 +795,8 @@ export default function CalendarPage() {
               {/* 當日事件列表 — 桌面版在右側 */}
               <div className={styles.eventsPane}>
               <EventsSection
-                title={selectedDateTitle}
+                title={selectedDateInfo.main}
+                lunar={selectedDateInfo.lunar}
                 events={dayEvents}
                 currentUser={currentUser}
                 onAdd={() => handleOpenCreateModal(selectedDate)}
@@ -907,7 +912,8 @@ export default function CalendarPage() {
               {/* 選取日事件列表 */}
               <div className={styles.eventsPane}>
               <EventsSection
-                title={selectedDateTitle}
+                title={selectedDateInfo.main}
+                lunar={selectedDateInfo.lunar}
                 events={dayEvents}
                 currentUser={currentUser}
                 onAdd={() => handleOpenCreateModal(selectedDate)}
@@ -1002,7 +1008,8 @@ export default function CalendarPage() {
               {/* 完整事件列表 */}
               <div className={styles.eventsPane}>
               <EventsSection
-                title={selectedDateTitle}
+                title={selectedDateInfo.main}
+                lunar={selectedDateInfo.lunar}
                 events={dayEvents}
                 currentUser={currentUser}
                 onAdd={() => handleOpenCreateModal(selectedDate)}
@@ -1447,6 +1454,7 @@ export default function CalendarPage() {
 
 function EventsSection({
   title,
+  lunar,
   events,
   currentUser,
   onAdd,
@@ -1454,6 +1462,7 @@ function EventsSection({
   onDelete,
 }: {
   title: string;
+  lunar?: string;
   events: FamilyEventItem[];
   currentUser: UserProfile | null;
   onAdd: () => void;
@@ -1463,12 +1472,20 @@ function EventsSection({
   return (
     <section className={styles.eventsSection}>
       <div className={styles.eventsSectionHeader}>
-        <h2 className={styles.eventsSectionTitle}>
-          {title} ({events.length})
-        </h2>
-        <button type="button" className={styles.addEventBtn} onClick={onAdd}>
-          <Plus size={14} /> 新增行程
-        </button>
+        <div className={styles.eventsSectionTitleGroup}>
+          <h2 className={styles.eventsSectionTitle}>
+            {title}
+          </h2>
+          {lunar && (
+            <span className={styles.eventsSectionLunar}>{lunar}</span>
+          )}
+        </div>
+        <div className={styles.eventsSectionRight}>
+          <span className={styles.eventsSectionCount}>{events.length}</span>
+          <button type="button" className={styles.addEventBtn} onClick={onAdd}>
+            <Plus size={14} /> 新增行程
+          </button>
+        </div>
       </div>
 
       {events.length === 0 ? (
