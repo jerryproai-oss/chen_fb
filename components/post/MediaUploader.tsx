@@ -5,8 +5,7 @@ import { Upload, X, Film, Music } from 'lucide-react';
 import type { MediaItem } from '@/lib/types';
 import styles from './MediaUploader.module.css';
 
-/** 最大上傳數量 */
-const MAX_FILES = 9;
+/** 不限制上傳數量 */
 /** 單檔最大大小（圖片 20MB、影片/音訊 500MB） */
 const MAX_SIZE_IMAGE = 20 * 1024 * 1024;
 const MAX_SIZE_MEDIA = 500 * 1024 * 1024;
@@ -56,8 +55,7 @@ export default function MediaUploader({
     ...uploadedMedia,
   ]);
 
-  const totalCount = mediaIds.length + uploading.length;
-  const canUpload = totalCount < MAX_FILES;
+  const canUpload = true;
 
   /** 驗證檔案 */
   const validateFile = useCallback(
@@ -229,19 +227,8 @@ export default function MediaUploader({
   const handleFiles = useCallback(
     (files: FileList | File[]) => {
       const fileArr = Array.from(files);
-      const remaining = MAX_FILES - totalCount;
 
-      if (remaining <= 0) {
-        setError(`最多只能上傳 ${MAX_FILES} 個媒體檔案`);
-        return;
-      }
-
-      const toUpload = fileArr.slice(0, remaining);
-      if (fileArr.length > remaining) {
-        setError(`已選取 ${fileArr.length} 張，但只能再上傳 ${remaining} 張`);
-      }
-
-      for (const file of toUpload) {
+      for (const file of fileArr) {
         const validationErr = validateFile(file);
         if (validationErr) {
           setError(validationErr);
@@ -266,7 +253,7 @@ export default function MediaUploader({
         });
       }
     },
-    [totalCount, validateFile, uploadFile, compressImage],
+    [validateFile, uploadFile, compressImage],
   );
 
   /** 點擊上傳區域 */
@@ -466,7 +453,7 @@ export default function MediaUploader({
 
       {/* 上傳提示 */}
       <span className={styles.hint}>
-        已選 {mediaIds.length}/{MAX_FILES} 個媒體
+        已選 {mediaIds.length} 個媒體
       </span>
     </div>
   );
