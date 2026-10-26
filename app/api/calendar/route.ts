@@ -268,11 +268,11 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
     isImportant: isImportantInput,
   } = body;
 
-  // 驗證 title（勾選「需要用車」時標題可省略，自動填入「用車」）
+  // 驗證 title（勾選「需要用車」時標題可省略，自動填入「暱稱 用車」）
   const needsCar = needsCarInput === true;
   let eventTitle = typeof title === 'string' ? title.trim() : '';
   if (!eventTitle && needsCar) {
-    eventTitle = '用車';
+    eventTitle = `${user.displayName} 用車`;
   }
   if (!eventTitle) {
     return NextResponse.json({ error: '標題為必填' }, { status: 400 });

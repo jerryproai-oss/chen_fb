@@ -279,8 +279,8 @@ export default function CalendarPage() {
 
   async function handleSubmitEvent(e: React.FormEvent) {
     e.preventDefault();
-    // 如果勾了「需要用車」且標題為空，自動填入「用車」
-    const effectiveTitle = formTitle.trim() || (formNeedsCar ? '用車' : '');
+    // 如果勾了「需要用車」且標題為空，自動填入「暱稱 用車」
+    const effectiveTitle = formTitle.trim() || (formNeedsCar && currentUser ? `${currentUser.displayName} 用車` : '');
     if (!effectiveTitle || !formDate) {
       alert('請填寫標題與日期');
       return;
@@ -994,7 +994,7 @@ export default function CalendarPage() {
                   id="event-title"
                   type="text"
                   className={styles.input}
-                  placeholder={formNeedsCar ? '可不填，預設為「用車」' : '如：家庭聚餐、小明生日、露營旅行'}
+                  placeholder={formNeedsCar ? `可不填，預設為「${currentUser?.displayName || ''} 用車」` : '如：家庭聚餐、小明生日、露營旅行'}
                   value={formTitle}
                   onChange={(e) => setFormTitle(e.target.value)}
                   maxLength={100}
