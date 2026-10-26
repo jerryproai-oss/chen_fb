@@ -25,6 +25,8 @@ export interface MediaItem {
   fileSize: number;
   width: number | null;
   height: number | null;
+  caption: string | null;
+  takenAt: string | null;
   sortOrder: number;
 }
 

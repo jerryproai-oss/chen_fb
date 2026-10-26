@@ -203,6 +203,8 @@ export default function MediaUploader({
           width: data.media.width,
           height: data.media.height,
           sortOrder: 0,
+          caption: data.media.caption ?? null,
+          takenAt: data.media.takenAt ?? null,
         };
 
         // 保存新上傳的媒體資訊（含 mimeType）

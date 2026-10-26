@@ -178,6 +178,8 @@ export const GET = withAuth(
           fileSize: m.fileSize,
           width: m.width,
           height: m.height,
+          caption: m.caption,
+          takenAt: m.takenAt,
           sortOrder: m.sortOrder,
         })),
         hasPoll: !!p.poll,

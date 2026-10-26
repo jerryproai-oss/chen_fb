@@ -205,7 +205,11 @@ export default function PostCard({
 
   const isDraft = post.status === 'DRAFT';
   const hasMedia = post.media && post.media.length > 0;
-  const mediaCount = post.media?.length ?? 0;
+
+  // 分類媒體
+  const photos = post.media?.filter((m) => m.mimeType?.startsWith('image/')) ?? [];
+  const videos = post.media?.filter((m) => m.mimeType?.startsWith('video/')) ?? [];
+  const audios = post.media?.filter((m) => m.mimeType?.startsWith('audio/')) ?? [];
 
   // 取前 3 種不重複的 emoji 作為摘要
   const topReactions = reactionSummary
@@ -218,20 +222,14 @@ export default function PostCard({
     0,
   );
 
-  // FB 風格：最多顯示 5 張，+N 覆蓋在第 5 張
-  const displayCount = Math.min(mediaCount, 5);
-
-  // 根據圖片數量選擇網格 class
-  const mediaGridClass =
-    mediaCount === 1
-      ? styles.mediaGrid1
-      : mediaCount === 2
-        ? styles.mediaGrid2
-        : mediaCount === 3
-          ? styles.mediaGrid3
-          : mediaCount === 4
-            ? styles.mediaGrid4
-            : styles.mediaGrid5plus;
+  // 照片網格：最多顯示 4 張
+  const photoDisplayCount = Math.min(photos.length, 4);
+  const photoMore = photos.length - 4;
+  const photoGridClass =
+    photos.length === 1 ? styles.mediaGrid1
+    : photos.length === 2 ? styles.mediaGrid2
+    : photos.length === 3 ? styles.mediaGrid3
+    : styles.mediaGrid4;
 
   // 讚按鈕文字 & emoji
   const likeEmoji = myReaction ? REACTION_EMOJI[myReaction] : null;
@@ -343,41 +341,64 @@ export default function PostCard({
           {post.hasPoll && <PollCard hasPoll />}
         </div>
 
-        {/* ── 圖片網格 ─────────────────────── */}
-        {hasMedia && (
-          <div className={`${styles.mediaGrid} ${mediaGridClass}`}>
-            {post.media!.slice(0, displayCount).map((item, i) => {
-              const isVideo = item.mimeType?.startsWith('video/');
-              const isAudio = item.mimeType?.startsWith('audio/');
-              return (
-                <div key={item.id} className={styles.mediaItem}>
-                  {isVideo ? (
-                    <div className={styles.mediaPlaceholder}>
-                      <Film size={32} />
-                      <span>影片</span>
-                    </div>
-                  ) : isAudio ? (
-                    <div className={styles.mediaPlaceholder}>
-                      <Music size={32} />
-                      <span>音訊</span>
-                    </div>
-                  ) : (
-                    <img
-                      className={styles.mediaImage}
-                      src={item.url}
-                      alt={item.filename || `圖片 ${i + 1}`}
-                      loading="lazy"
-                    />
-                  )}
-                  {/* 最後一張顯示 +N 覆蓋 */}
-                  {i === displayCount - 1 && mediaCount > displayCount && (
-                    <div className={styles.mediaMore}>
-                      +{mediaCount - displayCount}
-                    </div>
-                  )}
+        {/* ── 照片網格 ─────────────────────── */}
+        {photos.length > 0 && (
+          <div className={`${styles.mediaGrid} ${photoGridClass}`}>
+            {photos.slice(0, photoDisplayCount).map((item, i) => (
+              <div key={item.id} className={styles.mediaItem}>
+                <img
+                  className={styles.mediaImage}
+                  src={item.url}
+                  alt={item.filename || `照片 ${i + 1}`}
+                  loading="lazy"
+                />
+                {i === photoDisplayCount - 1 && photoMore > 0 && (
+                  <div className={styles.mediaMore}>
+                    +{photoMore}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── 影片列表 ─────────────────────── */}
+        {videos.length > 0 && (
+          <div className={styles.videoList}>
+            {videos.map((item) => (
+              <div key={item.id} className={styles.videoCardItem}>
+                <div className={styles.videoThumbWrap}>
+                  <video
+                    className={styles.videoThumbVideo}
+                    src={item.url}
+                    muted
+                    preload="metadata"
+                    playsInline
+                  />
+                  <div className={styles.videoPlayOverlay}>▶</div>
                 </div>
-              );
-            })}
+                <div className={styles.videoCardInfo}>
+                  <Film size={14} />
+                  <span className={styles.videoCardName}>
+                    {item.filename || '影片'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── 音訊列表 ─────────────────────── */}
+        {audios.length > 0 && (
+          <div className={styles.audioList}>
+            {audios.map((item) => (
+              <div key={item.id} className={styles.audioCardItem}>
+                <Music size={16} />
+                <span className={styles.audioCardName}>
+                  {item.filename || '音訊'}
+                </span>
+              </div>
+            ))}
           </div>
         )}
       </Link>

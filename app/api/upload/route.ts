@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
+import ExifReader from 'exifreader';
 import { prisma } from '@/lib/db/client';
 import { withAuth } from '@/lib/auth/middleware';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
@@ -234,6 +235,46 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
     );
   }
 
+  // ── 提取 EXIF 資訊（圖片限定）──────────────────────
+  let takenAt: Date | null = null;
+  let imgWidth: number | null = null;
+  let imgHeight: number | null = null;
+
+  if (file.type.startsWith('image/') && file.type !== 'image/gif') {
+    try {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const tags = ExifReader.load(buffer, { expanded: true });
+
+      // 拍攝時間
+      const dateTag =
+        tags.exif?.DateTimeOriginal?.description
+        || tags.exif?.DateTimeDigitized?.description
+        || tags.exif?.DateTime?.description;
+
+      if (dateTag) {
+        // EXIF 格式："2026:10:25 14:30:00" → 轉為 ISO
+        const isoStr = dateTag.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3');
+        const parsed = new Date(isoStr);
+        if (!isNaN(parsed.getTime())) {
+          takenAt = parsed;
+        }
+      }
+
+      // 圖片尺寸
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const exifAny = tags.exif as Record<string, any> | undefined;
+      const w = tags.file?.['Image Width']?.value ?? exifAny?.ImageWidth?.value ?? exifAny?.PixelXDimension?.value;
+      const h = tags.file?.['Image Height']?.value ?? exifAny?.ImageHeight?.value ?? exifAny?.PixelYDimension?.value;
+      if (typeof w === 'number' && typeof h === 'number' && w > 0 && h > 0) {
+        imgWidth = w;
+        imgHeight = h;
+      }
+    } catch (exifErr) {
+      // EXIF 解析失敗不影響上傳
+      console.warn('[upload] EXIF 解析失敗:', exifErr instanceof Error ? exifErr.message : 'unknown');
+    }
+  }
+
   // ── 建立 PostMedia record ─────────────────────────
   let media;
   try {
@@ -245,8 +286,10 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
         storagePath: relativePath,
         mimeType: file.type,
         fileSize: file.size,
-        width: null,
-        height: null,
+        width: imgWidth,
+        height: imgHeight,
+        caption: null,
+        takenAt,
         sortOrder: 0,
       },
     });
@@ -277,6 +320,8 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
         fileSize: media.fileSize,
         width: media.width,
         height: media.height,
+        caption: media.caption,
+        takenAt: media.takenAt,
       },
     },
     { status: 201 },

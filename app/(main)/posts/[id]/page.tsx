@@ -367,7 +367,7 @@ export default function PostDetailPage({
         )}
 
         {post.media && post.media.length > 0 && (
-          <MediaGallery media={post.media} />
+          <MediaGallery media={post.media} isAuthor={isAuthor} />
         )}
 
         {post.hasPoll && (

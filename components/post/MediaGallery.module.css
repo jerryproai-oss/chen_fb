@@ -1,6 +1,6 @@
 /* ── MediaGallery ──────────────────────────────────────────── */
 
-/* 網格容器 */
+/* 照片網格容器 */
 .grid {
   display: grid;
   gap: var(--space-xs);
@@ -8,33 +8,18 @@
   overflow: hidden;
 }
 
-/* 1 張：滿寬 */
-.grid1 {
-  grid-template-columns: 1fr;
-}
-
-/* 2 張：兩欄 */
-.grid2 {
-  grid-template-columns: 1fr 1fr;
-}
-
-/* 3 張：上 1 下 2 */
+.grid1 { grid-template-columns: 1fr; }
+.grid2 { grid-template-columns: 1fr 1fr; }
 .grid3 {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
 }
-
-.grid3 .gridItem:first-child {
-  grid-column: 1 / -1;
-}
-
-/* 4+ 張：2x2 */
+.grid3 .gridItem:first-child { grid-column: 1 / -1; }
 .grid4 {
   grid-template-columns: 1fr 1fr;
   grid-template-rows: auto auto;
 }
 
-/* 單張網格項 */
 .gridItem {
   position: relative;
   cursor: pointer;
@@ -45,11 +30,11 @@
 .gridItem::after {
   content: '';
   display: block;
-  padding-bottom: 75%; /* 4:3 aspect ratio */
+  padding-bottom: 75%;
 }
 
 .grid1 .gridItem::after {
-  padding-bottom: 56.25%; /* 16:9 for single image */
+  padding-bottom: 56.25%;
 }
 
 .gridItemImage {
@@ -65,7 +50,6 @@
   transform: scale(1.03);
 }
 
-/* +N 覆蓋 */
 .moreOverlay {
   position: absolute;
   inset: 0;
@@ -79,26 +63,124 @@
   z-index: 1;
 }
 
+/* ── 影片區 ──────────────────────────────────────────────── */
+.videoSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.videoCard {
+  display: flex;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-secondary, #f5f3ee);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+  align-items: center;
+}
+
+.videoCard:hover {
+  background-color: var(--color-border-light);
+}
+
+.videoPreview {
+  position: relative;
+  width: 120px;
+  min-width: 120px;
+  height: 72px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background-color: #000;
+  flex-shrink: 0;
+}
+
+.videoPreviewElement {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.playIcon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.videoInfo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  min-width: 0;
+}
+
+.videoName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── 音訊區 ──────────────────────────────────────────────── */
+.audioSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+.audioCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  background-color: var(--color-bg-secondary, #f5f3ee);
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  transition: background-color var(--transition-fast);
+}
+
+.audioCard:hover {
+  background-color: var(--color-border-light);
+}
+
+.audioName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ── 燈箱（Lightbox） ────────────────────────────────────── */
 
 .lightboxBackdrop {
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(0, 0, 0, 0.92);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   animation: fadeIn var(--transition-fast);
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .lightboxContent {
@@ -106,19 +188,25 @@
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
+}
+
+.lightboxMediaArea {
+  flex: 1;
+  display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 0;
 }
 
 .lightboxImage {
   max-width: 92vw;
-  max-height: 88vh;
+  max-height: 70vh;
   object-fit: contain;
   border-radius: var(--radius-sm);
   user-select: none;
 }
 
-/* 關閉按鈕 */
 .lightboxClose {
   position: absolute;
   top: var(--space-md);
@@ -141,7 +229,6 @@
   background-color: rgba(255, 255, 255, 0.3);
 }
 
-/* 上一張 / 下一張 */
 .lightboxNav {
   position: absolute;
   top: 50%;
@@ -164,73 +251,135 @@
   background-color: rgba(255, 255, 255, 0.3);
 }
 
-.lightboxPrev {
-  left: var(--space-md);
-}
+.lightboxPrev { left: var(--space-md); }
+.lightboxNext { right: var(--space-md); }
 
-.lightboxNext {
-  right: var(--space-md);
-}
-
-/* 計數器 */
-.lightboxCounter {
-  position: absolute;
-  bottom: var(--space-lg);
-  left: 50%;
-  transform: translateX(-50%);
-  color: rgba(255, 255, 255, 0.7);
-  font-size: var(--font-size-sm);
-  font-variant-numeric: tabular-nums;
-  z-index: 1001;
-}
-
-/* ── 影片/音訊縮圖 ───────────────────────────────────────── */
-.videoThumb {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.playIcon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background-color: rgba(0, 0, 0, 0.6);
+/* ── 燈箱底部資訊列 ──────────────────────────────────────── */
+.lightboxFooter {
+  padding: var(--space-md) var(--space-lg);
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
   color: #fff;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  pointer-events: none;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-height: 60px;
 }
 
-.audioThumb {
-  width: 100%;
-  height: 100%;
+.lightboxDate {
+  font-size: var(--font-size-xs);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.captionDisplay {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.captionText {
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+  margin: 0;
+  flex: 1;
+}
+
+.captionEditBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.captionEditBtn:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  color: #fff;
+}
+
+/* 心情文編輯 */
+.captionEdit {
   display: flex;
   flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.captionInput {
+  width: 100%;
+  padding: var(--space-sm);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-sm);
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-family: inherit;
+  resize: none;
+  outline: none;
+}
+
+.captionInput::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.captionInput:focus {
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.captionActions {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 4px;
-  background-color: rgba(90, 122, 90, 0.08);
+  gap: var(--space-sm);
+  justify-content: flex-end;
 }
 
-.audioIcon {
-  font-size: 32px;
-}
-
-.audioLabel {
+.captionCount {
   font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  max-width: 90%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.4);
+  margin-right: auto;
+}
+
+.captionCancelBtn {
+  padding: 4px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+}
+
+.captionSaveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.captionSaveBtn:disabled {
+  opacity: 0.5;
+}
+
+.lightboxCounter {
   text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── 燈箱音訊 ────────────────────────────────────────────── */
