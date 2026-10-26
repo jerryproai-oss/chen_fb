@@ -11,7 +11,7 @@ import type { FamilyEventItem } from '@/lib/types';
 export const GET = withAuth(async (_ctx, req: NextRequest) => {
   const { searchParams } = new URL(req.url);
   const daysParam = searchParams.get('days');
-  const days = daysParam ? Math.min(Math.max(parseInt(daysParam, 10), 1), 90) : 14;
+  const days = daysParam ? Math.min(Math.max(parseInt(daysParam, 10), 1), 366) : 14;
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);

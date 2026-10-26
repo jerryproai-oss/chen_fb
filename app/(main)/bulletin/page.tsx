@@ -13,6 +13,15 @@ const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六'];
 
 type TabType = 'all' | 'car';
 
+type RangeType = '14' | '30' | '90' | '365';
+
+const RANGE_OPTIONS: { value: RangeType; label: string }[] = [
+  { value: '14', label: '二週' },
+  { value: '30', label: '一個月' },
+  { value: '90', label: '一季' },
+  { value: '365', label: '一年' },
+];
+
 function pad2(n: number): string {
   return String(n).padStart(2, '0');
 }
@@ -51,22 +60,26 @@ export default function BulletinPage() {
   const [data, setData] = useState<BulletinData | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('all');
+  const [range, setRange] = useState<RangeType>('14');
 
   useEffect(() => {
+    let cancelled = false;
     async function fetchBulletin() {
+      setLoading(true);
       try {
-        const res = await fetch('/api/bulletin?days=14');
+        const res = await fetch(`/api/bulletin?days=${range}`);
         if (!res.ok) throw new Error('Failed to fetch');
         const json = await res.json();
-        setData(json);
+        if (!cancelled) setData(json);
       } catch (err) {
         console.error('Failed to load bulletin:', err);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     fetchBulletin();
-  }, []);
+    return () => { cancelled = true; };
+  }, [range]);
 
   // 衝突日期 Set
   const conflictDates = useMemo(() => {
@@ -117,8 +130,22 @@ export default function BulletinPage() {
           家庭公佈欄
         </h1>
         <p className={styles.pageSubtitle}>
-          未來兩週的重要行程與用車排程一覽
+          {RANGE_OPTIONS.find((r) => r.value === range)?.label || '未來'}的重要行程與用車排程一覽
         </p>
+      </div>
+
+      {/* 時間範圍選擇 */}
+      <div className={styles.rangeSelector}>
+        {RANGE_OPTIONS.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            className={`${styles.rangeBtn} ${range === opt.value ? styles.rangeBtnActive : ''}`}
+            onClick={() => setRange(opt.value)}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
 
       {/* Tabs */}
@@ -184,8 +211,8 @@ export default function BulletinPage() {
           </div>
           <div className={styles.emptyText}>
             {activeTab === 'car'
-              ? '未來兩週沒有用車排程'
-              : '未來兩週沒有重要行程或用車排程'}
+              ? `${RANGE_OPTIONS.find((r) => r.value === range)?.label || '此期間'}內沒有用車排程`
+              : `${RANGE_OPTIONS.find((r) => r.value === range)?.label || '此期間'}內沒有重要行程或用車排程`}
           </div>
         </div>
       ) : (

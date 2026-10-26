@@ -1126,7 +1126,7 @@ export default function CalendarPage() {
                     onChange={async (e) => {
                       const checked = e.target.checked;
                       if (checked && formDate) {
-                        // 查詢衝突
+                        // 不論有無衝突，都彈出提醒對話框
                         try {
                           const res = await fetch(`/api/calendar/car-conflicts?date=${formDate}`);
                           if (res.ok) {
@@ -1135,15 +1135,16 @@ export default function CalendarPage() {
                             const otherConflicts = editingEvent
                               ? conflictData.conflicts.filter((c: { id: string }) => c.id !== editingEvent.id)
                               : conflictData.conflicts;
-                            if (otherConflicts.length > 0) {
-                              setCarConflicts(otherConflicts);
-                              setShowCarConflictDialog(true);
-                              return; // 等待對話框確認
-                            }
+                            setCarConflicts(otherConflicts);
+                          } else {
+                            setCarConflicts([]);
                           }
                         } catch {
-                          // 查詢失敗也允許勾選
+                          setCarConflicts([]);
                         }
+                        // 無論查詢結果如何，都顯示確認對話框
+                        setShowCarConflictDialog(true);
+                        return;
                       }
                       setFormNeedsCar(checked);
                       if (!checked) {
@@ -1286,32 +1287,40 @@ export default function CalendarPage() {
             </div>
 
             <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
-              <p style={{ marginBottom: 'var(--space-sm)' }}>當日已有其他家人預約用車：</p>
-              {carConflicts.map((c) => (
-                <div key={c.id} style={{
-                  padding: '8px 12px',
-                  background: 'rgba(3, 155, 229, 0.08)',
-                  borderRadius: 'var(--radius-md)',
-                  marginBottom: 'var(--space-xs)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--space-sm)',
-                }}>
-                  <Car size={16} style={{ color: '#039be5', flexShrink: 0 }} />
-                  <div>
-                    <strong style={{ color: 'var(--color-text)' }}>{c.author.displayName}</strong>
-                    {' '}
-                    {c.isAllDay
-                      ? '（全天）'
-                      : `${c.eventTime || ''}${c.endTime ? ' — ' + c.endTime : ''}`
-                    }
-                    {' '}
-                    {c.title}
-                  </div>
-                </div>
-              ))}
+              {carConflicts.length > 0 ? (
+                <>
+                  <p style={{ marginBottom: 'var(--space-sm)' }}>當日已有其他家人預約用車：</p>
+                  {carConflicts.map((c) => (
+                    <div key={c.id} style={{
+                      padding: '8px 12px',
+                      background: 'rgba(3, 155, 229, 0.08)',
+                      borderRadius: 'var(--radius-md)',
+                      marginBottom: 'var(--space-xs)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 'var(--space-sm)',
+                    }}>
+                      <Car size={16} style={{ color: '#039be5', flexShrink: 0 }} />
+                      <div>
+                        <strong style={{ color: 'var(--color-text)' }}>{c.author.displayName}</strong>
+                        {' '}
+                        {c.isAllDay
+                          ? '（全天）'
+                          : `${c.eventTime || ''}${c.endTime ? ' — ' + c.endTime : ''}`
+                        }
+                        {' '}
+                        {c.title}
+                      </div>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <p style={{ marginBottom: 'var(--space-sm)' }}>
+                  目前該日尚無其他人登錄用車，但不代表沒有家人需要用車。
+                </p>
+              )}
               <p style={{ marginTop: 'var(--space-sm)', color: 'var(--color-text)' }}>
-                請先與對方確認溝通，避免用車時間衝突。
+                請先跟家人溝通確認，避免用車時間衝突。
               </p>
             </div>
 
