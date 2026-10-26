@@ -4,6 +4,11 @@ const nextConfig: NextConfig = {
   output: "standalone",
   serverExternalPackages: ["argon2", "@prisma/adapter-pg"],
 
+  // 允許大檔案上傳（影片最大 500MB）
+  experimental: {
+    middlewareClientMaxBodySize: '500mb',
+  },
+
   // Tesseract.js 需要的 webpack 設定（名片 OCR 辨識）
   webpack: (config, { isServer }) => {
     if (!isServer) {
