@@ -54,7 +54,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob:",
               "font-src 'self'",
-              "connect-src 'self' https://cdn.jsdelivr.net https://tessdata.projectnaptha.com",
+              "connect-src 'self' https://cdn.jsdelivr.net https://tessdata.projectnaptha.com https://api.open-meteo.com https://nominatim.openstreetmap.org",
               "media-src 'self' blob:",
               "object-src 'none'",
               "frame-ancestors 'none'",

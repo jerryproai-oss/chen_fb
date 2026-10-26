@@ -20,6 +20,7 @@ import { solarToLunar, getDayInfo } from '@/lib/lunar';
 import { getEventDisplayColor, CAR_EVENT_COLOR } from '@/lib/constants/calendar-colors';
 import type { FamilyEventItem, UserProfile } from '@/lib/types';
 import HelpGuide from '@/components/ui/HelpGuide';
+import WeatherWidget from '@/components/WeatherWidget';
 import { calendarHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
@@ -1522,6 +1523,9 @@ function EventsSection({
           </div>
         </div>
       )}
+
+      {/* 天氣預報 */}
+      <WeatherWidget />
 
       {events.length === 0 ? (
         <div className={styles.emptyState}>

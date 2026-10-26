@@ -1,0 +1,149 @@
+/* ── WeatherWidget ─────────────────────────────────────── */
+
+.container {
+  margin-bottom: var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+  background: var(--color-card);
+  overflow: hidden;
+}
+
+.loading {
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+/* ── 當日天氣 ────────────────────────────────── */
+
+.currentWeather {
+  padding: var(--space-sm) var(--space-md);
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.currentWeather:hover {
+  background-color: rgba(90, 122, 90, 0.04);
+}
+
+.currentMain {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: 4px;
+}
+
+.currentIcon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.currentTemp {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+}
+
+.tempValue {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.1;
+}
+
+.tempDesc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.currentDetails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-bottom: 4px;
+}
+
+.detailItem {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  background: rgba(90, 122, 90, 0.06);
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.expandBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 0;
+  transition: color var(--transition-fast);
+}
+
+.expandBtn:hover {
+  color: var(--color-accent);
+}
+
+/* ── 7 天預報 ────────────────────────────────── */
+
+.forecast {
+  border-top: 1px solid var(--color-border-light);
+  padding: var(--space-xs) var(--space-md) var(--space-sm);
+}
+
+.forecastDay {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.forecastDay:last-child {
+  border-bottom: none;
+}
+
+.forecastLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-text);
+  width: 32px;
+  flex-shrink: 0;
+}
+
+.forecastIcon {
+  font-size: 16px;
+  line-height: 1;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.forecastTemps {
+  display: flex;
+  gap: 4px;
+  font-size: var(--font-size-xs);
+  flex: 1;
+}
+
+.tempHigh {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.tempLow {
+  color: var(--color-text-secondary);
+}
+
+.forecastRain {
+  font-size: 10px;
+  color: #4a90d9;
+  white-space: nowrap;
+}
