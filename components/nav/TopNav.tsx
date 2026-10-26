@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Users, Calendar, PenSquare, UserCircle, Search, Bell, FileText, ClipboardList } from 'lucide-react';
+import { BookOpen, Users, Calendar, PenSquare, UserCircle, Search, Bell, FileText, ClipboardList, BookUser, Moon } from 'lucide-react';
 import styles from './TopNav.module.css';
 
 const LINKS = [
@@ -11,6 +11,8 @@ const LINKS = [
   { href: '/family', label: '家庭動態', icon: Users },
   { href: '/calendar', label: '行事曆', icon: Calendar },
   { href: '/bulletin', label: '公佈欄', icon: ClipboardList },
+  { href: '/contacts', label: '通訊錄', icon: BookUser },
+  { href: '/almanac', label: '農民曆', icon: Moon },
   { href: '/wiki', label: '文件庫', icon: FileText },
   { href: '/profile', label: '我的', icon: UserCircle },
 ] as const;

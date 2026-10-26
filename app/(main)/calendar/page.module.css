@@ -771,6 +771,50 @@
   font-weight: 700;
 }
 
+/* ── 農民曆摘要（行事曆右側面板） ─── */
+
+.almanacSummary {
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #faf8f2 0%, #f5f0e8 100%);
+  border: 1px solid #e8e4dc;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-sm);
+}
+
+.almanacBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.almanacBadge {
+  padding: 2px 8px;
+  background: rgba(139, 111, 71, 0.1);
+  color: #8b6f47;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.almanacYiji {
+  display: flex;
+  gap: 12px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.almanacYi {
+  color: #5a7a5a;
+  flex: 1;
+}
+
+.almanacJi {
+  color: #c0392b;
+  flex: 1;
+}
+
 .addEventBtn {
   display: inline-flex;
   align-items: center;

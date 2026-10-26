@@ -1,0 +1,994 @@
+/* ── 通訊錄頁面樣式 ──────────────────────────────── */
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 24px 16px 100px;
+}
+
+/* ── 頁面標題 ─────────────────────────────────────── */
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── 頂部工具列 ───────────────────────────────────── */
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.searchRow {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.searchInput {
+  flex: 1;
+  padding: 10px 14px 10px 38px;
+  border: 1px solid #d4d0c8;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  background: #fff;
+  color: #333;
+  transition: border-color 0.2s;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: #5a7a5a;
+  box-shadow: 0 0 0 2px rgba(90, 122, 90, 0.15);
+}
+
+.searchWrapper {
+  position: relative;
+  flex: 1;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  pointer-events: none;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 10px;
+  background: #5a7a5a;
+  color: #fff;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.addBtn:hover {
+  background: #4a6a4a;
+}
+
+.addBtn:active {
+  transform: scale(0.95);
+}
+
+.scanBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #d4d0c8;
+  border-radius: 10px;
+  background: #fff;
+  color: #8b6f47;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.scanBtn:hover {
+  background: #faf8f4;
+  border-color: #8b6f47;
+}
+
+/* ── 檢視模式切換 ─────────────────────────────────── */
+.viewTabs {
+  display: flex;
+  gap: 0;
+  background: #f0ece4;
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.viewTab {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #666;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.viewTab:hover {
+  color: #333;
+}
+
+.viewTabActive {
+  background: #fff;
+  color: #5a7a5a;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* ── 群組篩選 ─────────────────────────────────────── */
+.groupFilter {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.groupFilter::-webkit-scrollbar {
+  display: none;
+}
+
+.groupChip {
+  padding: 5px 12px;
+  border: 1px solid #d4d0c8;
+  border-radius: 20px;
+  background: #fff;
+  color: #666;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.groupChip:hover {
+  border-color: #5a7a5a;
+  color: #5a7a5a;
+}
+
+.groupChipActive {
+  background: #5a7a5a;
+  color: #fff;
+  border-color: #5a7a5a;
+}
+
+/* ── 聯絡人列表 ───────────────────────────────────── */
+.contactList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.groupLabel {
+  position: sticky;
+  top: 0;
+  padding: 8px 4px 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #5a7a5a;
+  background: #f7f5f0;
+  z-index: 1;
+  border-bottom: 1px solid #e8e4dc;
+}
+
+.contactCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid #f0ece4;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-radius: 8px;
+}
+
+.contactCard:hover {
+  background: #faf8f4;
+}
+
+.contactAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.contactInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.contactName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sharedBadge {
+  font-size: 0.7rem;
+  padding: 1px 6px;
+  background: #e8f0e8;
+  color: #5a7a5a;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.contactSub {
+  font-size: 0.82rem;
+  color: #888;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.contactGroupTag {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  background: #f0ece4;
+  color: #8b6f47;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.contactActions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.contactActionBtn {
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #5a7a5a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.contactActionBtn:hover {
+  background: #e8f0e8;
+}
+
+/* ── 空狀態 ───────────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.emptyIcon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+.emptySub {
+  font-size: 0.82rem;
+  color: #bbb;
+}
+
+/* ── 聯絡人詳情 Modal ─────────────────────────────── */
+.detailOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.detailPanel {
+  background: #fff;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 500px;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@media (min-width: 640px) {
+  .detailPanel {
+    border-radius: 16px;
+    max-height: 80vh;
+    margin-bottom: 0;
+  }
+  .detailOverlay {
+    align-items: center;
+  }
+}
+
+.detailHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0ece4;
+}
+
+.detailTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.detailCloseBtn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: #f0ece4;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detailBody {
+  padding: 20px;
+}
+
+.detailAvatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #fff;
+  margin: 0 auto 16px;
+}
+
+.detailName {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.detailCompany {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #888;
+  margin-bottom: 20px;
+}
+
+.detailQuickActions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.quickActionBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #5a7a5a;
+  font-size: 0.75rem;
+  padding: 8px;
+  border-radius: 12px;
+  transition: background 0.15s;
+  text-decoration: none;
+}
+
+.quickActionBtn:hover {
+  background: #f0ece4;
+}
+
+.quickActionIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #e8f0e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detailFields {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detailField {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.detailFieldIcon {
+  color: #999;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.detailFieldContent {
+  flex: 1;
+}
+
+.detailFieldLabel {
+  font-size: 0.75rem;
+  color: #999;
+  margin-bottom: 2px;
+}
+
+.detailFieldValue {
+  font-size: 0.9rem;
+  color: #333;
+  word-break: break-all;
+}
+
+.detailFieldLink {
+  color: #5a7a5a;
+  text-decoration: none;
+}
+
+.detailFieldLink:hover {
+  text-decoration: underline;
+}
+
+.detailFooter {
+  display: flex;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid #f0ece4;
+}
+
+.detailEditBtn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #5a7a5a;
+  border-radius: 10px;
+  background: #fff;
+  color: #5a7a5a;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.detailEditBtn:hover {
+  background: #f0f7f0;
+}
+
+.detailDeleteBtn {
+  padding: 10px 16px;
+  border: 1px solid #e0d0d0;
+  border-radius: 10px;
+  background: #fff;
+  color: #c0392b;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.detailDeleteBtn:hover {
+  background: #fdf0f0;
+}
+
+.detailShareBtn {
+  padding: 10px 16px;
+  border: 1px solid #d4d0c8;
+  border-radius: 10px;
+  background: #fff;
+  color: #8b6f47;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background 0.15s;
+}
+
+.detailShareBtn:hover {
+  background: #faf8f4;
+}
+
+/* ── 表單 Modal ───────────────────────────────────── */
+.formOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.15s ease;
+}
+
+.formPanel {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: 16px;
+  animation: scaleIn 0.2s ease;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.formHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0ece4;
+}
+
+.formTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.formBody {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.formLabel {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #666;
+}
+
+.formRequired {
+  color: #c0392b;
+}
+
+.formInput {
+  padding: 10px 12px;
+  border: 1px solid #d4d0c8;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  color: #333;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: #5a7a5a;
+  box-shadow: 0 0 0 2px rgba(90, 122, 90, 0.15);
+}
+
+.formSelect {
+  padding: 10px 12px;
+  border: 1px solid #d4d0c8;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  color: #333;
+  background: #fff;
+  appearance: auto;
+}
+
+.formTextarea {
+  padding: 10px 12px;
+  border: 1px solid #d4d0c8;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  color: #333;
+  background: #fff;
+  resize: vertical;
+  min-height: 60px;
+  font-family: inherit;
+}
+
+.formTextarea:focus {
+  outline: none;
+  border-color: #5a7a5a;
+  box-shadow: 0 0 0 2px rgba(90, 122, 90, 0.15);
+}
+
+.formRow {
+  display: flex;
+  gap: 12px;
+}
+
+.formRow > .formGroup {
+  flex: 1;
+}
+
+.formCheckbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.formCheckbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #5a7a5a;
+}
+
+.formCheckboxLabel {
+  font-size: 0.88rem;
+  color: #333;
+}
+
+.formFooter {
+  display: flex;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid #f0ece4;
+}
+
+.formCancelBtn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #d4d0c8;
+  border-radius: 10px;
+  background: #fff;
+  color: #666;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.formSaveBtn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #5a7a5a;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.formSaveBtn:hover {
+  background: #4a6a4a;
+}
+
+.formSaveBtn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* ── 重複警告 ─────────────────────────────────────── */
+.duplicateWarning {
+  background: #fff8e1;
+  border: 1px solid #f0e4c0;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.duplicateTitle {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #8b6f47;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.duplicateItem {
+  font-size: 0.82rem;
+  color: #666;
+  padding: 4px 0;
+}
+
+.duplicateActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.duplicateIgnoreBtn {
+  padding: 6px 12px;
+  border: 1px solid #d4d0c8;
+  border-radius: 6px;
+  background: #fff;
+  color: #666;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.duplicateIgnoreBtn:hover {
+  background: #faf8f4;
+}
+
+/* ── 名片掃描 ─────────────────────────────────────── */
+.scannerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.15s ease;
+}
+
+.scannerPanel {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: 16px;
+}
+
+.scannerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f0ece4;
+}
+
+.scannerTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.scannerBody {
+  padding: 20px;
+  text-align: center;
+}
+
+.scannerDropzone {
+  border: 2px dashed #d4d0c8;
+  border-radius: 12px;
+  padding: 40px 20px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  margin-bottom: 16px;
+}
+
+.scannerDropzone:hover {
+  border-color: #5a7a5a;
+  background: #f0f7f0;
+}
+
+.scannerDropzoneActive {
+  border-color: #5a7a5a;
+  background: #e8f0e8;
+}
+
+.scannerDropzoneIcon {
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.scannerDropzoneText {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.scannerDropzoneSub {
+  font-size: 0.78rem;
+  color: #bbb;
+}
+
+.scannerPreview {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  object-fit: contain;
+}
+
+.scannerProgress {
+  padding: 20px;
+}
+
+.scannerProgressBar {
+  height: 6px;
+  background: #f0ece4;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.scannerProgressFill {
+  height: 100%;
+  background: #5a7a5a;
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.scannerProgressText {
+  font-size: 0.82rem;
+  color: #888;
+}
+
+.scannerResultText {
+  text-align: left;
+  font-size: 0.85rem;
+  color: #333;
+  background: #f7f5f0;
+  border-radius: 8px;
+  padding: 12px;
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.scannerActions {
+  display: flex;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid #f0ece4;
+}
+
+.scannerCancelBtn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #d4d0c8;
+  border-radius: 10px;
+  background: #fff;
+  color: #666;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.scannerUseBtn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #5a7a5a;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.scannerUseBtn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+/* ── 統計列 ───────────────────────────────────────── */
+.stats {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 0.82rem;
+  color: #888;
+}
+
+.statItem {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.statCount {
+  font-weight: 600;
+  color: #5a7a5a;
+}
+
+/* ── 載入中 ───────────────────────────────────────── */
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f0ece4;
+  border-top-color: #5a7a5a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── 響應式 ───────────────────────────────────────── */
+@media (max-width: 640px) {
+  .container {
+    padding: 16px 12px 100px;
+  }
+
+  .pageTitle {
+    font-size: 1.3rem;
+  }
+
+  .detailPanel {
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .formPanel,
+  .scannerPanel {
+    margin: 0;
+    border-radius: 20px 20px 0 0;
+    max-width: 100%;
+    position: fixed;
+    bottom: 0;
+  }
+}

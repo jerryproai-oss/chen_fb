@@ -67,6 +67,13 @@ export const AuditActions = {
   // 通知
   NOTIFICATION_READ: "NOTIFICATION_READ",
 
+  // 通訊錄
+  CONTACT_CREATE: "CONTACT_CREATE",
+  CONTACT_UPDATE: "CONTACT_UPDATE",
+  CONTACT_DELETE: "CONTACT_DELETE",
+  CONTACT_SHARE: "CONTACT_SHARE",
+  CONTACT_UNSHARE: "CONTACT_UNSHARE",
+
   // 系統
   ADMIN_INIT: "ADMIN_INIT",
 } as const;
@@ -89,6 +96,7 @@ export const ResourceTypes = {
   TAG: "TAG",
   NOTIFICATION: "NOTIFICATION",
   WIKI: "WIKI",
+  CONTACT: "CONTACT",
 } as const;
 
 export type ResourceType =

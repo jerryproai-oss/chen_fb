@@ -16,7 +16,7 @@ import {
   Star,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
-import { solarToLunar } from '@/lib/lunar';
+import { solarToLunar, getDayInfo } from '@/lib/lunar';
 import { getEventDisplayColor, CAR_EVENT_COLOR } from '@/lib/constants/calendar-colors';
 import type { FamilyEventItem, UserProfile } from '@/lib/types';
 import HelpGuide from '@/components/ui/HelpGuide';
@@ -797,6 +797,7 @@ export default function CalendarPage() {
               <EventsSection
                 title={selectedDateInfo.main}
                 lunar={selectedDateInfo.lunar}
+                selectedDate={selectedDate}
                 events={dayEvents}
                 currentUser={currentUser}
                 onAdd={() => handleOpenCreateModal(selectedDate)}
@@ -914,6 +915,7 @@ export default function CalendarPage() {
               <EventsSection
                 title={selectedDateInfo.main}
                 lunar={selectedDateInfo.lunar}
+                selectedDate={selectedDate}
                 events={dayEvents}
                 currentUser={currentUser}
                 onAdd={() => handleOpenCreateModal(selectedDate)}
@@ -1010,6 +1012,7 @@ export default function CalendarPage() {
               <EventsSection
                 title={selectedDateInfo.main}
                 lunar={selectedDateInfo.lunar}
+                selectedDate={selectedDate}
                 events={dayEvents}
                 currentUser={currentUser}
                 onAdd={() => handleOpenCreateModal(selectedDate)}
@@ -1455,6 +1458,7 @@ export default function CalendarPage() {
 function EventsSection({
   title,
   lunar,
+  selectedDate,
   events,
   currentUser,
   onAdd,
@@ -1463,12 +1467,20 @@ function EventsSection({
 }: {
   title: string;
   lunar?: string;
+  selectedDate?: string;
   events: FamilyEventItem[];
   currentUser: UserProfile | null;
   onAdd: () => void;
   onEdit: (ev: FamilyEventItem) => void;
   onDelete: (ev: FamilyEventItem) => void;
 }) {
+  // 農民曆摘要（宜忌 + 沖煞）
+  const almanacSummary = useMemo(() => {
+    if (!selectedDate) return null;
+    const { y, m, d } = parseDateStr(selectedDate);
+    return getDayInfo(y, m, d);
+  }, [selectedDate]);
+
   return (
     <section className={styles.eventsSection}>
       <div className={styles.eventsSectionHeader}>
@@ -1487,6 +1499,28 @@ function EventsSection({
           </button>
         </div>
       </div>
+
+      {/* 農民曆摘要 */}
+      {almanacSummary && (
+        <div className={styles.almanacSummary}>
+          <div className={styles.almanacBadges}>
+            <span className={styles.almanacBadge}>🐾 {almanacSummary.shengXiao}</span>
+            <span className={styles.almanacBadge}>⭐ {almanacSummary.xingZuo}</span>
+            {almanacSummary.jieQi && (
+              <span className={styles.almanacBadge}>🌿 {almanacSummary.jieQi}</span>
+            )}
+            <span className={styles.almanacBadge}>⚔️ {almanacSummary.chongDesc}</span>
+          </div>
+          <div className={styles.almanacYiji}>
+            <span className={styles.almanacYi}>
+              ✅ {almanacSummary.yi.slice(0, 4).join('、') || '無'}{almanacSummary.yi.length > 4 ? '…' : ''}
+            </span>
+            <span className={styles.almanacJi}>
+              ❌ {almanacSummary.ji.slice(0, 4).join('、') || '無'}{almanacSummary.ji.length > 4 ? '…' : ''}
+            </span>
+          </div>
+        </div>
+      )}
 
       {events.length === 0 ? (
         <div className={styles.emptyState}>

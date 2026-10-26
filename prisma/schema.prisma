@@ -86,6 +86,7 @@ model User {
   wikiPages             WikiPage[]
   wikiEdits             WikiPageVersion[]
   wikiPermissions       WikiPagePermission[]
+  contacts              Contact[]
 
   @@map("users")
 }
@@ -573,4 +574,32 @@ model WikiPagePermission {
 
   @@unique([pageId, userId])
   @@map("wiki_page_permissions")
+}
+
+
+// ── 通訊錄 ──────────────────────────────────────────────────
+
+model Contact {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid        // 建立者
+  name       String                                      // 姓名
+  phone      String?                                     // 電話（主要）
+  phone2     String?   @map("phone_2")                  // 電話（次要）
+  email      String?                                     // Email
+  company    String?                                     // 公司 / 單位
+  jobTitle   String?   @map("job_title")                // 職稱
+  address    String?                                     // 地址
+  birthday   DateTime? @db.Date                          // 生日
+  note       String?                                     // 備註
+  group      String    @default("other")                 // 群組分類
+  isShared   Boolean   @default(false) @map("is_shared") // 是否分享至共同通訊錄
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isShared])
+  @@index([name])
+  @@map("contacts")
 }

@@ -1,0 +1,419 @@
+/* ── 農民曆頁面樣式 ──────────────────────────────── */
+
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 24px 16px 100px;
+}
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── 日期選擇 ─────────────────────────────────────── */
+.dateNav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.dateBtn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #d4d0c8;
+  border-radius: 50%;
+  background: #fff;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.dateBtn:hover {
+  border-color: #5a7a5a;
+  color: #5a7a5a;
+  background: #f0f7f0;
+}
+
+.dateDisplay {
+  text-align: center;
+  cursor: pointer;
+  padding: 6px 16px;
+  border-radius: 10px;
+  transition: background 0.15s;
+}
+
+.dateDisplay:hover {
+  background: #f0ece4;
+}
+
+.dateMain {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.dateLunar {
+  font-size: 0.82rem;
+  color: #8b6f47;
+  margin-top: 2px;
+}
+
+.todayBtn {
+  padding: 4px 12px;
+  border: 1px solid #5a7a5a;
+  border-radius: 20px;
+  background: #fff;
+  color: #5a7a5a;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.todayBtn:hover {
+  background: #5a7a5a;
+  color: #fff;
+}
+
+.dateInput {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* ── 主卡片 ───────────────────────────────────────── */
+.heroCard {
+  background: linear-gradient(135deg, #5a7a5a 0%, #4a6a4a 100%);
+  border-radius: 16px;
+  padding: 24px;
+  color: #fff;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.heroDate {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.heroWeekday {
+  font-size: 1rem;
+  opacity: 0.85;
+  margin-bottom: 12px;
+}
+
+.heroLunar {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.heroGanZhi {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin-bottom: 16px;
+}
+
+.heroZodiac {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.heroBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  font-size: 0.85rem;
+}
+
+.heroJieQi {
+  margin-top: 12px;
+  padding: 6px 16px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  font-size: 0.9rem;
+  display: inline-block;
+}
+
+/* ── 宜忌區塊 ─────────────────────────────────────── */
+.yijiSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.yiCard {
+  background: #f0f7f0;
+  border-radius: 12px;
+  padding: 16px;
+  border-left: 4px solid #5a7a5a;
+}
+
+.jiCard {
+  background: #fdf5f5;
+  border-radius: 12px;
+  padding: 16px;
+  border-left: 4px solid #c0392b;
+}
+
+.yijiTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.yiTitle {
+  color: #5a7a5a;
+}
+
+.jiTitle {
+  color: #c0392b;
+}
+
+.yijiList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.yiTag {
+  padding: 3px 10px;
+  background: rgba(90, 122, 90, 0.12);
+  color: #4a6a4a;
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+
+.jiTag {
+  padding: 3px 10px;
+  background: rgba(192, 57, 43, 0.1);
+  color: #a93226;
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+
+/* ── 資訊卡片 ─────────────────────────────────────── */
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.infoCard {
+  background: #fff;
+  border: 1px solid #e8e4dc;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.infoLabel {
+  font-size: 0.75rem;
+  color: #999;
+  margin-bottom: 4px;
+}
+
+.infoValue {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.infoValueSmall {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #555;
+}
+
+/* ── 方位區塊 ─────────────────────────────────────── */
+.positionSection {
+  background: #fff;
+  border: 1px solid #e8e4dc;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.positionTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.positionGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.positionItem {
+  text-align: center;
+  padding: 10px;
+  background: #f7f5f0;
+  border-radius: 8px;
+}
+
+.positionLabel {
+  font-size: 0.75rem;
+  color: #999;
+  margin-bottom: 2px;
+}
+
+.positionValue {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #8b6f47;
+}
+
+/* ── 節日區塊 ─────────────────────────────────────── */
+.festivalsSection {
+  background: #fffcf0;
+  border: 1px solid #f0e4c0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.festivalTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #8b6f47;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.festivalTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.festivalTag {
+  padding: 4px 12px;
+  background: rgba(139, 111, 71, 0.12);
+  color: #8b6f47;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* ── 吉神凶煞 ─────────────────────────────────────── */
+.shenShaSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.shenCard {
+  background: #fff;
+  border: 1px solid #e8e4dc;
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.shenTitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #5a7a5a;
+  margin-bottom: 8px;
+}
+
+.shaTitle {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #c0392b;
+  margin-bottom: 8px;
+}
+
+.shenList {
+  font-size: 0.8rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* ── 彭祖百忌 ─────────────────────────────────────── */
+.pengZuSection {
+  background: #f7f5f0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.pengZuTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.pengZuText {
+  font-size: 0.88rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* ── 載入中 ───────────────────────────────────────── */
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f0ece4;
+  border-top-color: #5a7a5a;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── 響應式 ───────────────────────────────────────── */
+@media (max-width: 500px) {
+  .container {
+    padding: 16px 12px 100px;
+  }
+
+  .heroDate {
+    font-size: 2.5rem;
+  }
+
+  .yijiSection,
+  .infoGrid,
+  .shenShaSection {
+    grid-template-columns: 1fr;
+  }
+}

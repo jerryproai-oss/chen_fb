@@ -1,219 +1,115 @@
 /**
- * 農曆（農民曆）轉換工具
+ * 農曆（農民曆）工具
  *
- * 使用查表法，涵蓋 2024-2035 年。
- * 資料來源：中央氣象署、紫金山天文台、香港天文台等權威曆法機構。
+ * 使用 lunar-typescript 套件，提供完整的農民曆功能：
+ * - 西曆 ⇔ 農曆轉換
+ * - 天干地支、生肖、星座
+ * - 宜忌、沖煞、節氣、時辰
+ * - 彭祖百忌、建除十二值星、吉神凶煞、方位
+ *
+ * 向下相容：solarToLunar / lunarToSolar 介面不變
  */
+
+import { Solar, Lunar } from 'lunar-typescript';
 
 // ============================================================
 // 型別定義
 // ============================================================
 
+/** 基本農曆日期（向下相容） */
 export interface LunarDate {
-  year: number;        // 農曆年
-  month: number;       // 農曆月 (1-12)
-  day: number;         // 農曆日 (1-30)
-  isLeapMonth: boolean; // 是否閏月
-  monthName: string;   // 「正月」「二月」...「十二月」「閏x月」
-  dayName: string;     // 「初一」「初二」...「三十」
-  yearName: string;    // 天干地支年名 + 生肖，如「丙午馬年」
+  year: number;          // 農曆年
+  month: number;         // 農曆月 (1-12)
+  day: number;           // 農曆日 (1-30)
+  isLeapMonth: boolean;  // 是否閏月
+  monthName: string;     // 「正月」「二月」...「閏x月」
+  dayName: string;       // 「初一」「初二」...「三十」
+  yearName: string;      // 天干地支年名 + 生肖，如「丙午馬年」
 }
 
-interface LunarYearInfo {
-  /** [月, 日] 農曆正月初一的西曆日期 */
-  springFestival: [number, number];
-  /** 每月天數 (29 或 30)，正常 12 個月 + 可能的閏月（共 12 或 13 個） */
-  monthDays: number[];
-  /** 閏月位置 (0 = 無閏月，N = 閏 N 月) */
-  leapMonth: number;
+/** 農民曆日資訊（擴充功能） */
+export interface DayInfo {
+  // 基本農曆
+  lunar: LunarDate;
+
+  // 天干地支
+  yearGanZhi: string;    // 年干支，如「丙午」
+  monthGanZhi: string;   // 月干支
+  dayGanZhi: string;     // 日干支
+
+  // 生肖 + 星座
+  shengXiao: string;     // 生肖，如「馬」
+  xingZuo: string;       // 星座，如「天蠍」
+
+  // 節氣
+  jieQi: string;         // 當日節氣（無則空字串）
+  nextJieQi: string;     // 下一個節氣名稱
+  nextJieQiDate: string; // 下一個節氣日期（YYYY-MM-DD）
+
+  // 宜忌
+  yi: string[];          // 宜（適合做的事）
+  ji: string[];          // 忌（不適合做的事）
+
+  // 沖煞
+  chong: string;         // 沖（如「牛」）
+  sha: string;           // 煞（如「西」）
+  chongDesc: string;     // 沖煞描述（如「沖牛煞西」）
+
+  // 建除十二值星
+  zhiXing: string;       // 如「建」「除」「滿」等
+
+  // 彭祖百忌
+  pengZu: string;        // 彭祖百忌（合併天干+地支）
+
+  // 方位
+  xiShen: string;        // 喜神方位
+  caiShen: string;       // 財神方位
+  fuShen: string;        // 福神方位
+
+  // 吉神凶煞
+  jiShen: string[];      // 吉神宜趨
+  xiongSha: string[];    // 凶煞宜忌
+
+  // 農曆節日
+  festivals: string[];   // 農曆傳統節日
+  solarFestivals: string[]; // 西曆節日
+
+  // 五行 / 納音
+  naYin: string;         // 日柱納音
 }
 
 // ============================================================
-// 農曆年資料查表（2024-2035，已查證驗證）
-// ============================================================
-
-const LUNAR_YEAR_INFO: Record<number, LunarYearInfo> = {
-  // 2024 甲辰龍年 354天 無閏月
-  2024: {
-    springFestival: [2, 10],
-    leapMonth: 0,
-    monthDays: [29, 30, 29, 29, 30, 29, 30, 30, 29, 30, 30, 29],
-  },
-  // 2025 乙巳蛇年 384天 閏六月
-  2025: {
-    springFestival: [1, 29],
-    leapMonth: 6,
-    monthDays: [30, 29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 30, 29],
-  },
-  // 2026 丙午馬年 354天 無閏月
-  2026: {
-    springFestival: [2, 17],
-    leapMonth: 0,
-    monthDays: [30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 30, 29],
-  },
-  // 2027 丁未羊年 354天 無閏月
-  2027: {
-    springFestival: [2, 6],
-    leapMonth: 0,
-    monthDays: [30, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 29],
-  },
-  // 2028 戊申猴年 384天 閏五月
-  2028: {
-    springFestival: [1, 26],
-    leapMonth: 5,
-    monthDays: [30, 30, 30, 29, 30, 29, 29, 30, 29, 29, 30, 30, 29],
-  },
-  // 2029 己酉雞年 355天 無閏月
-  2029: {
-    springFestival: [2, 13],
-    leapMonth: 0,
-    monthDays: [30, 30, 29, 30, 29, 30, 29, 30, 29, 29, 30, 30],
-  },
-  // 2030 庚戌狗年 354天 無閏月
-  2030: {
-    springFestival: [2, 3],
-    leapMonth: 0,
-    monthDays: [29, 30, 29, 30, 30, 29, 30, 29, 30, 29, 30, 29],
-  },
-  // 2031 辛亥豬年 384天 閏三月
-  2031: {
-    springFestival: [1, 23],
-    leapMonth: 3,
-    monthDays: [29, 30, 30, 29, 30, 29, 30, 30, 29, 30, 29, 30, 29],
-  },
-  // 2032 壬子鼠年 355天 無閏月
-  2032: {
-    springFestival: [2, 11],
-    leapMonth: 0,
-    monthDays: [30, 29, 29, 30, 29, 30, 30, 29, 30, 30, 29, 30],
-  },
-  // 2033 癸丑牛年 384天 閏十一月
-  2033: {
-    springFestival: [1, 31],
-    leapMonth: 11,
-    monthDays: [29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 30, 29, 30],
-  },
-  // 2034 甲寅虎年 354天 無閏月
-  2034: {
-    springFestival: [2, 19],
-    leapMonth: 0,
-    monthDays: [29, 30, 29, 29, 30, 29, 30, 29, 30, 30, 29, 30],
-  },
-  // 2035 乙卯兔年 354天 無閏月
-  2035: {
-    springFestival: [2, 8],
-    leapMonth: 0,
-    monthDays: [30, 29, 30, 29, 29, 30, 29, 29, 30, 29, 30, 30],
-  },
-};
-
-// ============================================================
-// 天干地支 / 生肖
-// ============================================================
-
-const TIAN_GAN = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸'] as const;
-const DI_ZHI   = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'] as const;
-const SHENG_XIAO = ['鼠', '牛', '虎', '兔', '龍', '蛇', '馬', '羊', '猴', '雞', '狗', '豬'] as const;
-
-const MONTH_NAMES = [
-  '正月', '二月', '三月', '四月', '五月', '六月',
-  '七月', '八月', '九月', '十月', '十一月', '十二月',
-] as const;
-
-const DAY_NAMES = [
-  '初一', '初二', '初三', '初四', '初五', '初六', '初七', '初八', '初九', '初十',
-  '十一', '十二', '十三', '十四', '十五', '十六', '十七', '十八', '十九', '二十',
-  '廿一', '廿二', '廿三', '廿四', '廿五', '廿六', '廿七', '廿八', '廿九', '三十',
-] as const;
-
-// ============================================================
-// 內部工具函數
+// 向下相容：solarToLunar
 // ============================================================
 
 /**
- * 計算兩個西曆日期之間相差的天數（date2 - date1）。
- * 使用 UTC 避免時區 / 日光節約問題。
+ * 西曆轉農曆（向下相容介面）
  */
-function daysBetween(
-  y1: number, m1: number, d1: number,
-  y2: number, m2: number, d2: number,
-): number {
-  const a = Date.UTC(y1, m1 - 1, d1);
-  const b = Date.UTC(y2, m2 - 1, d2);
-  return Math.round((b - a) / 86_400_000);
-}
+export function solarToLunar(year: number, month: number, day: number): LunarDate | null {
+  try {
+    const solar = Solar.fromYmd(year, month, day);
+    const lunar = solar.getLunar();
 
-/**
- * 取得農曆年的天干地支年名 + 生肖。
- * 天干地支以 1984 年（甲子年）為基準。
- */
-function getYearName(lunarYear: number): string {
-  // 1984 = 甲子年 (index 0)
-  const offset = ((lunarYear - 4) % 60 + 60) % 60;
-  const ganIdx = offset % 10;
-  const zhiIdx = offset % 12;
-  return `${TIAN_GAN[ganIdx]}${DI_ZHI[zhiIdx]}${SHENG_XIAO[zhiIdx]}年`;
-}
-
-/**
- * 取得農曆月份名稱。
- */
-function getMonthName(month: number, isLeapMonth: boolean): string {
-  const base = MONTH_NAMES[month - 1];
-  return isLeapMonth ? `閏${base}` : base;
-}
-
-/**
- * 取得農曆日名稱。
- */
-function getDayName(day: number): string {
-  return DAY_NAMES[day - 1];
-}
-
-// ============================================================
-// 找出西曆日期落在哪個農曆年
-// ============================================================
-
-/**
- * 判斷西曆日期屬於哪個農曆年（以春節為界）。
- * 如果日期在該年春節前，則屬於前一個農曆年。
- */
-function findLunarYear(year: number, month: number, day: number): number | null {
-  // 先假設與西曆同年
-  const info = LUNAR_YEAR_INFO[year];
-  if (info) {
-    const [sm, sd] = info.springFestival;
-    // 如果西曆日期 >= 當年春節，則屬於當年農曆年
-    if (month > sm || (month === sm && day >= sd)) {
-      return year;
-    }
+    return {
+      year: lunar.getYear(),
+      month: Math.abs(lunar.getMonth()),
+      day: lunar.getDay(),
+      isLeapMonth: lunar.getMonth() < 0,
+      monthName: lunar.getMonthInChinese() + '月',
+      dayName: lunar.getDayInChinese(),
+      yearName: `${lunar.getYearInGanZhi()}${lunar.getYearShengXiao()}年`,
+    };
+  } catch {
+    return null;
   }
-
-  // 否則屬於前一年農曆年
-  const prevInfo = LUNAR_YEAR_INFO[year - 1];
-  if (prevInfo) {
-    return year - 1;
-  }
-
-  return null;
 }
 
 // ============================================================
-// 公開 API
+// 向下相容：lunarToSolar
 // ============================================================
 
 /**
- * 取得農曆年的春節（正月初一）西曆日期
- */
-export function getSpringFestival(lunarYear: number): { month: number; day: number } | null {
-  const info = LUNAR_YEAR_INFO[lunarYear];
-  if (!info) return null;
-  return { month: info.springFestival[0], day: info.springFestival[1] };
-}
-
-/**
- * 農曆轉西曆：給定農曆年月日，回傳對應西曆日期
- * 比暴力搜尋更高效，直接從春節日期加天數
+ * 農曆轉西曆
  */
 export function lunarToSolar(
   lunarYear: number,
@@ -221,119 +117,170 @@ export function lunarToSolar(
   lunarDay: number,
   isLeapMonth = false,
 ): { year: number; month: number; day: number } | null {
-  const info = LUNAR_YEAR_INFO[lunarYear];
-  if (!info) return null;
+  try {
+    const month = isLeapMonth ? -lunarMonth : lunarMonth;
+    const lunar = Lunar.fromYmd(lunarYear, month, lunarDay);
+    const solar = lunar.getSolar();
+    return {
+      year: solar.getYear(),
+      month: solar.getMonth(),
+      day: solar.getDay(),
+    };
+  } catch {
+    return null;
+  }
+}
 
-  const { springFestival, monthDays, leapMonth } = info;
-  let totalDays = lunarDay - 1; // 從正月初一算起
+// ============================================================
+// 向下相容：getSpringFestival
+// ============================================================
 
-  // 累加到目標月份之前的所有天數
-  let monthIdx = 0;
-  for (let m = 1; m < lunarMonth; m++) {
-    totalDays += monthDays[monthIdx];
-    monthIdx++;
-    // 如果經過閏月，再加閏月天數
-    if (leapMonth === m) {
-      totalDays += monthDays[monthIdx];
-      monthIdx++;
+/**
+ * 取得農曆年的春節（正月初一）西曆日期
+ */
+export function getSpringFestival(lunarYear: number): { month: number; day: number } | null {
+  try {
+    const lunar = Lunar.fromYmd(lunarYear, 1, 1);
+    const solar = lunar.getSolar();
+    return { month: solar.getMonth(), day: solar.getDay() };
+  } catch {
+    return null;
+  }
+}
+
+// ============================================================
+// 新增 API：getDayInfo — 完整農民曆日資訊
+// ============================================================
+
+/**
+ * 取得指定日期的完整農民曆資訊
+ */
+export function getDayInfo(year: number, month: number, day: number): DayInfo | null {
+  try {
+    const solar = Solar.fromYmd(year, month, day);
+    const lunar = solar.getLunar();
+
+    // 節氣
+    const jieQi = lunar.getJieQi() || '';
+
+    // 下一個節氣
+    let nextJieQi = '';
+    let nextJieQiDate = '';
+    const jqList = lunar.getJieQiTable();
+    const todayMs = Date.UTC(year, month - 1, day);
+    let nearestFutureMs = Infinity;
+    for (const name of Object.keys(jqList)) {
+      const s = jqList[name];
+      const ms = Date.UTC(s.getYear(), s.getMonth() - 1, s.getDay());
+      if (ms > todayMs && ms < nearestFutureMs) {
+        nearestFutureMs = ms;
+        nextJieQi = name;
+        nextJieQiDate = `${s.getYear()}-${String(s.getMonth()).padStart(2, '0')}-${String(s.getDay()).padStart(2, '0')}`;
+      }
     }
-  }
 
-  // 如果目標是閏月，再加正常月天數
-  if (isLeapMonth && leapMonth === lunarMonth) {
-    totalDays += monthDays[monthIdx]; // 跳過正常月
-  }
+    // 農曆節日
+    const festivals = lunar.getFestivals() || [];
+    const solarFestivals = solar.getFestivals() || [];
 
-  // 從春節加天數
-  const sfDate = new Date(Date.UTC(lunarYear, springFestival[0] - 1, springFestival[1] + totalDays));
-  return {
-    year: sfDate.getUTCFullYear(),
-    month: sfDate.getUTCMonth() + 1,
-    day: sfDate.getUTCDate(),
-  };
+    // 吉神 / 凶煞
+    let jiShen: string[] = [];
+    let xiongSha: string[] = [];
+    try {
+      jiShen = lunar.getDayJiShen() || [];
+      xiongSha = lunar.getDayXiongSha() || [];
+    } catch {
+      // 部分日期可能沒有吉神凶煞資料
+    }
+
+    const lunarDate: LunarDate = {
+      year: lunar.getYear(),
+      month: Math.abs(lunar.getMonth()),
+      day: lunar.getDay(),
+      isLeapMonth: lunar.getMonth() < 0,
+      monthName: lunar.getMonthInChinese() + '月',
+      dayName: lunar.getDayInChinese(),
+      yearName: `${lunar.getYearInGanZhi()}${lunar.getYearShengXiao()}年`,
+    };
+
+    return {
+      lunar: lunarDate,
+      yearGanZhi: lunar.getYearInGanZhi(),
+      monthGanZhi: lunar.getMonthInGanZhi(),
+      dayGanZhi: lunar.getDayInGanZhi(),
+      shengXiao: lunar.getYearShengXiao(),
+      xingZuo: solar.getXingZuo() + '座',
+      jieQi,
+      nextJieQi,
+      nextJieQiDate,
+      yi: lunar.getDayYi() || [],
+      ji: lunar.getDayJi() || [],
+      chong: lunar.getDayChong() || '',
+      sha: lunar.getDaySha() || '',
+      chongDesc: `沖${lunar.getDayChongDesc() || ''}煞${lunar.getDaySha() || ''}`,
+      zhiXing: lunar.getZhiXing() || '',
+      pengZu: `${lunar.getPengZuGan() || ''} ${lunar.getPengZuZhi() || ''}`.trim(),
+      xiShen: lunar.getDayPositionXiDesc() || '',
+      caiShen: lunar.getDayPositionCaiDesc() || '',
+      fuShen: lunar.getDayPositionFuDesc() || '',
+      jiShen,
+      xiongSha,
+      festivals: Array.isArray(festivals) ? festivals : [],
+      solarFestivals: Array.isArray(solarFestivals) ? solarFestivals : [],
+      naYin: lunar.getDayNaYin() || '',
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ============================================================
+// 輔助 API
+// ============================================================
+
+/**
+ * 取得指定月份的所有節氣
+ */
+export function getMonthJieQi(year: number, month: number): { name: string; day: number }[] {
+  try {
+    const result: { name: string; day: number }[] = [];
+    const solar = Solar.fromYmd(year, month, 1);
+    const lunar = solar.getLunar();
+    const jqTable = lunar.getJieQiTable();
+
+    for (const name of Object.keys(jqTable)) {
+      const s = jqTable[name];
+      if (s.getYear() === year && s.getMonth() === month) {
+        result.push({ name, day: s.getDay() });
+      }
+    }
+
+    return result.sort((a, b) => a.day - b.day);
+  } catch {
+    return [];
+  }
 }
 
 /**
- * 西曆轉農曆。
- *
- * @param year  西曆年 (2024-2035 範圍內，或跨年末尾延伸至 2036 年初)
- * @param month 西曆月 (1-12)
- * @param day   西曆日 (1-31)
- * @returns 對應的農曆日期，超出查表範圍時回傳 null
+ * 根據出生年月日計算星座
  */
-export function solarToLunar(year: number, month: number, day: number): LunarDate | null {
-  const lunarYear = findLunarYear(year, month, day);
-  if (lunarYear === null) return null;
-
-  const info = LUNAR_YEAR_INFO[lunarYear];
-  if (!info) return null;
-
-  const [sfMonth, sfDay] = info.springFestival;
-  // 計算從春節（正月初一）到目標日期的天數差
-  let remainingDays = daysBetween(
-    lunarYear, sfMonth, sfDay,
-    year, month, day,
-  );
-
-  if (remainingDays < 0) return null;
-
-  // 逐月扣除天數，找到目標月份
-  const { monthDays, leapMonth } = info;
-  let lunarMonth = 1;
-  let isLeap = false;
-  let monthIndex = 0; // 在 monthDays 陣列中的索引
-
-  for (let i = 0; i < monthDays.length; i++) {
-    if (remainingDays < monthDays[i]) {
-      monthIndex = i;
-      break;
-    }
-    remainingDays -= monthDays[i];
-    monthIndex = i + 1;
+export function getXingZuo(month: number, day: number): string {
+  try {
+    const solar = Solar.fromYmd(2000, month, day);
+    return solar.getXingZuo() + '座';
+  } catch {
+    return '';
   }
+}
 
-  // 如果超出所有月份範圍（落到下一個農曆年）
-  if (monthIndex >= monthDays.length) {
-    // 嘗試下一個農曆年
-    const nextYear = lunarYear + 1;
-    const nextInfo = LUNAR_YEAR_INFO[nextYear];
-    if (!nextInfo) return null;
-    return solarToLunar(year, month, day);
+/**
+ * 根據農曆年計算生肖
+ */
+export function getShengXiao(lunarYear: number): string {
+  try {
+    const lunar = Lunar.fromYmd(lunarYear, 1, 1);
+    return lunar.getYearShengXiao();
+  } catch {
+    return '';
   }
-
-  // 根據 monthIndex 和 leapMonth 計算實際農曆月和是否閏月
-  if (leapMonth === 0) {
-    // 無閏月：monthIndex 直接對應月份 (0=正月, 1=二月, ...)
-    lunarMonth = monthIndex + 1;
-    isLeap = false;
-  } else {
-    // 有閏月：leapMonth 之前的月份正常對應
-    // leapMonth 對應的 monthIndex = leapMonth (因為前面有 leapMonth 個正常月)
-    // leapMonth 所在的 monthIndex = leapMonth 是閏月
-    if (monthIndex < leapMonth) {
-      // 還沒到閏月
-      lunarMonth = monthIndex + 1;
-      isLeap = false;
-    } else if (monthIndex === leapMonth) {
-      // 正好是閏月
-      lunarMonth = leapMonth;
-      isLeap = true;
-    } else {
-      // 閏月之後
-      lunarMonth = monthIndex; // monthIndex - 1 + 1
-      isLeap = false;
-    }
-  }
-
-  const lunarDay = remainingDays + 1;
-
-  return {
-    year: lunarYear,
-    month: lunarMonth,
-    day: lunarDay,
-    isLeapMonth: isLeap,
-    monthName: getMonthName(lunarMonth, isLeap),
-    dayName: getDayName(lunarDay),
-    yearName: getYearName(lunarYear),
-  };
 }

@@ -4,6 +4,20 @@ const nextConfig: NextConfig = {
   output: "standalone",
   serverExternalPackages: ["argon2", "@prisma/adapter-pg"],
 
+  // Tesseract.js 需要的 webpack 設定（名片 OCR 辨識）
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve = config.resolve || {};
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        canvas: false,
+      };
+    }
+    return config;
+  },
+
   async headers() {
     return [
       {
@@ -30,7 +44,8 @@ const nextConfig: NextConfig = {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:",
+              "worker-src 'self' blob:",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: blob:",
               "font-src 'self'",
