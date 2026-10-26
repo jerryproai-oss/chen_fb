@@ -1432,6 +1432,8 @@ function EventsSection({
         <div className={styles.eventsList}>
           {events.map((event) => {
             const isOwner = currentUser && currentUser.id === event.authorId;
+            const isAdmin = currentUser && currentUser.role === 'ADMIN';
+            const canEdit = isOwner || (isAdmin && event.needsCar);
             return (
               <div
                 key={event.id}
@@ -1480,7 +1482,7 @@ function EventsSection({
                     )}
                   </div>
 
-                  {isOwner && (
+                  {canEdit && (
                     <div className={styles.eventActions}>
                       <button
                         type="button"

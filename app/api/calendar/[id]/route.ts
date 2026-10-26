@@ -57,7 +57,7 @@ function formatEvent(ev: {
 /**
  * PATCH /api/calendar/[id]
  *
- * 編輯事件（只有作者可以）
+ * 編輯事件（作者可編輯自己的事件；管理員可編輯任何用車事件）
  */
 export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
   const { id } = await routeCtx.params;
@@ -74,7 +74,12 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     return NextResponse.json({ error: '找不到該事件' }, { status: 404 });
   }
 
-  if (existing.authorId !== user.id) {
+  const isOwner = existing.authorId === user.id;
+  const isAdmin = user.role === 'ADMIN';
+  const isCarEvent = existing.needsCar === true;
+
+  // 權限檢查：作者本人 OR 管理員且為用車事件
+  if (!isOwner && !(isAdmin && isCarEvent)) {
     await logAudit({
       actorId: user.id,
       action: AuditActions.CALENDAR_UPDATE,
@@ -82,7 +87,7 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
       resourceId: id,
       outcome: Outcomes.DENIED,
     });
-    return NextResponse.json({ error: '只有作者可以編輯此事件' }, { status: 403 });
+    return NextResponse.json({ error: '只有作者可以編輯此事件（管理員可編輯用車事件）' }, { status: 403 });
   }
 
   let body: Record<string, unknown>;
@@ -281,7 +286,7 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
 /**
  * DELETE /api/calendar/[id]
  *
- * 刪除事件（只有作者可以）
+ * 刪除事件（作者可刪除自己的事件；管理員可刪除任何用車事件）
  */
 export const DELETE = withAuth(async ({ user }, _req: NextRequest, routeCtx) => {
   const { id } = await routeCtx.params;
@@ -298,7 +303,12 @@ export const DELETE = withAuth(async ({ user }, _req: NextRequest, routeCtx) => 
     return NextResponse.json({ error: '找不到該事件' }, { status: 404 });
   }
 
-  if (existing.authorId !== user.id) {
+  const isOwner = existing.authorId === user.id;
+  const isAdmin = user.role === 'ADMIN';
+  const isCarEvent = existing.needsCar === true;
+
+  // 權限檢查：作者本人 OR 管理員且為用車事件
+  if (!isOwner && !(isAdmin && isCarEvent)) {
     await logAudit({
       actorId: user.id,
       action: AuditActions.CALENDAR_DELETE,
@@ -306,7 +316,7 @@ export const DELETE = withAuth(async ({ user }, _req: NextRequest, routeCtx) => 
       resourceId: id,
       outcome: Outcomes.DENIED,
     });
-    return NextResponse.json({ error: '只有作者可以刪除此事件' }, { status: 403 });
+    return NextResponse.json({ error: '只有作者可以刪除此事件（管理員可刪除用車事件）' }, { status: 403 });
   }
 
   try {
