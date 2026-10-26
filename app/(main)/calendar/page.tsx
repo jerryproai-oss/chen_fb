@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   ChevronLeft,
   ChevronRight,
@@ -605,27 +605,50 @@ export default function CalendarPage() {
                       <div key={weekIdx} className={styles.weekRow}>
                         {/* 多天事件橫跨層 */}
                         {segLayerHeight > 0 && (
-                          <div className={styles.weekSegmentLayer} style={{ height: segLayerHeight }}>
-                            {segs.map((seg, segIdx) => (
-                              <div
-                                key={`${seg.event.id}-${segIdx}`}
-                                className={`${styles.spanBar} ${seg.isStart ? styles.spanBarStart : ''} ${seg.isEnd ? styles.spanBarEnd : ''}`}
-                                style={{
-                                backgroundColor: evColor(seg.event),
-                                  left: `${(seg.startCol / 7) * 100}%`,
-                                  width: `${(seg.span / 7) * 100}%`,
-                                  top: seg.row * 20,
-                                }}
-                                title={seg.event.title}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedDate(seg.event.eventDate);
-                                  handleOpenEditModal(seg.event);
-                                }}
-                              >
-                                {seg.isStart ? seg.event.title : `${seg.event.title}`}
-                              </div>
-                            ))}
+                          <div className={styles.weekSegmentLayer}>
+                            {/* 為每個 row 渲染一列 */}
+                            {Array.from({ length: maxRow }, (_, rowIdx) => {
+                              const rowSegs = segs.filter(s => s.row === rowIdx);
+                              return (
+                                <React.Fragment key={rowIdx}>
+                                  {/* 用空白格填充 + 事件格 */}
+                                  {(() => {
+                                    const cells: React.ReactNode[] = [];
+                                    let col = 0;
+                                    // 按 startCol 排序
+                                    const sorted = [...rowSegs].sort((a, b) => a.startCol - b.startCol);
+                                    for (const seg of sorted) {
+                                      // 填充空白格
+                                      if (seg.startCol > col) {
+                                        cells.push(
+                                          <div key={`gap-${rowIdx}-${col}`} style={{ gridColumn: `${col + 1} / ${seg.startCol + 1}` }} />
+                                        );
+                                      }
+                                      cells.push(
+                                        <div
+                                          key={`${seg.event.id}-${rowIdx}-${seg.startCol}`}
+                                          className={`${styles.spanBar} ${seg.isStart ? styles.spanBarStart : ''} ${seg.isEnd ? styles.spanBarEnd : ''}`}
+                                          style={{
+                                            backgroundColor: evColor(seg.event),
+                                            gridColumn: `${seg.startCol + 1} / ${seg.startCol + seg.span + 1}`,
+                                          }}
+                                          title={seg.event.title}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedDate(seg.event.eventDate);
+                                            handleOpenEditModal(seg.event);
+                                          }}
+                                        >
+                                          {seg.isStart ? seg.event.title : seg.event.title}
+                                        </div>
+                                      );
+                                      col = seg.startCol + seg.span;
+                                    }
+                                    return cells;
+                                  })()}
+                                </React.Fragment>
+                              );
+                            })}
                           </div>
                         )}
 

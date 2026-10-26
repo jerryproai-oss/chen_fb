@@ -185,14 +185,13 @@
 }
 
 .weekSegmentLayer {
-  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
   pointer-events: none;
-  padding: 0 1px;
   z-index: 2;
 }
 
 .spanBar {
-  position: absolute;
   height: 18px;
   color: #fff;
   font-size: 10px;
@@ -206,6 +205,7 @@
   line-height: 18px;
   box-sizing: border-box;
   transition: opacity var(--transition-fast);
+  margin-bottom: 2px;
 }
 
 .spanBar:hover {
