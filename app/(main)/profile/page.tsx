@@ -25,6 +25,8 @@ import FontSizeSwitcher from '@/components/ui/FontSizeSwitcher';
 import ThemeSwitcher from '@/components/ui/ThemeSwitcher';
 import { CALENDAR_PALETTE, type CalendarColor } from '@/lib/constants/calendar-colors';
 import type { UserProfile } from '@/lib/types';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { profileHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
 /**
@@ -199,7 +201,7 @@ export default function ProfilePage() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.pageTitle}>我的</h1>
+        <h1 className={styles.pageTitle}>我的 <HelpGuide content={profileHelp} /></h1>
       </div>
 
       {/* Profile card */}

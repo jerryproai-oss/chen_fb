@@ -8,6 +8,8 @@ import {
   FileText,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { healthHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
 // recharts 圖表元件 — 動態載入避免 SSR 問題
@@ -406,6 +408,7 @@ export default function HealthPage() {
         <h1 className={styles.pageTitle}>
           <Heart size={28} />
           健康記錄
+          <HelpGuide content={healthHelp} />
         </h1>
         <p className={styles.pageSubtitle}>追蹤您的健康數據，掌握身體狀況</p>
       </div>

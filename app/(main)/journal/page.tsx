@@ -7,6 +7,8 @@ import PostCard from '@/components/post/PostCard';
 import MediaPool from '@/components/post/MediaPool';
 import MediaShowcase from '@/components/post/MediaShowcase';
 import type { PostSummary } from '@/lib/types';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { journalHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
 /**
@@ -74,7 +76,7 @@ export default function JournalPage() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.pageTitle}>生活手札</h1>
+        <h1 className={styles.pageTitle}>生活手札 <HelpGuide content={journalHelp} /></h1>
         <p className={styles.pageSubtitle}>記錄每一天的生活點滴</p>
       </div>
 

@@ -9,6 +9,8 @@ import StoryBar from '@/components/story/StoryBar';
 import MediaShowcase from '@/components/post/MediaShowcase';
 import BirthdayBanner from '@/components/family/BirthdayBanner';
 import type { PostSummary } from '@/lib/types';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { familyHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
 // 歷年今日的型別，後端的 memory 包含 memoryLabel
@@ -97,7 +99,7 @@ export default function FamilyPage() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.pageTitle}>家庭動態</h1>
+        <h1 className={styles.pageTitle}>家庭動態 <HelpGuide content={familyHelp} /></h1>
         <p className={styles.pageSubtitle}>家人們的生活分享</p>
       </div>
 

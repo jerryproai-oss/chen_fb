@@ -6,6 +6,8 @@ import { ClipboardList, Car, Star, AlertTriangle, Plus, Calendar } from 'lucide-
 import Avatar from '@/components/ui/Avatar';
 import { getEventDisplayColor } from '@/lib/constants/calendar-colors';
 import type { FamilyEventItem } from '@/lib/types';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { bulletinHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
 // ── 常數 ────────────────────────────────────────────────────
@@ -129,6 +131,7 @@ export default function BulletinPage() {
         <h1 className={styles.pageTitle}>
           <ClipboardList size={24} />
           家庭公佈欄
+          <HelpGuide content={bulletinHelp} />
         </h1>
         <p className={styles.pageSubtitle}>
           {RANGE_OPTIONS.find((r) => r.value === range)?.label || '未來'}的重要行程與用車排程一覽

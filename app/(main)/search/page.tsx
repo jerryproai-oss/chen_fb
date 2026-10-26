@@ -5,6 +5,8 @@ import { Search, X, Clock, Trash2 } from 'lucide-react';
 import PostCard from '@/components/post/PostCard';
 import type { PostSummary, SearchScope } from '@/lib/types';
 import PageHeader from '@/components/ui/PageHeader';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { searchHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
 const SCOPES: { value: SearchScope; label: string }[] = [
@@ -168,7 +170,7 @@ export default function SearchPage() {
 
   return (
     <div className={styles.container}>
-      <PageHeader title="搜尋" />
+      <PageHeader title="搜尋" rightAction={<HelpGuide content={searchHelp} />} />
       {/* 搜尋欄 */}
       <div className={styles.searchBarWrapper}>
         <div className={styles.searchBar}>

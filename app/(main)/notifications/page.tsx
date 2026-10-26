@@ -6,6 +6,8 @@ import { Bell, CheckCheck, MessageSquare, Heart, Sparkles } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import PageHeader from '@/components/ui/PageHeader';
 import type { NotificationItem } from '@/lib/types';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { notificationsHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
 /** 格式化相對時間 */
@@ -169,17 +171,20 @@ export default function NotificationsPage() {
       <PageHeader
         title="通知"
         rightAction={
-          notifications.length > 0 ? (
-            <button
-              type="button"
-              className={styles.markAllBtn}
-              onClick={handleMarkAllAsRead}
-              disabled={markingAll || unreadCount === 0}
-            >
-              <CheckCheck size={16} />
-              {markingAll ? '處理中…' : '全部標記已讀'}
-            </button>
-          ) : undefined
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <HelpGuide content={notificationsHelp} />
+            {notifications.length > 0 ? (
+              <button
+                type="button"
+                className={styles.markAllBtn}
+                onClick={handleMarkAllAsRead}
+                disabled={markingAll || unreadCount === 0}
+              >
+                <CheckCheck size={16} />
+                {markingAll ? '處理中…' : '全部標記已讀'}
+              </button>
+            ) : null}
+          </span>
         }
       />
 

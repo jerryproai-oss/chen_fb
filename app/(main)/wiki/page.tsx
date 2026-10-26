@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Plus, Search, Lock, Users, Eye, Pin, FileText } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { wikiHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
 // ── 類別定義 ──────────────────────────────────────────────────
@@ -135,6 +137,7 @@ export default function WikiListPage() {
           <h1 className={styles.pageTitle}>
             <FileText size={28} />
             知識庫
+            <HelpGuide content={wikiHelp} />
           </h1>
           <Link href="/wiki/new" className={styles.addBtn}>
             <Plus size={16} />

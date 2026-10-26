@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Trash2, RotateCcw, Trash, Image } from 'lucide-react';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { trashHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
 /** 回收桶中的貼文型別 */
@@ -180,7 +182,7 @@ export default function TrashPage() {
         <div className={styles.headerTop}>
           <div className={styles.titleGroup}>
             <Trash2 size={24} className={styles.titleIcon} />
-            <h1 className={styles.pageTitle}>資源回收桶</h1>
+            <h1 className={styles.pageTitle}>資源回收桶 <HelpGuide content={trashHelp} /></h1>
           </div>
           {posts.length > 0 && (
             <button

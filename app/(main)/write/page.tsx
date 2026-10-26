@@ -12,6 +12,8 @@ import EmojiPicker from '@/components/post/EmojiPicker';
 import MediaUploader from '@/components/post/MediaUploader';
 import PollEditor from '@/components/post/PollEditor';
 import PageHeader from '@/components/ui/PageHeader';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { writeHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
 function todayStr(): string {
@@ -177,7 +179,7 @@ export default function WritePage() {
 
   return (
     <div className={styles.container}>
-      <PageHeader title="寫手札" onBack={handleCancel} />
+      <PageHeader title="寫手札" onBack={handleCancel} rightAction={<HelpGuide content={writeHelp} />} />
 
       <div className={styles.form}>
         {error && <div className={styles.error}>{error}</div>}

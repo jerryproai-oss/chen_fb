@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Lock, Eye, EyeOff, AlertTriangle, Users } from 'lucide-react';
 import { deriveKey } from '@/lib/vault/crypto';
 import { setVaultKey } from '@/lib/vault/keystore';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { vaultHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
 type SharedVault = {
@@ -168,6 +170,7 @@ export default function VaultPage() {
         </div>
         <h1 className={styles.title}>
           {setupMode ? '設定特別區密碼' : getSelectedVaultLabel()}
+          <HelpGuide content={vaultHelp} />
         </h1>
         <p className={styles.subtitle}>
           {setupMode

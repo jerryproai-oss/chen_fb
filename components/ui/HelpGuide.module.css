@@ -1,0 +1,406 @@
+/* ── HelpGuide 使用說明元件 ────────────────────────────────── */
+
+.helpBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-full);
+  background-color: var(--color-card);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.helpBtn:hover {
+  background-color: rgba(90, 122, 90, 0.08);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* ── Modal ─────────────────────────────────────────────────── */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+
+.modal {
+  background-color: var(--color-card);
+  border-radius: var(--radius-xl);
+  width: 100%;
+  max-width: 520px;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-lg);
+  border: 1px solid var(--color-border-light);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(90, 122, 90, 0.2) transparent;
+}
+
+.modal::-webkit-scrollbar {
+  width: 4px;
+}
+
+.modal::-webkit-scrollbar-thumb {
+  background-color: rgba(90, 122, 90, 0.2);
+  border-radius: 4px;
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.title {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0;
+}
+
+.titleIcon {
+  color: var(--color-primary);
+}
+
+.subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin: 4px 0 0 0;
+  line-height: 1.4;
+}
+
+.closeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 40px;
+  border: none;
+  background: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.closeBtn:hover {
+  color: var(--color-text);
+  background-color: rgba(90, 122, 90, 0.08);
+}
+
+/* ── View Switch ───────────────────────────────────────────── */
+
+.viewSwitch {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--space-md);
+}
+
+.viewBtn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.viewBtnActive {
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+.viewBtn:not(.viewBtnActive):hover {
+  background-color: rgba(90, 122, 90, 0.08);
+}
+
+/* ── Step View ─────────────────────────────────────────────── */
+
+.stepView {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.progressBar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.progressDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-border-light);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.progressDot:hover {
+  background-color: rgba(90, 122, 90, 0.3);
+}
+
+.progressDotActive {
+  background-color: var(--color-primary);
+  transform: scale(1.3);
+}
+
+.progressDotDone {
+  background-color: rgba(90, 122, 90, 0.4);
+}
+
+.stepCounter {
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.stepCard {
+  background-color: var(--color-bg);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  text-align: center;
+  border: 1px solid var(--color-border-light);
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.stepIcon {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+.stepTitle {
+  font-size: var(--font-size-md);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.stepDesc {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 380px;
+}
+
+.stepTips {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  padding: 8px 12px;
+  background-color: rgba(246, 191, 38, 0.1);
+  border-radius: var(--radius-md);
+  border-left: 3px solid #f6bf26;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: var(--space-xs);
+}
+
+.tipIcon {
+  color: #d4a017;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.tipText {
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.tipText + .tipText {
+  margin-top: 4px;
+}
+
+/* ── Navigation Buttons ────────────────────────────────────── */
+
+.navBtns {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.navBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0 var(--space-md);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.navBtn:hover:not(:disabled) {
+  background-color: rgba(90, 122, 90, 0.08);
+  color: var(--color-text);
+}
+
+.navBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.navBtnPrimary {
+  background-color: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.navBtnPrimary:hover:not(:disabled) {
+  background-color: var(--color-accent);
+  color: #fff;
+}
+
+/* ── All View ──────────────────────────────────────────────── */
+
+.allView {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.allStep {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.allStepNum {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.allStepContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.allStepHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: 4px;
+}
+
+.allStepIcon {
+  font-size: 1.2rem;
+}
+
+.allStepTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.allStepDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 var(--space-xs) 0;
+}
+
+/* ── General Tips ──────────────────────────────────────────── */
+
+.generalTips {
+  background-color: rgba(90, 122, 90, 0.06);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  border: 1px solid rgba(90, 122, 90, 0.15);
+  margin-top: var(--space-sm);
+}
+
+.generalTipsTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0 0 var(--space-sm) 0;
+}
+
+.generalTipsList {
+  margin: 0;
+  padding: 0 0 0 var(--space-md);
+  list-style-type: disc;
+}
+
+.generalTipsList li {
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+
+/* ── Mobile ────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .modal {
+    max-height: 90vh;
+    padding: var(--space-md);
+  }
+
+  .stepCard {
+    min-height: 150px;
+    padding: var(--space-md);
+  }
+
+  .stepIcon {
+    font-size: 2rem;
+  }
+}

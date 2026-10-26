@@ -19,6 +19,8 @@ import Avatar from '@/components/ui/Avatar';
 import { solarToLunar } from '@/lib/lunar';
 import { getEventDisplayColor, CAR_EVENT_COLOR } from '@/lib/constants/calendar-colors';
 import type { FamilyEventItem, UserProfile } from '@/lib/types';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { calendarHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
 // ── 常數 ────────────────────────────────────────────────────
@@ -569,7 +571,7 @@ export default function CalendarPage() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.pageTitle}>家庭行事曆</h1>
+        <h1 className={styles.pageTitle}>家庭行事曆 <HelpGuide content={calendarHelp} /></h1>
         <p className={styles.pageSubtitle}>掌握家人的重要日子與行程安排</p>
       </div>
 

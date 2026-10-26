@@ -6,6 +6,8 @@ import { Bookmark } from 'lucide-react';
 import PostCard from '@/components/post/PostCard';
 import PageHeader from '@/components/ui/PageHeader';
 import type { PostSummary } from '@/lib/types';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { bookmarksHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
 /**
@@ -75,7 +77,7 @@ export default function BookmarksPage() {
 
   return (
     <div className={styles.container}>
-      <PageHeader title="我的收藏" />
+      <PageHeader title="我的收藏" rightAction={<HelpGuide content={bookmarksHelp} />} />
 
       {initialLoad && loading ? (
         <div className={styles.loader}>載入中…</div>
