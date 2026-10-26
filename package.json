@@ -33,6 +33,7 @@
     "lucide-react": "1.59.0",
     "lunar-typescript": "^1.8.6",
     "next": "15.5.28",
+    "opencc-js": "^1.4.2",
     "pg": "^8.23.1",
     "react": "^19",
     "react-dom": "^19",

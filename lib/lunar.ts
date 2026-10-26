@@ -11,6 +11,20 @@
  */
 
 import { Solar, Lunar } from 'lunar-typescript';
+import * as OpenCC from 'opencc-js';
+
+/** 簡體中文 → 繁體中文（台灣慣用詞）轉換器 */
+const s2tw = OpenCC.Converter({ from: 'cn', to: 'twp' });
+
+/** 將簡體字串轉為繁體中文 */
+function toTW(s: string): string {
+  return s ? s2tw(s) : s;
+}
+
+/** 將簡體字串陣列轉為繁體中文 */
+function toTWArr(arr: string[]): string[] {
+  return arr.map(toTW);
+}
 
 // ============================================================
 // 型別定義
@@ -95,9 +109,9 @@ export function solarToLunar(year: number, month: number, day: number): LunarDat
       month: Math.abs(lunar.getMonth()),
       day: lunar.getDay(),
       isLeapMonth: lunar.getMonth() < 0,
-      monthName: lunar.getMonthInChinese() + '月',
-      dayName: lunar.getDayInChinese(),
-      yearName: `${lunar.getYearInGanZhi()}${lunar.getYearShengXiao()}年`,
+      monthName: toTW(lunar.getMonthInChinese()) + '月',
+      dayName: toTW(lunar.getDayInChinese()),
+      yearName: `${toTW(lunar.getYearInGanZhi())}${toTW(lunar.getYearShengXiao())}年`,
     };
   } catch {
     return null;
@@ -161,7 +175,7 @@ export function getDayInfo(year: number, month: number, day: number): DayInfo | 
     const lunar = solar.getLunar();
 
     // 節氣
-    const jieQi = lunar.getJieQi() || '';
+    const jieQi = toTW(lunar.getJieQi() || '');
 
     // 下一個節氣
     let nextJieQi = '';
@@ -174,21 +188,21 @@ export function getDayInfo(year: number, month: number, day: number): DayInfo | 
       const ms = Date.UTC(s.getYear(), s.getMonth() - 1, s.getDay());
       if (ms > todayMs && ms < nearestFutureMs) {
         nearestFutureMs = ms;
-        nextJieQi = name;
+        nextJieQi = toTW(name);
         nextJieQiDate = `${s.getYear()}-${String(s.getMonth()).padStart(2, '0')}-${String(s.getDay()).padStart(2, '0')}`;
       }
     }
 
     // 農曆節日
-    const festivals = lunar.getFestivals() || [];
-    const solarFestivals = solar.getFestivals() || [];
+    const festivals = toTWArr(lunar.getFestivals() || []);
+    const solarFestivals = toTWArr(solar.getFestivals() || []);
 
     // 吉神 / 凶煞
     let jiShen: string[] = [];
     let xiongSha: string[] = [];
     try {
-      jiShen = lunar.getDayJiShen() || [];
-      xiongSha = lunar.getDayXiongSha() || [];
+      jiShen = toTWArr(lunar.getDayJiShen() || []);
+      xiongSha = toTWArr(lunar.getDayXiongSha() || []);
     } catch {
       // 部分日期可能沒有吉神凶煞資料
     }
@@ -198,36 +212,36 @@ export function getDayInfo(year: number, month: number, day: number): DayInfo | 
       month: Math.abs(lunar.getMonth()),
       day: lunar.getDay(),
       isLeapMonth: lunar.getMonth() < 0,
-      monthName: lunar.getMonthInChinese() + '月',
-      dayName: lunar.getDayInChinese(),
-      yearName: `${lunar.getYearInGanZhi()}${lunar.getYearShengXiao()}年`,
+      monthName: toTW(lunar.getMonthInChinese()) + '月',
+      dayName: toTW(lunar.getDayInChinese()),
+      yearName: `${toTW(lunar.getYearInGanZhi())}${toTW(lunar.getYearShengXiao())}年`,
     };
 
     return {
       lunar: lunarDate,
-      yearGanZhi: lunar.getYearInGanZhi(),
-      monthGanZhi: lunar.getMonthInGanZhi(),
-      dayGanZhi: lunar.getDayInGanZhi(),
-      shengXiao: lunar.getYearShengXiao(),
-      xingZuo: solar.getXingZuo() + '座',
+      yearGanZhi: toTW(lunar.getYearInGanZhi()),
+      monthGanZhi: toTW(lunar.getMonthInGanZhi()),
+      dayGanZhi: toTW(lunar.getDayInGanZhi()),
+      shengXiao: toTW(lunar.getYearShengXiao()),
+      xingZuo: toTW(solar.getXingZuo()) + '座',
       jieQi,
       nextJieQi,
       nextJieQiDate,
-      yi: lunar.getDayYi() || [],
-      ji: lunar.getDayJi() || [],
-      chong: lunar.getDayChong() || '',
-      sha: lunar.getDaySha() || '',
-      chongDesc: `沖${lunar.getDayChongDesc() || ''}煞${lunar.getDaySha() || ''}`,
-      zhiXing: lunar.getZhiXing() || '',
-      pengZu: `${lunar.getPengZuGan() || ''} ${lunar.getPengZuZhi() || ''}`.trim(),
-      xiShen: lunar.getDayPositionXiDesc() || '',
-      caiShen: lunar.getDayPositionCaiDesc() || '',
-      fuShen: lunar.getDayPositionFuDesc() || '',
+      yi: toTWArr(lunar.getDayYi() || []),
+      ji: toTWArr(lunar.getDayJi() || []),
+      chong: toTW(lunar.getDayChong() || ''),
+      sha: toTW(lunar.getDaySha() || ''),
+      chongDesc: toTW(`沖${lunar.getDayChongDesc() || ''}煞${lunar.getDaySha() || ''}`),
+      zhiXing: toTW(lunar.getZhiXing() || ''),
+      pengZu: toTW(`${lunar.getPengZuGan() || ''} ${lunar.getPengZuZhi() || ''}`.trim()),
+      xiShen: toTW(lunar.getDayPositionXiDesc() || ''),
+      caiShen: toTW(lunar.getDayPositionCaiDesc() || ''),
+      fuShen: toTW(lunar.getDayPositionFuDesc() || ''),
       jiShen,
       xiongSha,
       festivals: Array.isArray(festivals) ? festivals : [],
       solarFestivals: Array.isArray(solarFestivals) ? solarFestivals : [],
-      naYin: lunar.getDayNaYin() || '',
+      naYin: toTW(lunar.getDayNaYin() || ''),
     };
   } catch {
     return null;
@@ -251,7 +265,7 @@ export function getMonthJieQi(year: number, month: number): { name: string; day:
     for (const name of Object.keys(jqTable)) {
       const s = jqTable[name];
       if (s.getYear() === year && s.getMonth() === month) {
-        result.push({ name, day: s.getDay() });
+        result.push({ name: toTW(name), day: s.getDay() });
       }
     }
 
@@ -267,7 +281,7 @@ export function getMonthJieQi(year: number, month: number): { name: string; day:
 export function getXingZuo(month: number, day: number): string {
   try {
     const solar = Solar.fromYmd(2000, month, day);
-    return solar.getXingZuo() + '座';
+    return toTW(solar.getXingZuo()) + '座';
   } catch {
     return '';
   }
@@ -279,7 +293,7 @@ export function getXingZuo(month: number, day: number): string {
 export function getShengXiao(lunarYear: number): string {
   try {
     const lunar = Lunar.fromYmd(lunarYear, 1, 1);
-    return lunar.getYearShengXiao();
+    return toTW(lunar.getYearShengXiao());
   } catch {
     return '';
   }

@@ -110,6 +110,7 @@
   line-height: 1.6;
   color: var(--color-text);
   word-break: break-word;
+  margin-bottom: var(--space-lg);
 }
 
 /* Markdown 渲染 HTML 元素 */
