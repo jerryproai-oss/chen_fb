@@ -71,3 +71,6 @@ deliverables/*.zip
 tmp/
 temp/
 .cache/
+
+docs/shiri-system-introduction.md
+seebox-production-island/

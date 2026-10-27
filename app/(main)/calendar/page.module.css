@@ -1,4 +1,4 @@
-/* â”€â”€ Calendar Page â€” Google Calendar Style â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Calendar Page ??Google Calendar Style ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .container {
   max-width: 900px;
@@ -8,18 +8,18 @@
   position: relative;
 }
 
-/* â”€â”€ Desktop/Tablet Two-Column Layout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Desktop/Tablet Two-Column Layout ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .calendarLayout {
-  /* æ‰‹æ©Ÿç‰ˆï¼šæ­£å¸¸æµï¼ˆä¸Šä¸‹æ’åˆ—ï¼‰ */
+  /* ?‹æ??ˆï?æ­?¸¸æµï?ä¸Šä??’å?ï¼?*/
 }
 
 .calendarPane {
-  /* æ‰‹æ©Ÿç‰ˆï¼šä¸éœ€ç‰¹åˆ¥æ¨£å¼ */
+  /* ?‹æ??ˆï?ä¸é??¹åˆ¥æ¨?? */
 }
 
 .eventsPane {
-  /* æ‰‹æ©Ÿç‰ˆï¼šä¸éœ€ç‰¹åˆ¥æ¨£å¼ */
+  /* ?‹æ??ˆï?ä¸é??¹åˆ¥æ¨?? */
 }
 
 @media (min-width: 1024px) {
@@ -44,7 +44,7 @@
     max-height: calc(100vh - 120px);
     overflow-y: auto;
     padding-right: var(--space-xs);
-    /* è‡ªè¨‚æ²è»¸ */
+    /* ?ªè??²è»¸ */
     scrollbar-width: thin;
     scrollbar-color: rgba(90, 122, 90, 0.3) transparent;
   }
@@ -81,7 +81,7 @@
   margin-top: var(--space-xs);
 }
 
-/* â”€â”€ Top Controls (Nav + View Switcher) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Top Controls (Nav + View Switcher) ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .topControls {
   display: flex;
@@ -154,7 +154,7 @@
   color: var(--color-primary);
 }
 
-/* â”€â”€ View Switcher Tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ View Switcher Tabs ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .viewSwitcher {
   display: flex;
@@ -191,7 +191,7 @@
   background-color: rgba(90, 122, 90, 0.08);
 }
 
-/* â”€â”€ Month View Calendar Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Month View Calendar Card ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .calendarCard {
   background-color: var(--color-card);
@@ -203,7 +203,7 @@
 
 .weekdaysGrid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   text-align: center;
   border-bottom: 1px solid var(--color-border-light);
   background-color: var(--color-bg);
@@ -226,31 +226,33 @@
 
 .daysGrid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
-/* â”€â”€ Month Weeks â€” å¤šå¤©äº‹ä»¶æ©«è·¨çµæ§‹ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Month Weeks ??å¤šå¤©äº‹ä»¶æ©«è·¨çµæ? ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .monthWeeks {
-  /* å®¹å™¨ï¼Œä¸è¨­ grid â€” æ¯é€±ç”¨ç¨ç«‹ grid ç¢ºä¿ 7 ç­‰åˆ† */
+  /* å®¹å™¨ï¼Œä?è¨?grid ??æ¯é€±ç”¨?¨ç? grid ç¢ºä? 7 ç­‰å? */
 }
 
 .weekRow {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
 .weekDayCells {
   display: contents;
 }
 
-/* â”€â”€ å¤šå¤©äº‹ä»¶æ®µï¼ˆåœ¨æ¯å€‹ dayCell å…§éƒ¨æ¸²æŸ“ï¼‰ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ å¤šå¤©äº‹ä»¶æ®µï??¨æ???dayCell ?§éƒ¨æ¸²æ?ï¼??€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .segmentSlots {
   display: flex;
   flex-direction: column;
   gap: 0;
   min-height: 0;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .segmentSlot {
@@ -259,7 +261,7 @@
 }
 
 .segmentSlotEmpty {
-  /* ä½”ä½ç©ºç™½ */
+  /* ä½”ä?ç©ºç™½ */
 }
 
 .spanBar {
@@ -281,36 +283,37 @@
   opacity: 0.85;
 }
 
-/* å·¦å´åœ“è§’ï¼ˆäº‹ä»¶èµ·å§‹æ ¼æˆ–çºŒè¡Œèµ·å§‹æ ¼ï¼‰ */
+/* å·¦å´?“è?ï¼ˆä?ä»¶èµ·å§‹æ ¼?–ç?è¡Œèµ·å§‹æ ¼ï¼?*/
 .spanBarStart {
   border-radius: 4px 0 0 4px;
   padding-left: 6px;
   margin-left: 1px;
 }
 
-/* å³å´åœ“è§’ï¼ˆäº‹ä»¶çµæŸæ ¼ï¼‰ */
+/* ?³å´?“è?ï¼ˆä?ä»¶ç??Ÿæ ¼ï¼?*/
 .spanBarEnd {
   border-radius: 0 4px 4px 0;
   margin-right: 1px;
 }
 
-/* å–®æ ¼äº‹ä»¶ï¼ˆèµ·å§‹ï¼‹çµæŸåŒæ ¼ï¼‰ */
+/* ?®æ ¼äº‹ä»¶ï¼ˆèµ·å§‹ï?çµæ??Œæ ¼ï¼?*/
 .spanBarStart.spanBarEnd {
   border-radius: 4px;
 }
 
-/* ä¸­é–“æ®µï¼šç„¡åœ“è§’ã€ç„¡ marginï¼Œèˆ‡é„°æ ¼ç„¡ç¸«éŠœæ¥ */
+/* ä¸­é?æ®µï??¡å?è§’ã€ç„¡ marginï¼Œè??°æ ¼?¡ç¸«?œæ¥ */
 .spanBarMiddle {
   border-radius: 0;
   margin-left: 0;
   margin-right: 0;
 }
 
-/* â”€â”€ Day Cell (Month View) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Day Cell (Month View) ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .dayCell {
   position: relative;
   min-height: 100px;
+  min-width: 0;
   border-right: 1px solid var(--color-border-light);
   border-bottom: 1px solid var(--color-border-light);
   padding: 2px;
@@ -318,6 +321,7 @@
   background: var(--color-card);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
   transition: background-color var(--transition-fast);
 }
 
@@ -361,7 +365,7 @@
   font-weight: 700;
 }
 
-/* â”€â”€ è¾²æ›†æ—¥æœŸ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ è¾²æ??¥æ? ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .dayTopRow {
   display: flex;
@@ -423,7 +427,7 @@
   color: var(--color-primary);
 }
 
-/* â”€â”€ Day Cell Hover Tooltip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Day Cell Hover Tooltip ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .dayTooltip {
   display: none;
@@ -487,7 +491,7 @@
   text-overflow: ellipsis;
 }
 
-/* â”€â”€ Week View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Week View ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .weekViewContainer {
   background-color: var(--color-card);
@@ -499,7 +503,7 @@
 
 .weekHeader {
   display: grid;
-  grid-template-columns: 50px repeat(7, 1fr);
+  grid-template-columns: 50px repeat(7, minmax(0, 1fr));
   border-bottom: 1px solid var(--color-border-light);
   background-color: var(--color-bg);
 }
@@ -545,7 +549,7 @@
 /* All-day events row in week view */
 .weekAllDayRow {
   display: grid;
-  grid-template-columns: 50px repeat(7, 1fr);
+  grid-template-columns: 50px repeat(7, minmax(0, 1fr));
   border-bottom: 1px solid var(--color-border-light);
   min-height: 28px;
 }
@@ -582,7 +586,7 @@
 
 .weekTimeRow {
   display: grid;
-  grid-template-columns: 50px repeat(7, 1fr);
+  grid-template-columns: 50px repeat(7, minmax(0, 1fr));
   min-height: 48px;
   border-bottom: 1px solid var(--color-border-light);
 }
@@ -630,7 +634,7 @@
   opacity: 0.85;
 }
 
-/* â”€â”€ Day View â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Day View ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .dayViewContainer {
   background-color: var(--color-card);
@@ -733,7 +737,7 @@
   opacity: 0.9;
 }
 
-/* â”€â”€ Selected Day Events Section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Selected Day Events Section ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .eventsSection {
   margin-top: var(--space-lg);
@@ -788,7 +792,7 @@
   font-weight: 700;
 }
 
-/* â”€â”€ è¾²æ°‘æ›†æ‘˜è¦ï¼ˆè¡Œäº‹æ›†å³å´é¢æ¿ï¼‰ â”€â”€â”€ */
+/* ?€?€ è¾²æ??†æ?è¦ï?è¡Œä??†å³?´é¢?¿ï? ?€?€?€ */
 
 .almanacSummary {
   padding: 10px 12px;
@@ -936,7 +940,7 @@
   text-decoration: underline;
 }
 
-/* â”€â”€ Car & Important Badges â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Car & Important Badges ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .carBadge {
   display: inline-flex;
@@ -1058,7 +1062,7 @@
   line-height: 1.4;
 }
 
-/* â”€â”€ Floating Action Button (FAB) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Floating Action Button (FAB) ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .fab {
   position: fixed;
@@ -1101,7 +1105,7 @@
   }
 }
 
-/* â”€â”€ Modal Dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Modal Dialog ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .modalBackdrop {
   position: fixed;
@@ -1226,7 +1230,7 @@
   user-select: none;
 }
 
-/* â”€â”€ Color Picker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Color Picker ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .colorPicker {
   display: flex;
@@ -1260,7 +1264,7 @@
   font-size: 14px;
 }
 
-/* â”€â”€ Modal Footer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Modal Footer ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 .modalFooter {
   display: flex;
@@ -1319,7 +1323,7 @@
   font-size: var(--font-size-sm);
 }
 
-/* â”€â”€ Mobile Responsive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+/* ?€?€ Mobile Responsive ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
 
 @media (max-width: 640px) {
   .container {
@@ -1372,7 +1376,7 @@
     height: 24px;
   }
 
-  /* æ‰‹æ©Ÿç„¡ hoverï¼Œéš±è— tooltip */
+  /* ?‹æ???hoverï¼Œéš±??tooltip */
   .dayTooltip {
     display: none !important;
   }
