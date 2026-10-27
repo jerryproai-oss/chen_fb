@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, ChevronRight, X, Image } from 'lucide-react';
 import type { MediaPoolItem } from '@/lib/types';
+import useSwipe from '@/hooks/useSwipe';
 import styles from './MediaShowcase.module.css';
 
 interface MediaShowcaseProps {
@@ -161,6 +162,14 @@ function ShowcaseLightbox({
     };
   }, [onClose, goPrev, goNext]);
 
+  // 觸控滑動手勢（手機/平板）
+  const swipeHandlers = useSwipe({
+    onSwipeLeft: goNext,
+    onSwipeRight: goPrev,
+    onSwipeDown: onClose,
+    threshold: 50,
+  });
+
   function formatDate(dateStr: string): string {
     const d = new Date(dateStr);
     return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
@@ -168,7 +177,7 @@ function ShowcaseLightbox({
 
   return (
     <div className={styles.lbBackdrop} onClick={onClose} role="dialog" aria-modal="true">
-      <div className={styles.lbContent} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.lbContent} onClick={(e) => e.stopPropagation()} {...swipeHandlers}>
         <button type="button" className={styles.lbClose} onClick={onClose} aria-label="關閉">
           <X size={22} />
         </button>

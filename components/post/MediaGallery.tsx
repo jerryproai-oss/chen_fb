@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { X, ChevronLeft, ChevronRight, Pencil, Check, Film, Music } from 'lucide-react';
 import type { MediaItem } from '@/lib/types';
+import useSwipe from '@/hooks/useSwipe';
 import styles from './MediaGallery.module.css';
 
 interface MediaGalleryProps {
@@ -248,6 +249,14 @@ function Lightbox({
     };
   }, [onClose, goPrev, goNext, editing]);
 
+  // 觸控滑動手勢（手機/平板）
+  const swipeHandlers = useSwipe({
+    onSwipeLeft: goNext,
+    onSwipeRight: goPrev,
+    onSwipeDown: onClose,
+    threshold: 50,
+  });
+
   const handleSaveCaption = async () => {
     setSaving(true);
     try {
@@ -305,7 +314,7 @@ function Lightbox({
         )}
 
         {/* 媒體內容 */}
-        <div className={styles.lightboxMediaArea}>
+        <div className={styles.lightboxMediaArea} {...swipeHandlers}>
           {current.mimeType.startsWith('video/') ? (
             <video
               className={styles.lightboxImage}
