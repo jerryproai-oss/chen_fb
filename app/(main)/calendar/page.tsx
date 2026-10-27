@@ -501,7 +501,6 @@ export default function CalendarPage() {
       const segs = segMap[Number(wi)];
       // 依 startCol 排序，同位置則長的優先
       segs.sort((a, b) => a.startCol - b.startCol || b.span - a.span);
-      const rows: number[] = []; // rows[col] = 已佔用到的最大 row
       for (const seg of segs) {
         // 找到第一個可用 row
         let row = 0;
@@ -641,62 +640,12 @@ export default function CalendarPage() {
                   {weeks.map((week, weekIdx) => {
                     const segs = weekSegments[weekIdx] || [];
                     const maxRow = segs.length > 0 ? Math.max(...segs.map(s => s.row)) + 1 : 0;
-                    const segLayerHeight = maxRow * 20; // 每個 segment row 高 20px
 
                     return (
                       <div key={weekIdx} className={styles.weekRow}>
-                        {/* 多天事件橫跨層 */}
-                        {segLayerHeight > 0 && (
-                          <div className={styles.weekSegmentLayer}>
-                            {/* 為每個 row 渲染一列 */}
-                            {Array.from({ length: maxRow }, (_, rowIdx) => {
-                              const rowSegs = segs.filter(s => s.row === rowIdx);
-                              return (
-                                <div key={rowIdx} className={styles.weekSegmentRow}>
-                                  {/* 用空白格填充 + 事件格 */}
-                                  {(() => {
-                                    const cells: React.ReactNode[] = [];
-                                    let col = 0;
-                                    // 按 startCol 排序
-                                    const sorted = [...rowSegs].sort((a, b) => a.startCol - b.startCol);
-                                    for (const seg of sorted) {
-                                      // 填充空白格
-                                      if (seg.startCol > col) {
-                                        cells.push(
-                                          <div key={`gap-${rowIdx}-${col}`} style={{ gridColumn: `${col + 1} / ${seg.startCol + 1}` }} />
-                                        );
-                                      }
-                                      cells.push(
-                                        <div
-                                          key={`${seg.event.id}-${rowIdx}-${seg.startCol}`}
-                                          className={`${styles.spanBar} ${seg.isStart ? styles.spanBarStart : ''} ${seg.isEnd ? styles.spanBarEnd : ''}`}
-                                          style={{
-                                            backgroundColor: evColor(seg.event),
-                                            gridColumn: `${seg.startCol + 1} / ${seg.startCol + seg.span + 1}`,
-                                          }}
-                                          title={evDisplayTitle(seg.event)}
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setSelectedDate(seg.event.eventDate);
-                                            handleOpenEditModal(seg.event);
-                                          }}
-                                        >
-                                          {seg.isStart ? evDisplayTitle(seg.event) : evDisplayTitle(seg.event)}
-                                        </div>
-                                      );
-                                      col = seg.startCol + seg.span;
-                                    }
-                                    return cells;
-                                  })()}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {/* 日期格子 */}
+                        {/* 日期格子 — 多天事件段直接渲染在每個 dayCell 內 */}
                         <div className={styles.weekDayCells}>
-                          {week.map((cell) => {
+                          {week.map((cell, colIdx) => {
                             const { m } = parseDateStr(cell.date);
                             const isCurrentMonth = m === currentMonth;
                             const isToday = cell.date === today;
@@ -711,7 +660,6 @@ export default function CalendarPage() {
                               <div
                                 key={cell.date}
                                 className={`${styles.dayCell} ${!isCurrentMonth ? styles.dayDisabled : ''}`}
-                                style={segLayerHeight > 0 ? { paddingTop: segLayerHeight } : undefined}
                                 onClick={() => {
                                   setSelectedDate(cell.date);
                                   if (!isCurrentMonth) {
@@ -735,6 +683,47 @@ export default function CalendarPage() {
                                     </span>
                                   )}
                                 </div>
+                                {/* 多天事件段區（每個 row 一格） */}
+                                {maxRow > 0 && (
+                                  <div className={styles.segmentSlots}>
+                                    {Array.from({ length: maxRow }, (_, rowIdx) => {
+                                      // 找到佔用此 row + 此 col 的 segment
+                                      const seg = segs.find(s =>
+                                        s.row === rowIdx &&
+                                        colIdx >= s.startCol &&
+                                        colIdx < s.startCol + s.span
+                                      );
+                                      if (!seg) {
+                                        // 空佔位
+                                        return <div key={rowIdx} className={`${styles.segmentSlot} ${styles.segmentSlotEmpty}`} />;
+                                      }
+                                      const isSegStart = colIdx === seg.startCol;
+                                      const isSegEnd = colIdx === seg.startCol + seg.span - 1;
+                                      const isEvStart = seg.isStart && isSegStart;
+                                      const isEvEnd = seg.isEnd && isSegEnd;
+                                      const barClasses = [styles.spanBar, styles.segmentSlot];
+                                      if (isEvStart) barClasses.push(styles.spanBarStart);
+                                      if (isEvEnd) barClasses.push(styles.spanBarEnd);
+                                      if (!isEvStart && !isEvEnd) barClasses.push(styles.spanBarMiddle);
+
+                                      return (
+                                        <div
+                                          key={rowIdx}
+                                          className={barClasses.join(' ')}
+                                          style={{ backgroundColor: evColor(seg.event) }}
+                                          title={evDisplayTitle(seg.event)}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setSelectedDate(seg.event.eventDate);
+                                            handleOpenEditModal(seg.event);
+                                          }}
+                                        >
+                                          {isSegStart ? evDisplayTitle(seg.event) : ''}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
                                 <div className={styles.dayCellEvents}>
                                   {singleEvents.slice(0, maxShow).map((ev) => (
                                     <div
