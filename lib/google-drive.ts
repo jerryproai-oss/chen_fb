@@ -1,27 +1,17 @@
 /**
  * Google Drive 儲存模組
  *
- * 透過 Service Account 操作 Google Drive，提供上傳、下載、刪除功能。
+ * 透過 OAuth2 Refresh Token 操作 Google Drive，提供上傳、下載、刪除功能。
  * 所有媒體檔案存放在指定的 Google Drive 資料夾下，
  * 以 year/month 子資料夾組織。
+ *
+ * 參考：docs/架構指南-Vercel-Neon-GoogleDrive.md § 4-5
  */
 
 import { google } from 'googleapis';
 import { Readable } from 'stream';
 
 // ── 環境變數 ───────────────────────────────────────────────
-
-function getServiceAccountCredentials() {
-  const raw = process.env.GOOGLE_SERVICE_ACCOUNT_KEY;
-  if (!raw) {
-    throw new Error('缺少環境變數 GOOGLE_SERVICE_ACCOUNT_KEY');
-  }
-  try {
-    return JSON.parse(raw);
-  } catch {
-    throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY 格式錯誤，請確認是完整的 JSON 字串');
-  }
-}
 
 function getRootFolderId(): string {
   const id = process.env.GOOGLE_DRIVE_ROOT_FOLDER_ID;
@@ -31,20 +21,25 @@ function getRootFolderId(): string {
   return id;
 }
 
-// ── 授權 ─────────────────────────────────────────────────
+// ── 授權（OAuth2 + Refresh Token）─────────────────────────
 
 let _driveClient: ReturnType<typeof google.drive> | null = null;
 
 function getDriveClient() {
   if (_driveClient) return _driveClient;
 
-  const credentials = getServiceAccountCredentials();
-  const auth = new google.auth.GoogleAuth({
-    credentials,
-    scopes: ['https://www.googleapis.com/auth/drive.file'],
-  });
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
+  const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN;
 
-  _driveClient = google.drive({ version: 'v3', auth });
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error('缺少 Google OAuth 環境變數（GOOGLE_OAUTH_CLIENT_ID / CLIENT_SECRET / REFRESH_TOKEN）');
+  }
+
+  const oauth2 = new google.auth.OAuth2(clientId, clientSecret);
+  oauth2.setCredentials({ refresh_token: refreshToken });
+
+  _driveClient = google.drive({ version: 'v3', auth: oauth2 });
   return _driveClient;
 }
 

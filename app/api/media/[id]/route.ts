@@ -8,6 +8,12 @@ import { extractDriveFileId, downloadFromGoogleDrive } from '@/lib/google-drive'
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+/** 小檔記憶體快取，降低 Drive API 呼叫次數 */
+const cache = new Map<string, { buffer: Buffer; mimeType: string; at: number }>();
+const TTL = 10 * 60 * 1000;         // 10 分鐘
+const MAX_CACHEABLE = 512 * 1024;    // 512KB 以下才快取
+const MAX_ENTRIES = 50;
+
 /**
  * GET /api/media/[id]
  *
@@ -76,15 +82,42 @@ export const GET = withAuth(async ({ user }, _req: NextRequest, routeCtx) => {
   }
 
   try {
+    // 檢查快取
+    const hit = cache.get(driveFileId);
+    if (hit && Date.now() - hit.at < TTL) {
+      return new NextResponse(new Uint8Array(hit.buffer), {
+        status: 200,
+        headers: {
+          'Content-Length': String(hit.buffer.length),
+          'Content-Type': hit.mimeType,
+          'Cache-Control': 'public, max-age=3600',
+        },
+      });
+    }
+
     const buffer = await downloadFromGoogleDrive(driveFileId);
     const mimeType = media.mimeType;
+
+    // 小檔放快取
+    if (buffer.length < MAX_CACHEABLE) {
+      if (cache.size >= MAX_ENTRIES) {
+        // 淘汰最舊的
+        let oldest = '';
+        let oldestAt = Infinity;
+        for (const [k, v] of cache) {
+          if (v.at < oldestAt) { oldest = k; oldestAt = v.at; }
+        }
+        if (oldest) cache.delete(oldest);
+      }
+      cache.set(driveFileId, { buffer, mimeType, at: Date.now() });
+    }
 
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         'Content-Length': String(buffer.length),
         'Content-Type': mimeType,
-        'Cache-Control': 'private, max-age=86400, immutable',
+        'Cache-Control': 'public, max-age=3600',
       },
     });
   } catch (error) {
