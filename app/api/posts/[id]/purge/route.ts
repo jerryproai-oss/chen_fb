@@ -2,15 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/client';
 import { withAuth } from '@/lib/auth/middleware';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import { deleteByStoragePath } from '@/lib/google-drive';
 
 /** UUID v4 格式驗證 */
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/** 媒體檔案根目錄 */
-const MEDIA_ROOT = '/data/media';
 
 /**
  * DELETE /api/posts/[id]/purge
@@ -131,12 +127,12 @@ export const DELETE = withAuth(async ({ user }, _req: NextRequest, routeCtx) => 
     );
   }
 
-  // 12. 刪除磁碟上的媒體檔案（在 transaction 成功後執行）
+  // 12. 刪除 Google Drive 上的媒體檔案（在 transaction 成功後執行）
   for (const storagePath of mediaPaths) {
     try {
-      await fs.unlink(path.join(MEDIA_ROOT, storagePath));
+      await deleteByStoragePath(storagePath);
     } catch (error) {
-      // 檔案不存在或刪除失敗不阻擋流程
+      // 刪除失敗不阻擋流程
       console.error('刪除媒體檔案失敗:', (error as Error).message);
     }
   }

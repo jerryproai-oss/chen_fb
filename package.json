@@ -29,6 +29,7 @@
     "browser-image-compression": "^2.0.2",
     "docx": "^9.14.0",
     "exifreader": "^4.52.0",
+    "googleapis": "^190.0.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.1",
     "lucide-react": "1.59.0",

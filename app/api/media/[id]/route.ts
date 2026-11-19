@@ -1,17 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createReadStream, statSync } from 'fs';
-import { Readable } from 'stream';
-import path from 'path';
 import { prisma } from '@/lib/db/client';
 import { withAuth } from '@/lib/auth/middleware';
 import { canViewPost } from '@/lib/policy/post-authorization';
+import { extractDriveFileId, downloadFromGoogleDrive } from '@/lib/google-drive';
 
 /** UUID v4 格式驗證 */
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-/** 媒體檔案根目錄 */
-const MEDIA_ROOT = '/data/media';
 
 /**
  * GET /api/media/[id]
@@ -69,55 +64,34 @@ export const GET = withAuth(async ({ user }, _req: NextRequest, routeCtx) => {
     }
   }
 
-  // ── 讀取檔案（支援 Range/206 串流） ─────────────────
-  const absolutePath = path.join(MEDIA_ROOT, media.storagePath);
+  // ── 從 Google Drive 讀取檔案 ───────────────────────
+  const driveFileId = extractDriveFileId(media.storagePath);
 
-  let fileSize: number;
-  try {
-    const stat = statSync(absolutePath);
-    fileSize = stat.size;
-  } catch (error) {
-    console.error('[media] 檔案不存在或無法存取:', error instanceof Error ? error.message : 'unknown error');
+  if (!driveFileId) {
+    // 舊的本地路徑格式，無法在 Vercel 上讀取
     return NextResponse.json(
-      { error: '檔案讀取失敗' },
-      { status: 500 },
+      { error: '此媒體使用舊版儲存格式，無法存取' },
+      { status: 410 },
     );
   }
 
-  const mimeType = media.mimeType;
-  const range = _req.headers.get('range');
+  try {
+    const buffer = await downloadFromGoogleDrive(driveFileId);
+    const mimeType = media.mimeType;
 
-  if (range) {
-    const parts = range.replace(/bytes=/, '').split('-');
-    const start = parseInt(parts[0], 10);
-    const end = parts[1] ? parseInt(parts[1], 10) : Math.min(start + 1024 * 1024 - 1, fileSize - 1); // 預設 1MB chunk
-    const chunkSize = end - start + 1;
-
-    const stream = createReadStream(absolutePath, { start, end });
-    const readable = Readable.toWeb(stream) as ReadableStream;
-
-    return new NextResponse(readable, {
-      status: 206,
-      headers: {
-        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': String(chunkSize),
-        'Content-Type': mimeType,
-        'Cache-Control': 'private, max-age=86400',
-      },
-    });
-  } else {
-    const stream = createReadStream(absolutePath);
-    const readable = Readable.toWeb(stream) as ReadableStream;
-
-    return new NextResponse(readable, {
+    return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
-        'Content-Length': String(fileSize),
-        'Accept-Ranges': 'bytes',
+        'Content-Length': String(buffer.length),
         'Content-Type': mimeType,
         'Cache-Control': 'private, max-age=86400, immutable',
       },
     });
+  } catch (error) {
+    console.error('[media] Google Drive 讀取失敗:', error instanceof Error ? error.message : 'unknown');
+    return NextResponse.json(
+      { error: '檔案讀取失敗' },
+      { status: 500 },
+    );
   }
 });

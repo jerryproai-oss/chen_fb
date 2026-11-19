@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
-import { mkdir, writeFile } from 'fs/promises';
-import path from 'path';
 import ExifReader from 'exifreader';
 import { prisma } from '@/lib/db/client';
 import { withAuth } from '@/lib/auth/middleware';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
+import { uploadToGoogleDrive } from '@/lib/google-drive';
 
 /**
  * Route Segment Config — 允許大檔案上傳
@@ -72,9 +71,6 @@ const MIME_TO_EXT: Record<string, string> = {
 /** 單檔上限：圖片 20MB、影片/音訊 500MB */
 const MAX_FILE_SIZE_IMAGE = 20 * 1024 * 1024;
 const MAX_FILE_SIZE_MEDIA = 500 * 1024 * 1024;
-
-/** 媒體檔案根目錄 */
-const MEDIA_ROOT = '/data/media';
 
 /**
  * 驗證檔案實際內容的 magic bytes 是否與宣稱的 MIME type 相符。
@@ -202,20 +198,17 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
     );
   }
 
-  // ── 產生存檔路徑 ──────────────────────────────────
+  // ── 產生檔案名稱 ──────────────────────────────────
   const now = new Date();
   const yyyy = now.getFullYear().toString();
   const mm = (now.getMonth() + 1).toString().padStart(2, '0');
   const uuid = randomUUID();
   const ext = MIME_TO_EXT[file.type] || 'bin';
   const fileName = `${uuid}.${ext}`;
-  const relativePath = path.posix.join(yyyy, mm, fileName);
-  const absoluteDir = path.join(MEDIA_ROOT, yyyy, mm);
-  const absolutePath = path.join(MEDIA_ROOT, yyyy, mm, fileName);
 
-  // ── 寫檔 ──────────────────────────────────────────
+  // ── 上傳到 Google Drive ────────────────────────────
+  let storagePath: string;
   try {
-    await mkdir(absoluteDir, { recursive: true });
     const buffer = Buffer.from(await file.arrayBuffer());
 
     // ── 驗證 magic bytes（防止偽造 MIME type）────────
@@ -226,9 +219,10 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
       );
     }
 
-    await writeFile(absolutePath, buffer);
+    const result = await uploadToGoogleDrive(buffer, fileName, file.type, yyyy, mm);
+    storagePath = result.storagePath;
   } catch (error) {
-    console.error('[upload] 檔案寫入失敗:', error instanceof Error ? error.message : 'unknown error');
+    console.error('[upload] Google Drive 上傳失敗:', error instanceof Error ? error.message : 'unknown error');
     return NextResponse.json(
       { error: '檔案儲存失敗' },
       { status: 500 },
@@ -283,7 +277,7 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
         uploaderId: user.id,
         postId: null,
         filename: file.name,
-        storagePath: relativePath,
+        storagePath: storagePath,
         mimeType: file.type,
         fileSize: file.size,
         width: imgWidth,
