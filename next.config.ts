@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // Vercel 部署不需要 standalone output
   serverExternalPackages: ["argon2", "@prisma/adapter-pg"],
 
   // 允許大檔案上傳（影片最大 500MB）
@@ -52,10 +52,10 @@ const nextConfig: NextConfig = {
               "script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://cdn.jsdelivr.net",
               "worker-src 'self' blob:",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: blob:",
+              "img-src 'self' data: blob: https://*.googleusercontent.com https://lh3.googleusercontent.com https://drive.google.com",
               "font-src 'self'",
-              "connect-src 'self' https://cdn.jsdelivr.net https://tessdata.projectnaptha.com https://api.open-meteo.com https://nominatim.openstreetmap.org",
-              "media-src 'self' blob:",
+              "connect-src 'self' https://cdn.jsdelivr.net https://tessdata.projectnaptha.com https://api.open-meteo.com https://nominatim.openstreetmap.org https://www.googleapis.com https://accounts.google.com",
+              "media-src 'self' blob: https://*.googleusercontent.com",
               "object-src 'none'",
               "frame-ancestors 'none'",
               "base-uri 'self'",
