@@ -26,6 +26,7 @@
     "@prosemirror-adapter/react": "^0.5.5",
     "argon2": "^0.41",
     "bcryptjs": "^3.0.3",
+    "browser-image-compression": "^2.0.2",
     "docx": "^9.14.0",
     "exifreader": "^4.52.0",
     "html2canvas": "^1.4.1",

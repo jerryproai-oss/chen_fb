@@ -38,6 +38,7 @@ import { nord } from '@milkdown/theme-nord';
 import '@milkdown/theme-nord/style.css';
 
 import styles from './MilkdownEditor.module.css';
+import { compressImage } from '@/lib/compressImage';
 
 // ── 型別定義 ──────────────────────────────────────────────────
 
@@ -396,8 +397,10 @@ function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps)
 
     setUploading(true);
     try {
+      // 壓縮圖片再上傳
+      const compressed = await compressImage(file);
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', compressed);
 
       const res = await fetch('/api/upload', {
         method: 'POST',
@@ -445,8 +448,10 @@ function MilkdownEditorInner({ value, onChange, readOnly }: MilkdownEditorProps)
 
         setUploading(true);
         try {
+          // 壓縮圖片再上傳
+          const compressed = await compressImage(file);
           const formData = new FormData();
-          formData.append('file', file);
+          formData.append('file', compressed);
 
           const res = await fetch('/api/upload', {
             method: 'POST',

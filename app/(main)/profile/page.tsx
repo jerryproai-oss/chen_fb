@@ -23,6 +23,7 @@ import Avatar from '@/components/ui/Avatar';
 import ImageLightbox from '@/components/ui/ImageLightbox';
 import FontSizeSwitcher from '@/components/ui/FontSizeSwitcher';
 import ThemeSwitcher from '@/components/ui/ThemeSwitcher';
+import { compressImage } from '@/lib/compressImage';
 import { CALENDAR_PALETTE, type CalendarColor } from '@/lib/constants/calendar-colors';
 import type { UserProfile } from '@/lib/types';
 import HelpGuide from '@/components/ui/HelpGuide';
@@ -163,8 +164,14 @@ export default function ProfilePage() {
     setUploadingAvatar(true);
 
     try {
+      // 壓縮圖片（頭像用較小尺寸）
+      const compressed = await compressImage(file, {
+        maxSizeMB: 0.5,
+        maxWidthOrHeight: 512,
+      });
+
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append('file', compressed);
 
       const res = await fetch('/api/me/avatar', {
         method: 'POST',
