@@ -29,7 +29,7 @@ export const GET = withAuth(async () => {
     const ONE_DAY_MS = 1000 * 60 * 60 * 24;
 
     const birthdays = users
-      .filter((u): u is typeof u & { birthday: Date } => u.birthday !== null)
+      .filter((u: { id: string; displayName: string; avatarUrl: string | null; birthday: Date | null }): u is { id: string; displayName: string; avatarUrl: string | null; birthday: Date } => u.birthday !== null)
       .map((u) => {
         const bDate = u.birthday;
         // DB Date 存為 UTC 日期
