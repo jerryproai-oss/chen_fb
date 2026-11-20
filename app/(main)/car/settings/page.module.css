@@ -394,6 +394,83 @@
   font-size: 12px;
 }
 
+/* ── AI 連線測試 ───────────────────────────────────────────── */
+
+.aiTestSection {
+  margin-bottom: var(--space-md);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.aiTestRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.aiTestBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #B8860B, #d4a017);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(184, 134, 11, 0.25);
+}
+
+.aiTestBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(184, 134, 11, 0.35);
+}
+
+.aiTestBtn:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.aiTestSuccess {
+  font-size: 13px;
+  color: #2e7d32;
+  font-weight: 500;
+  padding: 6px 12px;
+  background: rgba(46, 125, 50, 0.06);
+  border-radius: var(--radius-md);
+}
+
+.aiTestSuccess code {
+  font-family: monospace;
+  background: rgba(46, 125, 50, 0.1);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.aiTestError {
+  font-size: 13px;
+  color: #d32f2f;
+  font-weight: 500;
+  padding: 6px 12px;
+  background: rgba(211, 47, 47, 0.06);
+  border-radius: var(--radius-md);
+  word-break: break-word;
+}
+
 /* ── Dialog ────────────────────────────────────────────────── */
 
 .dialogOverlay {

@@ -65,7 +65,10 @@ export interface VehicleBasicInfo {
 
 // ── Gemini Client 初始化 ─────────────────────────────────────
 
-async function getGenerativeModel(modelName: string) {
+// 依優先順序嘗試可用模型
+const MODEL_FALLBACKS = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-2.5-flash'];
+
+async function getGenerativeModel(modelName?: string) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     console.warn('[ai-analysis] GEMINI_API_KEY 未設定，AI 功能停用');
@@ -75,11 +78,77 @@ async function getGenerativeModel(modelName: string) {
   try {
     const { GoogleGenerativeAI } = await import('@google/generative-ai');
     const genAI = new GoogleGenerativeAI(apiKey);
-    return genAI.getGenerativeModel({ model: modelName });
+    return genAI.getGenerativeModel({ model: modelName || MODEL_FALLBACKS[0] });
   } catch (error) {
     console.error('[ai-analysis] Gemini 初始化失敗:', error);
     return null;
   }
+}
+
+/** 帶 fallback 的內容生成：依序嘗試多個模型 */
+async function generateWithFallback(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  contents: any[],
+): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) throw new Error('GEMINI_API_KEY 未設定');
+
+  const { GoogleGenerativeAI } = await import('@google/generative-ai');
+  const genAI = new GoogleGenerativeAI(apiKey);
+
+  for (let i = 0; i < MODEL_FALLBACKS.length; i++) {
+    const modelName = MODEL_FALLBACKS[i];
+    try {
+      console.log(`[ai-analysis] 嘗試模型: ${modelName}`);
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent(contents);
+      const text = result.response.text().trim();
+      console.log(`[ai-analysis] ${modelName} 成功回應 (${text.length} chars)`);
+      return text;
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      console.warn(`[ai-analysis] ${modelName} 失敗: ${msg}`);
+      // 如果還有備用模型就繼續嘗試
+      if (i < MODEL_FALLBACKS.length - 1) continue;
+      throw error; // 所有模型都失敗
+    }
+  }
+  throw new Error('所有 AI 模型都不可用');
+}
+
+/**
+ * 測試 Gemini API 連線
+ * @returns 成功的模型名稱，或失敗原因
+ */
+export async function testGeminiConnection(): Promise<{
+  success: boolean;
+  model: string | null;
+  error: string | null;
+}> {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return { success: false, model: null, error: 'GEMINI_API_KEY 未設定' };
+  }
+
+  const { GoogleGenerativeAI } = await import('@google/generative-ai');
+  const genAI = new GoogleGenerativeAI(apiKey);
+
+  for (const modelName of MODEL_FALLBACKS) {
+    try {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const result = await model.generateContent('回覆 OK');
+      const text = result.response.text().trim();
+      if (text) {
+        return { success: true, model: modelName, error: null };
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      console.warn(`[ai-test] ${modelName}: ${msg}`);
+      continue;
+    }
+  }
+
+  return { success: false, model: null, error: '所有模型均不可用（可能暫時繁忙）' };
 }
 
 // ── 保修分析 ──────────────────────────────────────────────────
@@ -96,8 +165,8 @@ export async function analyzeMaintenance(
   previousRecords: MaintenanceRecord[],
 ): Promise<MaintenanceAnalysis | null> {
   try {
-    const model = await getGenerativeModel('gemini-3.8-flash');
-    if (!model) return null;
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return null;
 
     const prompt = `你是一位經驗豐富的汽車保養專家。請分析以下保修記錄的合理性。
 
@@ -128,8 +197,7 @@ ${previousRecords.length > 0
 
 僅回覆 JSON，不要加其他文字。`;
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
+    const text = await generateWithFallback([prompt]);
 
     // 嘗試解析 JSON（可能被包在 markdown code block 中）
     const jsonStr = text.replace(/^```json?\s*/, '').replace(/\s*```$/, '');
@@ -164,8 +232,8 @@ export async function predictNextMaintenance(
   vehicle: VehicleBasicInfo,
 ): Promise<MaintenancePrediction | null> {
   try {
-    const model = await getGenerativeModel('gemini-3.8-flash');
-    if (!model) return null;
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) return null;
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -196,8 +264,7 @@ ${records.length > 0
 
 僅回覆 JSON，不要加其他文字。`;
 
-    const result = await model.generateContent(prompt);
-    const text = result.response.text().trim();
+    const text = await generateWithFallback([prompt]);
 
     const jsonStr = text.replace(/^```json?\s*/, '').replace(/\s*```$/, '');
     const parsed = JSON.parse(jsonStr) as MaintenancePrediction;
@@ -228,9 +295,6 @@ export async function recognizeReceipt(
   imageMimeType: string = 'image/jpeg',
 ): Promise<ReceiptRecognitionResult | null> {
   try {
-    const model = await getGenerativeModel('gemini-3.8-flash');
-    if (!model) return null;
-
     const prompt = `你是一個收據/發票辨識專家。請分析這張圖片中的收據資訊。
 
 請以 JSON 格式回覆：
@@ -256,7 +320,8 @@ export async function recognizeReceipt(
     // 移除 data:image/...;base64, 前綴（如有）
     const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '');
 
-    const result = await model.generateContent([
+    // 使用 fallback 機制自動嘗試多個模型
+    const text = await generateWithFallback([
       prompt,
       {
         inlineData: {
@@ -266,7 +331,6 @@ export async function recognizeReceipt(
       },
     ]);
 
-    const text = result.response.text().trim();
     const jsonStr = text.replace(/^```json?\s*/, '').replace(/\s*```$/, '');
     const parsed = JSON.parse(jsonStr);
 

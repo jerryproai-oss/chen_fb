@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Settings, Plus, X, Pencil, ToggleLeft, ToggleRight,
   Sparkles, AlertCircle, ChevronDown, ChevronUp, Shield,
+  Zap, Loader2,
 } from 'lucide-react';
 import styles from './page.module.css';
 
@@ -295,16 +296,24 @@ export default function CarSettingsPage() {
               </div>
             </div>
 
+            {/* ── AI 連線測試 ────────────────────────────────── */}
+            <AiConnectionTest />
+
             <div className={styles.aiModelInfo}>
-              <h3 className={styles.aiSubTitle}>使用模型</h3>
+              <h3 className={styles.aiSubTitle}>使用模型（依序嘗試）</h3>
               <div className={styles.aiModelRow}>
-                <span className={styles.aiModelLabel}>文字分析</span>
-                <span className={styles.aiModelValue}>gemini-2.0-flash</span>
+                <span className={styles.aiModelLabel}>優先</span>
+                <span className={styles.aiModelValue}>gemini-3.8-flash</span>
                 <span className={styles.aiModelTag}>免費</span>
               </div>
               <div className={styles.aiModelRow}>
-                <span className={styles.aiModelLabel}>收據辨識</span>
-                <span className={styles.aiModelValue}>gemini-2.0-flash</span>
+                <span className={styles.aiModelLabel}>備用 1</span>
+                <span className={styles.aiModelValue}>gemini-3.5-flash</span>
+                <span className={styles.aiModelTag}>免費</span>
+              </div>
+              <div className={styles.aiModelRow}>
+                <span className={styles.aiModelLabel}>備用 2</span>
+                <span className={styles.aiModelValue}>gemini-2.5-flash</span>
                 <span className={styles.aiModelTag}>免費</span>
               </div>
             </div>
@@ -326,7 +335,7 @@ export default function CarSettingsPage() {
             </div>
 
             <div className={styles.aiNote}>
-              💡 AI 功能為加值服務，失敗時不會影響主流程。設定 <code>GEMINI_API_KEY</code> 環境變數即可啟用。
+              💡 AI 功能為加值服務，失敗時不會影響主流程。設定 <code>GEMINI_API_KEY</code> 環境變數即可啟用。系統會自動嘗試多個模型，確保最高可用性。
             </div>
           </div>
         )}
@@ -370,6 +379,69 @@ function AiKeyStatus() {
     return <span className={styles.aiStatusOk}>✅ 已設定</span>;
   }
   return <span className={styles.aiStatusMissing}>❌ 未設定</span>;
+}
+
+// ── AI 連線測試元件 ──────────────────────────────────────────
+
+interface AiTestResult {
+  success: boolean;
+  model: string | null;
+  error: string | null;
+}
+
+function AiConnectionTest() {
+  const [testing, setTesting] = useState(false);
+  const [result, setResult] = useState<AiTestResult | null>(null);
+
+  const handleTest = async () => {
+    setTesting(true);
+    setResult(null);
+    try {
+      const res = await fetch('/api/car/ai-test');
+      const data = await res.json();
+      setResult(data);
+    } catch {
+      setResult({ success: false, model: null, error: '網路連線失敗' });
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  return (
+    <div className={styles.aiTestSection}>
+      <h3 className={styles.aiSubTitle}>連線測試</h3>
+      <div className={styles.aiTestRow}>
+        <button
+          type="button"
+          className={styles.aiTestBtn}
+          onClick={handleTest}
+          disabled={testing}
+        >
+          {testing ? (
+            <>
+              <Loader2 size={14} className={styles.spinner} />
+              測試中...
+            </>
+          ) : (
+            <>
+              <Zap size={14} />
+              🧪 測試 AI 連線
+            </>
+          )}
+        </button>
+
+        {result && (
+          <div className={result.success ? styles.aiTestSuccess : styles.aiTestError}>
+            {result.success ? (
+              <>✅ 連線成功！使用模型：<code>{result.model}</code></>
+            ) : (
+              <>❌ {result.error}</>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 // ── 新增/編輯規則 Dialog ─────────────────────────────────────
