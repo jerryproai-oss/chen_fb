@@ -11,6 +11,7 @@ import {
   X,
   Eye,
   EyeOff,
+  Pencil,
 } from 'lucide-react';
 import Link from 'next/link';
 import Avatar from '@/components/ui/Avatar';
@@ -55,6 +56,14 @@ export default function AdminFamilyPage() {
   const [resetSuccess, setResetSuccess] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+
+  // ── 編輯帳號表單 ──────────────────────────────
+  const [editMember, setEditMember] = useState<FamilyMember | null>(null);
+  const [editDisplayName, setEditDisplayName] = useState('');
+  const [editRole, setEditRole] = useState<'MEMBER' | 'ADMIN'>('MEMBER');
+  const [editing, setEditing] = useState(false);
+  const [editError, setEditError] = useState('');
+  const [editSuccess, setEditSuccess] = useState('');
 
   // ── 載入家人列表 ──────────────────────────────
   async function loadMembers() {
@@ -178,6 +187,47 @@ export default function AdminFamilyPage() {
     }
   }
 
+  // ── 編輯帳號 ────────────────────────────────
+  function openEdit(member: FamilyMember) {
+    setEditMember(member);
+    setEditDisplayName(member.displayName);
+    setEditRole(member.role);
+    setEditError('');
+  }
+
+  async function handleEditUser() {
+    if (!editMember) return;
+    setEditing(true);
+    setEditError('');
+
+    try {
+      const res = await fetch(`/api/admin/users/${editMember.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          displayName: editDisplayName.trim(),
+          role: editRole,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || '更新失敗');
+      }
+
+      const data = await res.json();
+      setMembers((prev) =>
+        prev.map((m) => (m.id === editMember.id ? data.user : m)),
+      );
+      setEditSuccess(`已更新 ${editDisplayName.trim()} 的帳號資料`);
+      setEditMember(null);
+    } catch (err) {
+      setEditError(err instanceof Error ? err.message : '更新失敗');
+    } finally {
+      setEditing(false);
+    }
+  }
+
   function formatDate(dateStr: string): string {
     const d = new Date(dateStr);
     const y = d.getFullYear();
@@ -234,6 +284,18 @@ export default function AdminFamilyPage() {
           <button
             className={styles.bannerClose}
             onClick={() => setResetSuccess('')}
+            type="button"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
+      {editSuccess && (
+        <div className={styles.successBanner}>
+          {editSuccess}
+          <button
+            className={styles.bannerClose}
+            onClick={() => setEditSuccess('')}
             type="button"
           >
             <X size={14} />
@@ -392,6 +454,14 @@ export default function AdminFamilyPage() {
               <button
                 type="button"
                 className={styles.actionBtn}
+                onClick={() => openEdit(member)}
+                title="編輯帳號"
+              >
+                <Pencil size={16} />
+              </button>
+              <button
+                type="button"
+                className={styles.actionBtn}
                 onClick={() => {
                   setResetUserId(member.id);
                   setResetPassword('');
@@ -422,6 +492,69 @@ export default function AdminFamilyPage() {
           </div>
         ))}
       </div>
+
+      {/* 編輯帳號對話框 */}
+      {editMember && (
+        <div className={styles.overlay} onClick={() => setEditMember(null)}>
+          <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
+            <h3 className={styles.dialogTitle}>
+              編輯 {editMember.displayName} 的帳號
+            </h3>
+            {editError && (
+              <div className={styles.formError}>{editError}</div>
+            )}
+            <div className={styles.formField}>
+              <label className={styles.formLabel} htmlFor="edit-display-name">
+                顯示名稱 <span className={styles.required}>*</span>
+              </label>
+              <input
+                id="edit-display-name"
+                type="text"
+                className={styles.formInput}
+                value={editDisplayName}
+                onChange={(e) => setEditDisplayName(e.target.value)}
+                maxLength={50}
+              />
+            </div>
+            <div className={styles.formField}>
+              <label className={styles.formLabel} htmlFor="edit-role">
+                角色
+              </label>
+              <select
+                id="edit-role"
+                className={styles.formSelect}
+                value={editRole}
+                onChange={(e) => setEditRole(e.target.value as 'MEMBER' | 'ADMIN')}
+              >
+                <option value="MEMBER">👤 成員</option>
+                <option value="ADMIN">👑 管理員</option>
+              </select>
+            </div>
+            <div className={styles.formField}>
+              <p className={styles.formHint}>
+                帳號（@{editMember.username}）建立後無法變更。
+              </p>
+            </div>
+            <div className={styles.formActions}>
+              <button
+                type="button"
+                className={styles.cancelBtn}
+                onClick={() => setEditMember(null)}
+              >
+                取消
+              </button>
+              <button
+                type="button"
+                className={styles.submitBtn}
+                onClick={handleEditUser}
+                disabled={editing || !editDisplayName.trim()}
+              >
+                {editing ? '儲存中…' : '儲存'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 重設密碼對話框 */}
       {resetUserId && (
