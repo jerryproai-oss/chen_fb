@@ -289,6 +289,7 @@ export async function recognizeReceipt(
     };
   } catch (error) {
     console.error('[ai-analysis] 收據辨識失敗:', error);
-    return null;
+    // 將錯誤上拋，讓 API route 可以取得詳細訊息
+    throw error;
   }
 }
