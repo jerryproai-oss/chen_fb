@@ -2,12 +2,26 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import type { CostRecordItem, PaymentMethodType } from '@/lib/car/types';
 import { PAYMENT_METHOD_LABEL } from '@/lib/car/types';
 import styles from './page.module.css';
 
 const MAINTENANCE_KEYWORDS = ['保養', '大保養', '輪胎', '煞車', '機油', '冷氣', '保修', '維修', '保固'];
+
+// 常用保修項目快速選擇
+const QUICK_ITEMS = [
+  '定期保養', '大保養', '機油更換', '輪胎更換', '煞車來令片',
+  '冷氣保養', '雨刷更換', '電瓶更換', '冷卻液更換', '變速箱油更換',
+];
+
+const PAYMENT_METHODS = [
+  { value: 'CASH', label: '現金' },
+  { value: 'TRANSFER', label: '轉帳' },
+  { value: 'CREDIT_CARD', label: '信用卡' },
+  { value: 'LINE_PAY', label: 'LINE Pay' },
+  { value: 'OTHER', label: '其他' },
+];
 
 function isMaintenance(item: string): boolean {
   const lower = item.toLowerCase();
@@ -18,10 +32,46 @@ function isMaintenance(item: string): boolean {
   );
 }
 
+function getLocalDate(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+// ── 型別 ────────────────────────────────────────────────────
+
+interface VehicleOption {
+  id: string;
+  name: string;
+}
+
+interface FamilyUser {
+  id: string;
+  displayName: string;
+}
+
+// ── 主頁面 ──────────────────────────────────────────────────
+
 export default function MaintenancePage() {
   const [records, setRecords] = useState<CostRecordItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIdx, setCurrentIdx] = useState(0);
+
+  // 新增表單
+  const [showForm, setShowForm] = useState(false);
+  const [vehicles, setVehicles] = useState<VehicleOption[]>([]);
+  const [familyMembers, setFamilyMembers] = useState<FamilyUser[]>([]);
+  const [currentUser, setCurrentUser] = useState<FamilyUser | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  const [formItem, setFormItem] = useState('');
+  const [formAmount, setFormAmount] = useState('');
+  const [formDate, setFormDate] = useState(getLocalDate());
+  const [formPaymentMethod, setFormPaymentMethod] = useState('CASH');
+  const [formNote, setFormNote] = useState('');
+  const [formMileage, setFormMileage] = useState('');
 
   const fetchRecords = useCallback(async () => {
     try {
@@ -33,6 +83,38 @@ export default function MaintenancePage() {
           .filter(r => isMaintenance(r.item))
           .sort((a, b) => b.settlementDate.localeCompare(a.settlementDate));
         setRecords(maintenanceRecords);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  // 載入車輛、使用者、家庭成員
+  const fetchFormData = useCallback(async () => {
+    try {
+      const [vehiclesRes, meRes, membersRes] = await Promise.all([
+        fetch('/api/car/vehicles'),
+        fetch('/api/me'),
+        fetch('/api/family/members'),
+      ]);
+
+      if (vehiclesRes.ok) {
+        const data = await vehiclesRes.json();
+        setVehicles((data.vehicles || []).map((v: { id: string; name: string }) => ({
+          id: v.id,
+          name: v.name,
+        })));
+      }
+
+      if (meRes.ok) {
+        const me = await meRes.json();
+        setCurrentUser({ id: me.id, displayName: me.displayName });
+      }
+
+      if (membersRes.ok) {
+        const data = await membersRes.json();
+        setFamilyMembers((data.members || []).map((m: { id: string; displayName: string }) => ({
+          id: m.id,
+          displayName: m.displayName,
+        })));
       }
     } catch { /* ignore */ }
   }, []);
@@ -49,6 +131,103 @@ export default function MaintenancePage() {
     ? Number(currentRecord.totalAmount) - Number(prevRecord.totalAmount)
     : null;
 
+  // ── 開啟新增表單 ──────────────────────────────────────────
+
+  function handleOpenForm() {
+    fetchFormData();
+    setFormItem('');
+    setFormAmount('');
+    setFormDate(getLocalDate());
+    setFormPaymentMethod('CASH');
+    setFormNote('');
+    setFormMileage('');
+    setShowForm(true);
+  }
+
+  // ── 提交新增 ──────────────────────────────────────────────
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!formItem.trim()) {
+      alert('請輸入保修項目');
+      return;
+    }
+    const amount = parseFloat(formAmount);
+    if (isNaN(amount) || amount <= 0) {
+      alert('請輸入有效的金額');
+      return;
+    }
+    if (vehicles.length === 0) {
+      alert('尚無車輛資料，請先到車輛資訊頁設定');
+      return;
+    }
+    if (!currentUser) {
+      alert('無法取得使用者資訊');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      // 建立分攤人列表（所有家庭成員 + 自己）
+      const allUsers = [
+        currentUser,
+        ...familyMembers.filter(m => m.id !== currentUser.id),
+      ];
+      const shares = allUsers.map(u => ({
+        userId: u.id,
+        displayName: u.displayName,
+        usageDays: 0,
+      }));
+
+      const payload = {
+        vehicleId: vehicles[0].id,
+        totalAmount: amount,
+        item: formItem.trim(),
+        paidById: currentUser.id,
+        paymentMethod: formPaymentMethod,
+        paymentNote: formNote.trim() || null,
+        settlementDate: formDate,
+        shares,
+      };
+
+      const res = await fetch('/api/car/costs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || '新增失敗');
+      }
+
+      // 如果有里程數，順便記錄里程
+      if (formMileage.trim()) {
+        const mileage = parseInt(formMileage, 10);
+        if (!isNaN(mileage) && mileage > 0) {
+          await fetch('/api/car/mileage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              vehicleId: vehicles[0].id,
+              mileage,
+              source: 'MANUAL',
+              note: `保修記錄：${formItem.trim()}`,
+            }),
+          }).catch(() => {});
+        }
+      }
+
+      setShowForm(false);
+      setCurrentIdx(0);
+      await fetchRecords();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '新增保修記錄失敗');
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   if (loading) {
     return <div className={styles.container}><div className={styles.loading}>載入中...</div></div>;
   }
@@ -60,14 +239,32 @@ export default function MaintenancePage() {
         <Link href="/car" className={styles.backLink}>
           <ArrowLeft size={16} /> 用車管理
         </Link>
-        <h1 className={styles.pageTitle}>🔧 保修歷史</h1>
-        <p className={styles.pageSubtitle}>瀏覽車輛保養與維修記錄</p>
+        <div className={styles.headerRow}>
+          <div>
+            <h1 className={styles.pageTitle}>🔧 保修歷史</h1>
+            <p className={styles.pageSubtitle}>瀏覽車輛保養與維修記錄</p>
+          </div>
+          <button
+            type="button"
+            className={styles.addBtn}
+            onClick={handleOpenForm}
+          >
+            <Plus size={16} /> 新增保修
+          </button>
+        </div>
       </div>
 
       {records.length === 0 ? (
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}>🔧</div>
           <div className={styles.emptyText}>尚無保修記錄</div>
+          <button
+            type="button"
+            className={styles.emptyBtn}
+            onClick={handleOpenForm}
+          >
+            <Plus size={16} /> 新增第一筆保修記錄
+          </button>
         </div>
       ) : (
         <>
@@ -226,6 +423,128 @@ export default function MaintenancePage() {
             ))}
           </div>
         </>
+      )}
+
+      {/* ── 新增保修記錄 Modal ──────────────────────────────── */}
+      {showForm && (
+        <div className={styles.modalOverlay} onClick={() => setShowForm(false)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>新增保修記錄</h2>
+              <button type="button" className={styles.modalClose} onClick={() => setShowForm(false)}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmit} className={styles.form}>
+              {/* 快速選擇 */}
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>快速選擇</label>
+                <div className={styles.quickItems}>
+                  {QUICK_ITEMS.map(item => (
+                    <button
+                      key={item}
+                      type="button"
+                      className={`${styles.quickItem} ${formItem === item ? styles.quickItemActive : ''}`}
+                      onClick={() => setFormItem(item)}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 項目名稱 */}
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>
+                  保修項目 <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  value={formItem}
+                  onChange={e => setFormItem(e.target.value)}
+                  placeholder="例如：定期保養、輪胎更換"
+                  required
+                />
+              </div>
+
+              {/* 金額 */}
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>
+                  金額 (NT$) <span className={styles.required}>*</span>
+                </label>
+                <input
+                  type="number"
+                  className={styles.formInput}
+                  value={formAmount}
+                  onChange={e => setFormAmount(e.target.value)}
+                  placeholder="0"
+                  min="1"
+                  required
+                />
+              </div>
+
+              {/* 日期 */}
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>保修日期</label>
+                <input
+                  type="date"
+                  className={styles.formInput}
+                  value={formDate}
+                  onChange={e => setFormDate(e.target.value)}
+                />
+              </div>
+
+              {/* 當時里程 */}
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>當時里程 (km)</label>
+                <input
+                  type="number"
+                  className={styles.formInput}
+                  value={formMileage}
+                  onChange={e => setFormMileage(e.target.value)}
+                  placeholder="選填，例如 15000"
+                  min="0"
+                />
+              </div>
+
+              {/* 付款方式 */}
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>付款方式</label>
+                <select
+                  className={styles.formSelect}
+                  value={formPaymentMethod}
+                  onChange={e => setFormPaymentMethod(e.target.value)}
+                >
+                  {PAYMENT_METHODS.map(pm => (
+                    <option key={pm.value} value={pm.value}>{pm.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 備註 */}
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>備註</label>
+                <textarea
+                  className={styles.formTextarea}
+                  value={formNote}
+                  onChange={e => setFormNote(e.target.value)}
+                  placeholder="例如：更換 5W-30 全合成機油"
+                  rows={3}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className={styles.submitBtn}
+                disabled={submitting}
+              >
+                {submitting ? '儲存中...' : '儲存保修記錄'}
+              </button>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

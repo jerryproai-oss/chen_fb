@@ -24,8 +24,8 @@ const QUICK_ACTIONS = [
   { emoji: '🔧', label: '保養', href: '/car/maintenance' },
   { emoji: '📏', label: '里程', href: '' },
   { emoji: '📸', label: '拍照', href: '' },
-  { emoji: '🧮', label: '結算', href: '/car/cost' },
-  { emoji: '📊', label: '報表', href: '/car/report' },
+  { emoji: '🧮', label: '結算', href: '/car/calculator' },
+  { emoji: '📊', label: '報表', href: '/car/reports' },
   { emoji: '🏦', label: '車貸', href: '/car/loan' },
 ] as const;
 
