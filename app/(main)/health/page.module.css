@@ -1,4 +1,4 @@
-/* ── Health Tracking Page ───────────────────────────────────── */
+﻿/* ── Health Tracking Page ───────────────────────────────────── */
 
 /* ── Viewer Selector（查看對象切換）───────────────────────── */
 
@@ -232,7 +232,7 @@
   border-radius: var(--radius-full);
   background: rgba(76, 175, 80, 0.1);
   color: #4caf50;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
 }
 
@@ -362,7 +362,7 @@
   gap: 4px;
   padding: 2px 8px;
   border-radius: var(--radius-full);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
 }
 
@@ -515,7 +515,7 @@
 }
 
 .formSectionDesc {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-text-secondary);
   margin-bottom: var(--space-xs);
   line-height: 1.4;
@@ -692,7 +692,7 @@
   border-radius: var(--radius-full);
   background: transparent;
   color: #e53935;
-  font-size: 11px;
+  font-size: 13px;
   cursor: pointer;
   transition: all var(--transition-fast);
 }

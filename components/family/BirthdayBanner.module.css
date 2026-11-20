@@ -1,4 +1,4 @@
-/* ── Birthday Reminder Banner ─────────────────────────────── */
+﻿/* ── Birthday Reminder Banner ─────────────────────────────── */
 
 .birthdaySection {
   margin-bottom: var(--space-lg);
@@ -112,7 +112,7 @@
 }
 
 .upcomingDays {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-primary);
   font-weight: 500;
 }

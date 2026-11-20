@@ -1,4 +1,4 @@
-/* ── Milkdown 編輯器容器 ──────────────────────────────────── */
+﻿/* ── Milkdown 編輯器容器 ──────────────────────────────────── */
 
 .editorContainer {
   border: 1px solid var(--color-border);
@@ -245,7 +245,7 @@
   background: var(--color-bg, #f0f0f0);
   border: 1px solid var(--color-border);
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 13px;
   font-family: 'SF Mono', 'Consolas', monospace;
   color: var(--color-text);
   min-width: 24px;
@@ -259,7 +259,7 @@
   padding: 2px 6px;
   background: var(--color-bg, #f0f0f0);
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 13px;
   font-family: 'SF Mono', 'Consolas', monospace;
   color: var(--color-primary);
   white-space: nowrap;
@@ -386,7 +386,7 @@
   position: absolute;
   top: 6px;
   right: 10px;
-  font-size: 11px;
+  font-size: 13px;
   color: #6c7086;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -612,11 +612,11 @@
   /* 次工具列（表格/圖片）按鈕 */
   .toolbarBtnSub {
     padding: 3px 8px;
-    font-size: 11px;
+    font-size: 13px;
   }
 
   .subLabel {
-    font-size: 11px;
+    font-size: 13px;
   }
 
   /* 引用區塊 */

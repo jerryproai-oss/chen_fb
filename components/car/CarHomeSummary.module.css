@@ -1,4 +1,4 @@
-/* ── 首頁用車摘要卡片 ─────────────────────────────────────── */
+﻿/* ── 首頁用車摘要卡片 ─────────────────────────────────────── */
 
 .card {
   background: #fff;
@@ -79,7 +79,7 @@
 }
 
 .summaryLabel {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
@@ -98,7 +98,7 @@
 }
 
 .summaryDetail {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-text-secondary);
   white-space: nowrap;
   overflow: hidden;

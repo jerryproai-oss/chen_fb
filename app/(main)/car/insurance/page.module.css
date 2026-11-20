@@ -1,4 +1,4 @@
-/* ── Maintenance History Page ─────────────────────────────────── */
+﻿/* ── Maintenance History Page ─────────────────────────────────── */
 
 .container { max-width: 900px; margin: 0 auto; padding: var(--space-md); padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
 .header { margin-bottom: var(--space-md); }
@@ -110,7 +110,7 @@
 .lineItemsTable th {
   padding: 8px 10px;
   text-align: left;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-secondary);
   background: rgba(0, 0, 0, 0.02);
@@ -272,7 +272,7 @@
 .editItemsTable th {
   padding: 8px 8px;
   text-align: left;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--color-text-secondary);
   background: rgba(0, 0, 0, 0.02);
@@ -428,7 +428,7 @@
 }
 
 .editHint {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-text-secondary);
   font-style: italic;
 }
@@ -445,7 +445,7 @@
 .shareItem { display: flex; align-items: center; gap: var(--space-sm); padding: 6px 0; flex-wrap: wrap; }
 .shareName { font-size: var(--font-size-sm); color: var(--color-text); flex: 1; min-width: 60px; }
 .shareAmount { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text); }
-.shareBadge { display: inline-flex; padding: 2px 8px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; }
+.shareBadge { display: inline-flex; padding: 2px 8px; border-radius: var(--radius-full); font-size: 13px; font-weight: 600; }
 
 /* ── Payment Buttons ─────────────────────────────────────────── */
 
@@ -871,7 +871,7 @@
 
 .ocrHint {
   margin-top: var(--space-xs);
-  font-size: 11px;
+  font-size: 13px;
   color: #2E7D32;
   font-weight: 500;
 }

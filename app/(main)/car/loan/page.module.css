@@ -1,4 +1,4 @@
-/* ── 車貸管理頁面 ─────────────────────────────────────────── */
+﻿/* ── 車貸管理頁面 ─────────────────────────────────────────── */
 /* 色系：#B8860B (DarkGoldenrod) */
 
 .container {
@@ -156,7 +156,7 @@
 }
 
 .loanStatLabel {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-text-secondary);
   margin-bottom: 4px;
 }
@@ -209,7 +209,7 @@
   display: flex;
   justify-content: space-between;
   margin-top: 6px;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-text-secondary);
 }
 

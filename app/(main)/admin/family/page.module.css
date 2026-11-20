@@ -1,4 +1,4 @@
-/* ── Admin Family Page ────────────────────────────────────── */
+﻿/* ── Admin Family Page ────────────────────────────────────── */
 
 .container {
   max-width: 640px;
@@ -295,7 +295,7 @@
 }
 
 .adminBadge {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   padding: 1px 6px;
   border-radius: var(--radius-sm);
@@ -304,7 +304,7 @@
 }
 
 .disabledBadge {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   padding: 1px 6px;
   border-radius: var(--radius-sm);
@@ -313,7 +313,7 @@
 }
 
 .tempBadge {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   padding: 1px 6px;
   border-radius: var(--radius-sm);
@@ -322,7 +322,7 @@
 }
 
 .familyBadge {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   padding: 1px 6px;
   border-radius: var(--radius-sm);

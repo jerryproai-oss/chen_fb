@@ -1,4 +1,4 @@
-/* ── Write Page ────────────────────────────────────────────── */
+﻿/* ── Write Page ────────────────────────────────────────────── */
 
 .container {
   max-width: 640px;
@@ -297,7 +297,7 @@
   background-color: var(--color-bg);
   border: 2px dashed var(--color-border);
   color: var(--color-text-secondary);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
 }
 

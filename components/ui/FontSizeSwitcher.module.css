@@ -1,4 +1,4 @@
-/* ── Font Size Switcher ────────────────────────────────── */
+﻿/* ── Font Size Switcher ────────────────────────────────── */
 
 .container {
   padding: var(--space-md);
@@ -63,6 +63,6 @@
 }
 
 .optionLabel {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.2;
 }

@@ -1,4 +1,4 @@
-/* ── Fuel Records Page ────────────────────────────────────────── */
+﻿/* ── Fuel Records Page ────────────────────────────────────────── */
 
 .container {
   max-width: 900px;
@@ -165,7 +165,7 @@
   gap: 4px;
   padding: 2px 8px;
   border-radius: var(--radius-full);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   background: rgba(90, 122, 90, 0.08);
   color: var(--color-text);
@@ -177,7 +177,7 @@
   gap: 4px;
   padding: 2px 8px;
   border-radius: var(--radius-full);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   background: rgba(21, 101, 192, 0.1);
   color: #1565C0;

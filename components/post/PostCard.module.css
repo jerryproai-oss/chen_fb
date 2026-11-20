@@ -1,4 +1,4 @@
-/* ── PostCard — FB 風格排版 ─────────────────────────────── */
+﻿/* ── PostCard — FB 風格排版 ─────────────────────────────── */
 
 .card {
   background-color: var(--color-card);
@@ -50,7 +50,7 @@
 }
 
 .metaDot {
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .metaIcon {
@@ -65,7 +65,7 @@
 }
 
 .publishedMeta {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-text-tertiary, #999);
   line-height: 1.3;
   margin-top: 1px;
@@ -78,7 +78,7 @@
   border-radius: var(--radius-sm);
   background-color: var(--color-accent);
   color: #fff;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.4;
   margin-left: 4px;

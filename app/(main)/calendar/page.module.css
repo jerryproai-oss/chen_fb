@@ -1,4 +1,4 @@
-/* ?€?€ Calendar Page ??Google Calendar Style ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+ï»¿/* ?ï¿½?ï¿½ Calendar Page ??Google Calendar Style ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .container {
   max-width: 900px;
@@ -8,18 +8,18 @@
   position: relative;
 }
 
-/* ?€?€ Desktop/Tablet Two-Column Layout ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Desktop/Tablet Two-Column Layout ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .calendarLayout {
-  /* ?‹æ??ˆï?æ­?¸¸æµï?ä¸Šä??’å?ï¼?*/
+  /* ?ï¿½ï¿½??ï¿½ï¿½?ï¿½?ï¿½ï¿½æµï¿½?ä¸Šï¿½??ï¿½ï¿½?ï¿½?*/
 }
 
 .calendarPane {
-  /* ?‹æ??ˆï?ä¸é??¹åˆ¥æ¨?? */
+  /* ?ï¿½ï¿½??ï¿½ï¿½?ä¸ï¿½??ï¿½åˆ¥ï¿½?? */
 }
 
 .eventsPane {
-  /* ?‹æ??ˆï?ä¸é??¹åˆ¥æ¨?? */
+  /* ?ï¿½ï¿½??ï¿½ï¿½?ä¸ï¿½??ï¿½åˆ¥ï¿½?? */
 }
 
 @media (min-width: 1024px) {
@@ -44,7 +44,7 @@
     max-height: calc(100vh - 120px);
     overflow-y: auto;
     padding-right: var(--space-xs);
-    /* ?ªè??²è»¸ */
+    /* ?ï¿½ï¿½??ï¿½è»¸ */
     scrollbar-width: thin;
     scrollbar-color: rgba(90, 122, 90, 0.3) transparent;
   }
@@ -81,7 +81,7 @@
   margin-top: var(--space-xs);
 }
 
-/* ?€?€ Top Controls (Nav + View Switcher) ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Top Controls (Nav + View Switcher) ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .topControls {
   display: flex;
@@ -143,7 +143,7 @@
   border-radius: var(--radius-md);
   background-color: var(--color-card);
   color: var(--color-text);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -154,7 +154,7 @@
   color: var(--color-primary);
 }
 
-/* ?€?€ View Switcher Tabs ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ View Switcher Tabs ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .viewSwitcher {
   display: flex;
@@ -170,7 +170,7 @@
   border: none;
   background: var(--color-card);
   color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   min-height: 36px;
@@ -191,7 +191,7 @@
   background-color: rgba(90, 122, 90, 0.08);
 }
 
-/* ?€?€ Month View Calendar Card ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Month View Calendar Card ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .calendarCard {
   background-color: var(--color-card);
@@ -210,7 +210,7 @@
 }
 
 .weekdayHeader {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--color-text-secondary);
   padding: 8px 0;
@@ -229,10 +229,10 @@
   grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 
-/* ?€?€ Month Weeks ??å¤šå¤©äº‹ä»¶æ©«è·¨çµæ? ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Month Weeks ??å¤šå¤©äº‹ä»¶æ©«è·¨çµï¿½? ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .monthWeeks {
-  /* å®¹å™¨ï¼Œä?è¨?grid ??æ¯é€±ç”¨?¨ç? grid ç¢ºä? 7 ç­‰å? */
+  /* å®¹å™¨ï¼Œï¿½?ï¿½?grid ??æ¯é€±ç”¨?ï¿½ï¿½? grid ç¢ºï¿½? 7 ç­‰ï¿½? */
 }
 
 .weekRow {
@@ -244,7 +244,7 @@
   display: contents;
 }
 
-/* ?€?€ å¤šå¤©äº‹ä»¶æ®µï??¨æ???dayCell ?§éƒ¨æ¸²æ?ï¼??€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ å¤šå¤©äº‹ä»¶æ®µï¿½??ï¿½ï¿½???dayCell ?ï¿½éƒ¨æ¸²ï¿½?ï¿½??ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .segmentSlots {
   display: flex;
@@ -261,13 +261,13 @@
 }
 
 .segmentSlotEmpty {
-  /* ä½”ä?ç©ºç™½ */
+  /* ä½”ï¿½?ç©ºç™½ */
 }
 
 .spanBar {
   height: 18px;
   color: #fff;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   padding: 0 4px;
   cursor: pointer;
@@ -283,32 +283,32 @@
   opacity: 0.85;
 }
 
-/* å·¦å´?“è?ï¼ˆä?ä»¶èµ·å§‹æ ¼?–ç?è¡Œèµ·å§‹æ ¼ï¼?*/
+/* å·¦å´?ï¿½ï¿½?ï¼ˆï¿½?ä»¶èµ·å§‹æ ¼?ï¿½ï¿½?è¡Œèµ·å§‹æ ¼ï¿½?*/
 .spanBarStart {
   border-radius: 4px 0 0 4px;
   padding-left: 6px;
   margin-left: 1px;
 }
 
-/* ?³å´?“è?ï¼ˆä?ä»¶ç??Ÿæ ¼ï¼?*/
+/* ?ï¿½å´?ï¿½ï¿½?ï¼ˆï¿½?ä»¶ï¿½??ï¿½æ ¼ï¿½?*/
 .spanBarEnd {
   border-radius: 0 4px 4px 0;
   margin-right: 1px;
 }
 
-/* ?®æ ¼äº‹ä»¶ï¼ˆèµ·å§‹ï?çµæ??Œæ ¼ï¼?*/
+/* ?ï¿½æ ¼äº‹ä»¶ï¼ˆèµ·å§‹ï¿½?çµï¿½??ï¿½æ ¼ï¿½?*/
 .spanBarStart.spanBarEnd {
   border-radius: 4px;
 }
 
-/* ä¸­é?æ®µï??¡å?è§’ã€ç„¡ marginï¼Œè??°æ ¼?¡ç¸«?œæ¥ */
+/* ä¸­ï¿½?æ®µï¿½??ï¿½ï¿½?è§’ã€ç„¡ marginï¼Œï¿½??ï¿½æ ¼?ï¿½ç¸«?ï¿½æ¥ */
 .spanBarMiddle {
   border-radius: 0;
   margin-left: 0;
   margin-right: 0;
 }
 
-/* ?€?€ Day Cell (Month View) ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Day Cell (Month View) ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .dayCell {
   position: relative;
@@ -340,7 +340,7 @@
 }
 
 .dayNumber {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 500;
   color: var(--color-text);
   width: 24px;
@@ -365,7 +365,7 @@
   font-weight: 700;
 }
 
-/* ?€?€ è¾²æ??¥æ? ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ è¾²ï¿½??ï¿½ï¿½? ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .dayTopRow {
   display: flex;
@@ -375,7 +375,7 @@
 }
 
 .lunarDay {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--color-text-secondary);
   white-space: nowrap;
   overflow: hidden;
@@ -398,7 +398,7 @@
 }
 
 .eventChip {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.3;
   padding: 1px 4px;
@@ -416,7 +416,7 @@
 }
 
 .moreChip {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--color-text-secondary);
   padding: 0 4px;
@@ -427,7 +427,7 @@
   color: var(--color-primary);
 }
 
-/* ?€?€ Day Cell Hover Tooltip ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Day Cell Hover Tooltip ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .dayTooltip {
   display: none;
@@ -452,7 +452,7 @@
 }
 
 .dayTooltipHeader {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--color-text);
   margin-bottom: 6px;
@@ -465,7 +465,7 @@
   align-items: center;
   gap: 6px;
   padding: 3px 0;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.4;
 }
 
@@ -478,7 +478,7 @@
 
 .dayTooltipTime {
   color: var(--color-text-secondary);
-  font-size: 10px;
+  font-size: 12px;
   white-space: nowrap;
   min-width: 28px;
 }
@@ -491,7 +491,7 @@
   text-overflow: ellipsis;
 }
 
-/* ?€?€ Week View ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Week View ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .weekViewContainer {
   background-color: var(--color-card);
@@ -515,7 +515,7 @@
 .weekHeaderDay {
   text-align: center;
   padding: 6px 4px;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   border-right: 1px solid var(--color-border-light);
 }
 
@@ -555,7 +555,7 @@
 }
 
 .weekAllDayLabel {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-secondary);
   padding: 4px 2px;
   text-align: center;
@@ -592,7 +592,7 @@
 }
 
 .weekTimeLabel {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-secondary);
   text-align: right;
   padding: 0 4px;
@@ -622,7 +622,7 @@
   padding: 2px 4px;
   border-radius: 3px;
   color: #fff;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   line-height: 1.3;
   overflow: hidden;
@@ -634,7 +634,7 @@
   opacity: 0.85;
 }
 
-/* ?€?€ Day View ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Day View ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .dayViewContainer {
   background-color: var(--color-card);
@@ -674,7 +674,7 @@
 }
 
 .dayViewAllDayLabel {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   color: var(--color-text-secondary);
   min-width: 40px;
@@ -694,7 +694,7 @@
 }
 
 .dayViewTimeLabel {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--color-text-secondary);
   text-align: right;
   padding: 0 6px;
@@ -717,7 +717,7 @@
   padding: 4px 8px;
   border-radius: var(--radius-sm);
   color: #fff;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 500;
   line-height: 1.4;
   margin: 1px 0;
@@ -733,11 +733,11 @@
 }
 
 .dayViewEventMeta {
-  font-size: 10px;
+  font-size: 12px;
   opacity: 0.9;
 }
 
-/* ?€?€ Selected Day Events Section ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Selected Day Events Section ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .eventsSection {
   margin-top: var(--space-lg);
@@ -765,7 +765,7 @@
 
 .eventsSectionLunar {
   display: block;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   font-weight: 400;
   margin-top: 2px;
@@ -788,11 +788,11 @@
   border-radius: 12px;
   background-color: rgba(90, 122, 90, 0.1);
   color: var(--color-primary);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 700;
 }
 
-/* ?€?€ è¾²æ??†æ?è¦ï?è¡Œä??†å³?´é¢?¿ï? ?€?€?€ */
+/* ?ï¿½?ï¿½ è¾²ï¿½??ï¿½ï¿½?è¦ï¿½?è¡Œï¿½??ï¿½å³?ï¿½é¢?ï¿½ï¿½? ?ï¿½?ï¿½?ï¿½ */
 
 .almanacSummary {
   padding: 10px 12px;
@@ -814,7 +814,7 @@
   background: rgba(139, 111, 71, 0.1);
   color: #8b6f47;
   border-radius: 12px;
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -822,7 +822,7 @@
 .almanacYiji {
   display: flex;
   gap: 12px;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   line-height: 1.4;
 }
 
@@ -846,7 +846,7 @@
   border-radius: var(--radius-md);
   background-color: var(--color-card);
   color: var(--color-text);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -904,7 +904,7 @@
   border-radius: var(--radius-full);
   background-color: rgba(90, 122, 90, 0.1);
   color: var(--color-primary);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 600;
 }
 
@@ -916,7 +916,7 @@
   border-radius: var(--radius-full);
   background-color: rgba(139, 111, 71, 0.12);
   color: var(--color-accent);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 500;
 }
 
@@ -928,7 +928,7 @@
   border-radius: var(--radius-full);
   background-color: rgba(3, 155, 229, 0.1);
   color: #039be5;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 500;
   text-decoration: none;
   cursor: pointer;
@@ -940,7 +940,7 @@
   text-decoration: underline;
 }
 
-/* ?€?€ Car & Important Badges ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Car & Important Badges ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .carBadge {
   display: inline-flex;
@@ -950,7 +950,7 @@
   border-radius: var(--radius-full);
   background-color: rgba(3, 155, 229, 0.12);
   color: #039be5;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 600;
 }
 
@@ -962,7 +962,7 @@
   border-radius: var(--radius-full);
   background-color: rgba(246, 191, 38, 0.15);
   color: #d4a017;
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   font-weight: 600;
 }
 
@@ -973,7 +973,7 @@
   background-color: rgba(246, 191, 38, 0.12);
   border-left: 3px solid #f6bf26;
   color: var(--color-text);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   line-height: 1.5;
 }
 
@@ -1036,7 +1036,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   margin-top: var(--space-xs);
   padding-top: var(--space-xs);
@@ -1062,7 +1062,7 @@
   line-height: 1.4;
 }
 
-/* ?€?€ Floating Action Button (FAB) ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Floating Action Button (FAB) ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .fab {
   position: fixed;
@@ -1105,7 +1105,7 @@
   }
 }
 
-/* ?€?€ Modal Dialog ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Modal Dialog ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .modalBackdrop {
   position: fixed;
@@ -1230,7 +1230,7 @@
   user-select: none;
 }
 
-/* ?€?€ Color Picker ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Color Picker ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .colorPicker {
   display: flex;
@@ -1264,7 +1264,7 @@
   font-size: 14px;
 }
 
-/* ?€?€ Modal Footer ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Modal Footer ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 .modalFooter {
   display: flex;
@@ -1323,7 +1323,7 @@
   font-size: var(--font-size-sm);
 }
 
-/* ?€?€ Mobile Responsive ?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€?€ */
+/* ?ï¿½?ï¿½ Mobile Responsive ?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½?ï¿½ */
 
 @media (max-width: 640px) {
   .container {
@@ -1336,17 +1336,17 @@
   }
 
   .lunarDay {
-    font-size: 8px;
+    font-size: 10px;
   }
 
   .eventChip {
-    font-size: 9px;
+    font-size: 11px;
     padding: 0 3px;
     min-height: 14px;
   }
 
   .spanBar {
-    font-size: 9px;
+    font-size: 11px;
     height: 15px;
     line-height: 15px;
     padding: 0 3px;
@@ -1367,7 +1367,7 @@
   }
 
   .weekHeaderDayName {
-    font-size: 10px;
+    font-size: 12px;
   }
 
   .weekHeaderDayNum {
@@ -1376,7 +1376,7 @@
     height: 24px;
   }
 
-  /* ?‹æ???hoverï¼Œéš±??tooltip */
+  /* ?ï¿½ï¿½???hoverï¼Œéš±??tooltip */
   .dayTooltip {
     display: none !important;
   }

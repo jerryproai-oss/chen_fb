@@ -1,4 +1,4 @@
-/* ── 通訊錄頁面樣式 ──────────────────────────────── */
+﻿/* ── 通訊錄頁面樣式 ──────────────────────────────── */
 
 .container {
   max-width: 800px;
@@ -429,7 +429,7 @@
   background: none;
   cursor: pointer;
   color: #5a7a5a;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   padding: 8px;
   border-radius: 12px;
   transition: background 0.15s;
@@ -474,7 +474,7 @@
 }
 
 .detailFieldLabel {
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   color: #999;
   margin-bottom: 2px;
 }
@@ -844,7 +844,7 @@
 }
 
 .scannerDropzoneSub {
-  font-size: 0.78rem;
+  font-size: 0.88rem;
   color: #bbb;
 }
 

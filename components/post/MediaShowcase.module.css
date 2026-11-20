@@ -1,4 +1,4 @@
-/* ── MediaShowcase ─ 水平媒體展示列 ─────────────────── */
+﻿/* ── MediaShowcase ─ 水平媒體展示列 ─────────────────── */
 
 .showcase {
   margin-bottom: var(--space-md);
@@ -125,7 +125,7 @@
   right: 4px;
   background: rgba(0, 0, 0, 0.6);
   color: white;
-  font-size: 10px;
+  font-size: 12px;
   padding: 2px 5px;
   border-radius: 4px;
   line-height: 1;

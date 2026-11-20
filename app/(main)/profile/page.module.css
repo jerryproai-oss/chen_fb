@@ -1,4 +1,4 @@
-/* ── Profile Page ─────────────────────────────────────────── */
+﻿/* ── Profile Page ─────────────────────────────────────────── */
 
 .container {
   max-width: 640px;
@@ -431,7 +431,7 @@
   bottom: -16px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 9px;
+  font-size: 11px;
   color: var(--color-text-secondary);
   white-space: nowrap;
   pointer-events: none;

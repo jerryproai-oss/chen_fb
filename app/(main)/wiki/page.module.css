@@ -1,4 +1,4 @@
-/* ── Wiki Pages ─────────────────────────────────────────────── */
+﻿/* ── Wiki Pages ─────────────────────────────────────────────── */
 
 .container {
   max-width: 900px;
@@ -198,7 +198,7 @@
   align-items: center;
   padding: 2px 8px;
   border-radius: var(--radius-full);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   background: rgba(90, 122, 90, 0.1);
   color: var(--color-primary);

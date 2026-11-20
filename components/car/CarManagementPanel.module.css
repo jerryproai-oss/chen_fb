@@ -1,4 +1,4 @@
-/* ── Car Management Panel — 行事曆頁面用車管理面板 ──────────── */
+﻿/* ── Car Management Panel — 行事曆頁面用車管理面板 ──────────── */
 
 .panel {
   margin-top: var(--space-md);
@@ -14,7 +14,7 @@
 }
 
 .quickActionsTitle {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--color-text-secondary);
   display: flex;
@@ -50,12 +50,12 @@
 }
 
 .quickActionEmoji {
-  font-size: 18px;
+  font-size: 22px;
   line-height: 1;
 }
 
 .quickActionLabel {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--color-text-secondary);
   white-space: nowrap;
@@ -90,18 +90,18 @@
 }
 
 .vehicleName {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--color-text);
 }
 
 .vehiclePlate {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-text-secondary);
 }
 
 .vehicleMileage {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--color-primary);
 }
@@ -120,13 +120,13 @@
 }
 
 .bookingTitle {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--color-text);
 }
 
 .bookingCount {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-text-secondary);
 }
 
@@ -155,18 +155,18 @@
 }
 
 .bookingUser {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--color-text);
 }
 
 .bookingDate {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-text-secondary);
 }
 
 .bookingPurpose {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--color-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -182,7 +182,7 @@
 }
 
 .statusBadge {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   padding: 2px 8px;
   border-radius: var(--radius-full);
@@ -195,7 +195,7 @@
 }
 
 .actionBtnPrimary {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   padding: 3px 10px;
   border: none;
@@ -211,7 +211,7 @@
 }
 
 .actionBtnDanger {
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   padding: 3px 10px;
   border: 1.5px solid var(--color-error);
@@ -230,7 +230,7 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  font-size: 11px;
+  font-size: 13px;
   padding: 3px 8px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
@@ -258,7 +258,7 @@
 }
 
 .emptyText {
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
 }
 
 /* ── Modal 對話框 ──────────────────────────────────────────── */
@@ -334,7 +334,7 @@
   border: 1px solid rgba(213, 0, 0, 0.2);
   border-radius: var(--radius-md);
   color: var(--color-error);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
 }
 
 .formRow {
@@ -349,7 +349,7 @@
 
 .formLabel {
   display: block;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 500;
   color: var(--color-text-secondary);
   margin-bottom: 4px;
@@ -360,7 +360,7 @@
   padding: 8px 10px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   background: var(--color-card);
   color: var(--color-text);
 }
@@ -375,7 +375,7 @@
   padding: 8px 10px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   background: var(--color-card);
   color: var(--color-text);
 }
@@ -391,7 +391,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   cursor: pointer;
 }
 
@@ -401,7 +401,7 @@
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   cursor: pointer;
 }
 
@@ -415,7 +415,7 @@
   border-radius: var(--radius-md);
   background: var(--color-primary);
   color: #fff;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-weight: 600;
   cursor: pointer;
 }
@@ -430,7 +430,7 @@
 }
 
 .mileageHint {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--color-text-secondary);
   margin-bottom: var(--space-sm);
 }
@@ -456,7 +456,7 @@
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
