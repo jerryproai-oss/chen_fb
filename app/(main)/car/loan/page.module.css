@@ -1,0 +1,501 @@
+/* ── 車貸管理頁面 ─────────────────────────────────────────── */
+/* 色系：#B8860B (DarkGoldenrod) */
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-md);
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+
+.header {
+  margin-bottom: var(--space-md);
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.pageTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: #B8860B;
+}
+
+.addBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: #B8860B;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.addBtn:hover {
+  background: #9a7209;
+}
+
+/* ── 錯誤 / 空狀態 / 載入 ─────────────────────────────────── */
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 10px 16px;
+  border-radius: var(--radius-lg);
+  background: rgba(211, 47, 47, 0.08);
+  border: 1px solid rgba(211, 47, 47, 0.2);
+  color: #d32f2f;
+  font-size: 13px;
+  margin-bottom: var(--space-md);
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--space-xl) var(--space-md);
+  color: var(--color-text-secondary);
+}
+
+.emptyIcon {
+  margin-bottom: var(--space-sm);
+  opacity: 0.4;
+  color: #B8860B;
+}
+
+.emptyText {
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-md);
+}
+
+.loading {
+  text-align: center;
+  padding: var(--space-xl);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* ── 車貸卡片 ──────────────────────────────────────────────── */
+
+.loanCard {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(184, 134, 11, 0.15);
+  margin-bottom: var(--space-md);
+  overflow: hidden;
+}
+
+.loanHeader {
+  padding: var(--space-md);
+}
+
+.loanTitleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.loanIcon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.loanTitleInfo {
+  flex: 1;
+}
+
+.loanTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.loanVehicle {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.inactiveBadge {
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(158, 158, 158, 0.12);
+  color: #757575;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ── 車貸統計數字 ──────────────────────────────────────────── */
+
+.loanStats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.loanStat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 8px;
+  background: rgba(184, 134, 11, 0.04);
+  border-radius: var(--radius-md);
+}
+
+.loanStatLabel {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.loanStatValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: #B8860B;
+}
+
+/* ── 進度條 ────────────────────────────────────────────────── */
+
+.progressSection {
+  margin-bottom: var(--space-md);
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.progressLabel {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.progressPercent {
+  font-size: 14px;
+  font-weight: 700;
+  color: #B8860B;
+}
+
+.progressBar {
+  height: 10px;
+  background: rgba(184, 134, 11, 0.1);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #B8860B, #d4a017);
+  border-radius: var(--radius-full);
+  transition: width 0.6s ease;
+}
+
+.progressInfo {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+/* ── 展開按鈕 ──────────────────────────────────────────────── */
+
+.toggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid rgba(184, 134, 11, 0.25);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: #B8860B;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.toggleBtn:hover {
+  background: rgba(184, 134, 11, 0.06);
+}
+
+/* ── 還款計畫表 ────────────────────────────────────────────── */
+
+.scheduleSection {
+  border-top: 1px solid rgba(184, 134, 11, 0.1);
+  padding: var(--space-md);
+  background: rgba(184, 134, 11, 0.02);
+}
+
+.scheduleTableWrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scheduleTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.scheduleTable th {
+  padding: 8px 10px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  border-bottom: 2px solid rgba(184, 134, 11, 0.15);
+  white-space: nowrap;
+}
+
+.scheduleTable td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  white-space: nowrap;
+}
+
+.alignRight {
+  text-align: right !important;
+}
+
+/* ── 狀態列色標 ────────────────────────────────────────────── */
+
+.statusPaid {
+  background: rgba(46, 125, 50, 0.04);
+}
+
+.statusUpcoming {
+  background: rgba(21, 101, 192, 0.04);
+}
+
+.statusOverdue {
+  background: rgba(211, 47, 47, 0.04);
+}
+
+.statusPending {
+  /* 預設，不特別上色 */
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+/* ── 標記已繳按鈕 ──────────────────────────────────────────── */
+
+.markPaidBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid rgba(46, 125, 50, 0.3);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: #2e7d32;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.markPaidBtn:hover {
+  background: rgba(46, 125, 50, 0.08);
+}
+
+.markPaidBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Dialog ────────────────────────────────────────────────── */
+
+.dialogOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-md);
+}
+
+.dialog {
+  background: #fff;
+  border-radius: var(--radius-xl, 16px);
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.dialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-md) var(--space-md) 0;
+}
+
+.dialogTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: #B8860B;
+  margin: 0;
+}
+
+.dialogCloseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dialogCloseBtn:hover {
+  background: var(--color-bg-hover, #f0f0f0);
+}
+
+.dialogBody {
+  padding: var(--space-md);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.formLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.formInput,
+.formSelect,
+.formTextarea {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--color-text);
+  background: var(--color-bg, #f7f5f0);
+  transition: border-color 0.15s;
+}
+
+.formInput:focus,
+.formSelect:focus,
+.formTextarea:focus {
+  outline: none;
+  border-color: #B8860B;
+}
+
+.formTextarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.estimateBox {
+  padding: 10px 14px;
+  background: rgba(184, 134, 11, 0.06);
+  border: 1px solid rgba(184, 134, 11, 0.15);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: #B8860B;
+  margin-bottom: var(--space-sm);
+}
+
+.dialogFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.cancelBtn {
+  padding: 8px 20px;
+  border: 1px solid var(--color-border, #ddd);
+  border-radius: var(--radius-lg);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.cancelBtn:hover {
+  background: var(--color-bg-hover, #f0f0f0);
+}
+
+.submitBtn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: var(--radius-lg);
+  background: #B8860B;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.submitBtn:hover {
+  background: #9a7209;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .container {
+    padding: var(--space-sm);
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .loanStats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .scheduleTable {
+    font-size: 12px;
+  }
+
+  .scheduleTable th,
+  .scheduleTable td {
+    padding: 6px 6px;
+  }
+}

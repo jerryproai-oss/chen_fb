@@ -1,0 +1,490 @@
+/* ── 費用計算機 (Car Cost Calculator) ──────────────────────── */
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-md);
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+
+.header {
+  margin-bottom: var(--space-md);
+}
+
+.pageTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.25;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.pageSubtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.35;
+  margin-top: var(--space-xs);
+}
+
+/* ── Card ──────────────────────────────────────────────────── */
+
+.card {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.cardTitle {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardDesc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  margin-bottom: var(--space-sm);
+}
+
+/* ── Form ──────────────────────────────────────────────────── */
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: var(--space-sm);
+}
+
+.formGroupFull {
+  grid-column: 1 / -1;
+}
+
+.formLabel {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.formInput {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  background: var(--color-card);
+  color: var(--color-text);
+  transition: border-color var(--transition-fast);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.formSelect {
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  background: var(--color-card);
+  color: var(--color-text);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.formSelect:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* ── Config Info ───────────────────────────────────────────── */
+
+.configInfo {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.configTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  background: rgba(90, 122, 90, 0.1);
+  color: var(--color-primary);
+}
+
+/* ── Period ────────────────────────────────────────────────── */
+
+.periodDisplay {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 10px var(--space-md);
+  border-radius: var(--radius-md);
+  background: rgba(21, 101, 192, 0.06);
+  border: 1px solid rgba(21, 101, 192, 0.15);
+  color: #1565C0;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+}
+
+/* ── Usage Days Table ──────────────────────────────────────── */
+
+.daysGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-sm);
+}
+
+.dayItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-light);
+}
+
+.dayName {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.dayValue {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.dayUnit {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+/* ── Shares Table ──────────────────────────────────────────── */
+
+.sharesTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.sharesTable th {
+  text-align: left;
+  padding: 8px 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  border-bottom: 2px solid var(--color-border-light);
+}
+
+.sharesTable td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-text);
+}
+
+.sharesTable tr:last-child td {
+  border-bottom: none;
+}
+
+.amountCell {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.totalRow td {
+  font-weight: 700;
+  border-top: 2px solid var(--color-border);
+  color: var(--color-text);
+}
+
+/* ── Settlement ────────────────────────────────────────────── */
+
+.settlementList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.settlementItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px var(--space-md);
+  border-radius: var(--radius-md);
+  background: rgba(139, 111, 71, 0.06);
+  border: 1px solid rgba(139, 111, 71, 0.15);
+}
+
+.settlementFlow {
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.settlementArrow {
+  color: var(--color-text-secondary);
+  margin: 0 6px;
+}
+
+.settlementAmount {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: #8b6f47;
+}
+
+/* ── Audit Badge ───────────────────────────────────────────── */
+
+.auditBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.auditPass {
+  background: rgba(46, 125, 50, 0.1);
+  color: #2E7D32;
+}
+
+.auditFail {
+  background: rgba(211, 47, 47, 0.1);
+  color: #D32F2F;
+}
+
+/* ── Upload Area ───────────────────────────────────────────── */
+
+.uploadArea {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg) var(--space-md);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  color: var(--color-text-secondary);
+}
+
+.uploadArea:hover {
+  border-color: var(--color-primary);
+  background: rgba(90, 122, 90, 0.04);
+}
+
+.uploadIcon {
+  margin-bottom: var(--space-xs);
+  opacity: 0.6;
+}
+
+.uploadText {
+  font-size: var(--font-size-sm);
+  margin-bottom: 2px;
+}
+
+.uploadHint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.uploadedFiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+.uploadedFile {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-light);
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+}
+
+.removeFileBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0;
+}
+
+.removeFileBtn:hover {
+  color: #e53935;
+  background: rgba(229, 57, 53, 0.1);
+}
+
+/* ── Submit Button ─────────────────────────────────────────── */
+
+.submitBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.submitBtn:hover {
+  opacity: 0.9;
+}
+
+.submitBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Access Denied ─────────────────────────────────────────── */
+
+.accessDenied {
+  text-align: center;
+  padding: var(--space-xl) var(--space-md);
+  color: var(--color-text-secondary);
+}
+
+.accessDeniedIcon {
+  margin-bottom: var(--space-sm);
+  opacity: 0.5;
+}
+
+.accessDeniedText {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--space-xs);
+}
+
+.accessDeniedHint {
+  font-size: var(--font-size-sm);
+}
+
+/* ── Loading ───────────────────────────────────────────────── */
+
+.loading {
+  text-align: center;
+  padding: var(--space-xl);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* ── Error ─────────────────────────────────────────────────── */
+
+.errorMsg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px var(--space-md);
+  border-radius: var(--radius-md);
+  background: rgba(211, 47, 47, 0.08);
+  border: 1px solid rgba(211, 47, 47, 0.2);
+  color: #D32F2F;
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-md);
+}
+
+.successMsg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px var(--space-md);
+  border-radius: var(--radius-md);
+  background: rgba(46, 125, 50, 0.08);
+  border: 1px solid rgba(46, 125, 50, 0.2);
+  color: #2E7D32;
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-md);
+}
+
+/* ── Empty / No Data ───────────────────────────────────────── */
+
+.emptyHint {
+  text-align: center;
+  padding: var(--space-md);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .container {
+    padding: var(--space-sm);
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+
+  .configInfo {
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .daysGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .sharesTable th,
+  .sharesTable td {
+    padding: 6px 8px;
+    font-size: var(--font-size-xs);
+  }
+
+  .settlementItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .submitBtn {
+    font-size: var(--font-size-sm);
+    padding: 10px 20px;
+  }
+}

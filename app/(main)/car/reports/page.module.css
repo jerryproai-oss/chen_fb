@@ -1,0 +1,359 @@
+/* ── Car Reports Page — 明細報表 ──────────────────────────────── */
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-md);
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+
+.header {
+  margin-bottom: var(--space-md);
+}
+
+.pageTitle {
+  font-size: var(--font-size-2xl);
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.25;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* ── Report Type Tabs ─────────────────────────────────────────── */
+
+.tabRow {
+  display: flex;
+  gap: 2px;
+  background: var(--color-bg);
+  border-radius: var(--radius-full);
+  padding: 3px;
+  margin-bottom: var(--space-md);
+}
+
+.tabBtn {
+  padding: 6px 14px;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  background: transparent;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.tabBtn:hover {
+  color: var(--color-text);
+}
+
+.tabBtnActive {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+/* ── Control Row ──────────────────────────────────────────────── */
+
+.controlRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.selectControl {
+  padding: 6px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  background: var(--color-card);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.selectControl:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+/* ── Period Navigation ────────────────────────────────────────── */
+
+.navRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.navBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-full);
+  background: var(--color-card);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.navBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.periodLabel {
+  font-size: var(--font-size-base);
+  font-weight: 600;
+  color: var(--color-text);
+  min-width: 120px;
+  text-align: center;
+}
+
+/* ── Summary Grid ─────────────────────────────────────────────── */
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.summaryCard {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.summaryIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  background: rgba(90, 122, 90, 0.1);
+  color: var(--color-primary);
+}
+
+.summaryNumber {
+  font-size: var(--font-size-xl);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.summaryLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.sharesList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+}
+
+.shareRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  padding: 1px 0;
+}
+
+.shareRatio {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* ── Detail Table ─────────────────────────────────────────────── */
+
+.tableWrap {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+  overflow-x: auto;
+  margin-bottom: var(--space-md);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border-light);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--transition-fast);
+}
+
+.th:hover {
+  color: var(--color-primary);
+}
+
+.thActive {
+  color: var(--color-primary);
+}
+
+.sortIcon {
+  margin-left: 4px;
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.td {
+  padding: 10px 12px;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border-light);
+  white-space: nowrap;
+}
+
+.tr:last-child .td {
+  border-bottom: none;
+}
+
+.tr:hover .td {
+  background-color: rgba(90, 122, 90, 0.04);
+}
+
+.tdAmount {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ── Status Badge ─────────────────────────────────────────────── */
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+/* ── Export Button ─────────────────────────────────────────────── */
+
+.exportBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-card);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.exportBtn:hover {
+  background: var(--color-bg);
+}
+
+.exportBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Action Row ───────────────────────────────────────────────── */
+
+.actionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+/* ── Empty State ──────────────────────────────────────────────── */
+
+.emptyState {
+  text-align: center;
+  padding: var(--space-xl) var(--space-md);
+  color: var(--color-text-secondary);
+}
+
+.emptyIcon {
+  margin-bottom: var(--space-sm);
+  opacity: 0.5;
+}
+
+.emptyText {
+  font-size: var(--font-size-sm);
+}
+
+/* ── Loading ──────────────────────────────────────────────────── */
+
+.loading {
+  text-align: center;
+  padding: var(--space-xl);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .container {
+    padding: var(--space-sm);
+    padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .summaryGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .tableWrap {
+    margin-left: calc(-1 * var(--space-sm));
+    margin-right: calc(-1 * var(--space-sm));
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  .table {
+    min-width: 600px;
+  }
+
+  .controlRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actionRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .navRow {
+    justify-content: center;
+  }
+}

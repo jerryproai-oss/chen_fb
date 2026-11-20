@@ -1,0 +1,89 @@
+/* ── Vehicle Info Page ────────────────────────────────────────── */
+
+.container { max-width: 900px; margin: 0 auto; padding: var(--space-md); padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+.header { margin-bottom: var(--space-md); }
+
+.backLink { display: inline-flex; align-items: center; gap: 4px; font-size: var(--font-size-sm); color: var(--color-primary); text-decoration: none; margin-bottom: var(--space-xs); }
+.backLink:hover { text-decoration: underline; }
+
+.headerRow { display: flex; align-items: center; justify-content: space-between; }
+.pageTitle { font-size: var(--font-size-2xl); font-weight: 700; color: var(--color-text); line-height: 1.25; }
+
+.editBtn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border: 1px solid var(--color-border); border-radius: var(--radius-full); background: var(--color-card); color: var(--color-text); font-size: var(--font-size-sm); font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.editBtn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+
+.loading { text-align: center; padding: var(--space-xl); color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+
+/* ── Vehicle Card ─────────────────────────────────────────────── */
+
+.vehicleCard { background: var(--color-card); border-radius: var(--radius-lg); border: 1px solid var(--color-border-light); box-shadow: var(--shadow-sm); padding: var(--space-md); margin-bottom: var(--space-md); }
+
+.vehicleHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-md); padding-bottom: var(--space-sm); border-bottom: 1px solid var(--color-border-light); }
+.vehicleName { font-size: var(--font-size-xl); font-weight: 700; color: var(--color-text); }
+.vehiclePlate { display: inline-flex; padding: 4px 12px; border-radius: var(--radius-full); background: rgba(90, 122, 90, 0.08); color: var(--color-primary); font-size: var(--font-size-sm); font-weight: 600; }
+
+.infoGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--space-sm); }
+.infoItem { display: flex; flex-direction: column; gap: 2px; }
+.infoLabel { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+.infoValue { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text); }
+
+/* ── Mileage Card ─────────────────────────────────────────────── */
+
+.mileageCard { background: linear-gradient(135deg, #5a7a5a 0%, #4a6a4a 100%); border-radius: var(--radius-lg); padding: var(--space-lg); text-align: center; margin-bottom: var(--space-md); }
+.mileageLabel { font-size: var(--font-size-sm); color: rgba(255, 255, 255, 0.8); margin-bottom: 4px; }
+.mileageValue { font-size: 36px; font-weight: 700; color: #fff; }
+.mileageUnit { font-size: var(--font-size-lg); font-weight: 400; opacity: 0.8; }
+
+/* ── Status Grid ──────────────────────────────────────────────── */
+
+.statusGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-sm); margin-bottom: var(--space-md); }
+.statusCard { display: flex; flex-direction: column; gap: 4px; padding: var(--space-sm) var(--space-md); background: var(--color-card); border-radius: var(--radius-md); border: 1px solid var(--color-border-light); }
+.statusUrgent { border-color: #e53935; background: rgba(229, 57, 53, 0.04); }
+.statusIcon { font-size: 20px; }
+.statusText { font-size: var(--font-size-sm); font-weight: 500; color: var(--color-text); }
+.statusUrgent .statusText { color: #e53935; }
+.statusSub { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
+
+/* ── Note Card ────────────────────────────────────────────────── */
+
+.noteCard { background: var(--color-card); border-radius: var(--radius-md); border: 1px solid var(--color-border-light); padding: var(--space-sm) var(--space-md); font-size: var(--font-size-sm); color: var(--color-text); margin-bottom: var(--space-md); }
+
+/* ── Empty State ──────────────────────────────────────────────── */
+
+.emptyState { text-align: center; padding: var(--space-xl) var(--space-md); color: var(--color-text-secondary); }
+.emptyIcon { font-size: 48px; margin-bottom: var(--space-sm); opacity: 0.5; }
+.emptyText { font-size: var(--font-size-sm); }
+
+/* ── Modal ─────────────────────────────────────────────────────── */
+
+.modalOverlay { position: fixed; inset: 0; z-index: 1000; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; padding: var(--space-md); }
+.modal { background: var(--color-card); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 100%; max-width: 560px; max-height: 85vh; overflow-y: auto; }
+.modalHeader { display: flex; align-items: center; justify-content: space-between; padding: var(--space-md); border-bottom: 1px solid var(--color-border-light); position: sticky; top: 0; background: var(--color-card); z-index: 1; }
+.modalTitle { font-size: var(--font-size-lg); font-weight: 700; color: var(--color-text); }
+.modalClose { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: none; border-radius: var(--radius-full); background: transparent; color: var(--color-text-secondary); cursor: pointer; }
+.modalClose:hover { background: var(--color-bg); }
+.modalBody { padding: var(--space-md); }
+.modalFooter { display: flex; gap: var(--space-sm); justify-content: flex-end; padding: var(--space-md); border-top: 1px solid var(--color-border-light); position: sticky; bottom: 0; background: var(--color-card); }
+
+.errorMsg { color: #e53935; font-size: 13px; margin-bottom: 12px; padding: 8px; border-radius: 8px; background: rgba(229, 57, 53, 0.08); }
+
+.formRow { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-sm); margin-bottom: var(--space-xs); }
+.formGroup { display: flex; flex-direction: column; gap: 4px; margin-bottom: var(--space-xs); }
+.formLabel { font-size: var(--font-size-xs); font-weight: 500; color: var(--color-text-secondary); }
+.formInput { padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: var(--font-size-sm); background: var(--color-card); color: var(--color-text); transition: border-color 0.15s; }
+.formInput:focus { outline: none; border-color: var(--color-primary); }
+.formTextarea { padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: var(--font-size-sm); background: var(--color-card); color: var(--color-text); resize: vertical; min-height: 60px; }
+
+.btnCancel { padding: 8px 20px; border: 1px solid var(--color-border); border-radius: var(--radius-full); background: var(--color-card); color: var(--color-text); font-size: var(--font-size-sm); font-weight: 500; cursor: pointer; }
+.btnSave { padding: 8px 20px; border: none; border-radius: var(--radius-full); background: var(--color-primary); color: #fff; font-size: var(--font-size-sm); font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+.btnSave:hover { opacity: 0.9; }
+.btnSave:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Responsive ───────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .container { padding: var(--space-sm); padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+  .formRow { grid-template-columns: 1fr; }
+  .statusGrid { grid-template-columns: 1fr; }
+  .mileageValue { font-size: 28px; }
+}
