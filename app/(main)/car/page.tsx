@@ -92,12 +92,14 @@ export default function CarPage() {
   const fetchData = useCallback(async () => {
     try {
       const [vRes, bRes] = await Promise.all([
-        fetch('/api/car/vehicle'),
+        fetch('/api/car/vehicles'),
         fetch(`/api/car/bookings?year=${calYear}&month=${calMonth}`),
       ]);
       if (vRes.ok) {
         const vData = await vRes.json();
-        setVehicle(vData.vehicle || null);
+        const vehicles = vData.vehicles || [];
+        const active = vehicles.find((v: VehicleInfo) => v.isActive) || vehicles[0] || null;
+        setVehicle(active);
       }
       if (bRes.ok) {
         const bData = await bRes.json();

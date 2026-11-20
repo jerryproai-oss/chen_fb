@@ -56,12 +56,14 @@ export default function VehiclePage() {
   const fetchVehicle = useCallback(async () => {
     try {
       const [vRes, uRes] = await Promise.all([
-        fetch('/api/car/vehicle'),
-        fetch('/api/users/me'),
+        fetch('/api/car/vehicles'),
+        fetch('/api/me'),
       ]);
       if (vRes.ok) {
         const vData = await vRes.json();
-        setVehicle(vData.vehicle || null);
+        const vehicles = vData.vehicles || [];
+        const active = vehicles.find((v: VehicleInfo) => v.isActive) || vehicles[0] || null;
+        setVehicle(active);
       }
       if (uRes.ok) {
         const uData = await uRes.json();
@@ -171,8 +173,8 @@ export default function VehiclePage() {
       if (form.vin) body.vin = form.vin.trim();
       body.note = form.note.trim() || null;
 
-      const res = await fetch(`/api/car/vehicle/${vehicle.id}`, {
-        method: 'PUT',
+      const res = await fetch(`/api/car/vehicles/${vehicle.id}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
