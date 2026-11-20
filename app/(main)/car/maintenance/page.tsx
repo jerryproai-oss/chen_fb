@@ -170,8 +170,6 @@ export default function MaintenancePage() {
   const [editingRecord, setEditingRecord] = useState<CostRecordItem | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  const [userRole, setUserRole] = useState<string>('');
-  const [userId, setUserId] = useState<string>('');
 
   const fetchRecords = useCallback(async () => {
     try {
@@ -251,19 +249,6 @@ export default function MaintenancePage() {
         } catch { /* ignore */ }
       }
     } catch { /* ignore */ }
-  }, []);
-
-  // 載入使用者身分
-  useEffect(() => {
-    fetch('/api/me')
-      .then(r => r.ok ? r.json() : null)
-      .then(me => {
-        if (me) {
-          setUserId(me.id);
-          setUserRole(me.role || '');
-        }
-      })
-      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -560,29 +545,6 @@ export default function MaintenancePage() {
     }
   }
 
-  // ── 付款登記 ──────────────────────────────────────────────
-
-  const [paymentLoading, setPaymentLoading] = useState<string | null>(null);
-
-  async function handlePayment(shareId: string, currentStatus: string) {
-    const actionLabel = currentStatus === 'UNPAID' ? '標記已繳' : '確認收款';
-    if (!confirm(`確定要「${actionLabel}」此筆分攤？`)) return;
-
-    setPaymentLoading(shareId);
-    try {
-      const res = await fetch(`/api/car/payments/${shareId}`, { method: 'PATCH' });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || '操作失敗');
-      }
-      await fetchRecords();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : '操作失敗');
-    } finally {
-      setPaymentLoading(null);
-    }
-  }
-
   if (loading) {
     return <div className={styles.container}><div className={styles.loading}>載入中...</div></div>;
   }
@@ -753,18 +715,11 @@ export default function MaintenancePage() {
                 </div>
               </div>
 
-              {/* 分攤明細 */}
+              {/* 分攤明細（僅顯示，付款操作在結算頁） */}
               {currentRecord.shares.length > 0 && (
                 <div className={styles.sharesSection}>
                   <div className={styles.sharesTitle}>分攤明細</div>
-                  {currentRecord.shares.map(s => {
-                    const isAdmin = userRole === 'ADMIN';
-                    const isShareOwner = s.userId === userId;
-                    const canMarkPaid = s.paymentStatus === 'UNPAID' && (isShareOwner || isAdmin);
-                    const canConfirm = s.paymentStatus === 'PAID' && isAdmin;
-                    const isProcessing = paymentLoading === s.id;
-
-                    return (
+                  {currentRecord.shares.map(s => (
                     <div key={s.id} className={styles.shareItem}>
                       <span className={styles.shareName}>{s.user.displayName}</span>
                       <span className={styles.shareAmount}>
@@ -779,29 +734,8 @@ export default function MaintenancePage() {
                       >
                         {s.paymentStatus === 'CONFIRMED' ? '已確認' : s.paymentStatus === 'PAID' ? '已繳' : '待繳'}
                       </span>
-                      {canMarkPaid && (
-                        <button
-                          type="button"
-                          className={styles.payBtn}
-                          onClick={() => handlePayment(s.id, s.paymentStatus)}
-                          disabled={isProcessing}
-                        >
-                          {isProcessing ? '處理中...' : '💰 標記已繳'}
-                        </button>
-                      )}
-                      {canConfirm && (
-                        <button
-                          type="button"
-                          className={styles.confirmPayBtn}
-                          onClick={() => handlePayment(s.id, s.paymentStatus)}
-                          disabled={isProcessing}
-                        >
-                          {isProcessing ? '處理中...' : '✅ 確認收款'}
-                        </button>
-                      )}
                     </div>
-                    );
-                  })}
+                  ))}
                 </div>
               )}
 
