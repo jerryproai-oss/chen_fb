@@ -6,7 +6,6 @@ import { PenSquare } from 'lucide-react';
 import PostCard from '@/components/post/PostCard';
 import MediaPool from '@/components/post/MediaPool';
 import MediaShowcase from '@/components/post/MediaShowcase';
-import CarHomeSummary from '@/components/car/CarHomeSummary';
 import type { PostSummary } from '@/lib/types';
 import HelpGuide from '@/components/ui/HelpGuide';
 import { journalHelp } from '@/lib/constants/help-content';
@@ -80,9 +79,6 @@ export default function JournalPage() {
         <h1 className={styles.pageTitle}>生活手札 <HelpGuide content={journalHelp} /></h1>
         <p className={styles.pageSubtitle}>記錄每一天的生活點滴</p>
       </div>
-
-      {/* 用車管理摘要卡片 */}
-      <CarHomeSummary />
 
       {/* Tab Bar */}
       <div className={styles.tabBar}>
