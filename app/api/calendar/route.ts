@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db/client';
 import { withAuth } from '@/lib/auth/middleware';
 import { logAudit, AuditActions, ResourceTypes, Outcomes } from '@/lib/audit';
 import { getTaiwanHolidays } from '@/lib/holidays';
-import { HOLIDAY_COLORS } from '@/lib/constants/calendar-colors';
+import { HOLIDAY_COLORS, CAR_EVENT_COLOR } from '@/lib/constants/calendar-colors';
 import type { FamilyEventItem } from '@/lib/types';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -86,7 +86,7 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
   const authorInclude = { author: { select: { displayName: true, avatarUrl: true, calendarColor: true } } };
 
   try {
-    const [rangeEvents, recurringEvents] = await Promise.all([
+    const [rangeEvents, recurringEvents, carBookings] = await Promise.all([
       // 1) 非循環事件：開始日期在當月範圍 OR 跨天事件覆蓋到當月
       prisma.familyEvent.findMany({
         where: {
@@ -109,6 +109,19 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
         where: { isRecurring: true },
         include: authorInclude,
         orderBy: [{ eventDate: 'asc' }, { eventTime: 'asc' }],
+      }),
+      // 3) 用車預約（CarBooking）— 合併到行事曆顯示
+      prisma.carBooking.findMany({
+        where: {
+          status: { in: ['RESERVED', 'OUT', 'COMPLETED'] },
+          startDate: { lte: endOfMonth },
+          endDate: { gte: startOfMonth },
+        },
+        include: {
+          user: { select: { displayName: true, avatarUrl: true, calendarColor: true } },
+          vehicle: { select: { name: true } },
+        },
+        orderBy: { startDate: 'asc' },
       }),
     ]);
 
@@ -175,6 +188,57 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
           formattedEvents.push(formatEvent(ev));
         }
       }
+    }
+
+    // 將 CarBooking 轉換為 FamilyEventItem 合併顯示
+    // 收集已透過 FamilyEvent needsCar 標記的日期範圍，避免重複
+    const needsCarEventDates = new Set<string>();
+    for (const ev of formattedEvents) {
+      if (ev.needsCar) {
+        needsCarEventDates.add(`${ev.authorId}_${ev.eventDate}`);
+      }
+    }
+
+    const STATUS_LABEL: Record<string, string> = {
+      RESERVED: '已預約',
+      OUT: '使用中',
+      COMPLETED: '已完成',
+    };
+
+    for (const booking of carBookings) {
+      const bStartDate = booking.startDate.toISOString().split('T')[0];
+      const bEndDate = booking.endDate.toISOString().split('T')[0];
+      const isSameDay = bStartDate === bEndDate;
+
+      // 若此預約的起始日已有同一使用者的 needsCar 事件，跳過避免重複
+      if (needsCarEventDates.has(`${booking.userId}_${bStartDate}`)) continue;
+
+      const statusText = STATUS_LABEL[booking.status] || booking.status;
+      const title = `🚗 ${booking.user.displayName} 用車`;
+
+      formattedEvents.push({
+        id: `carbooking_${booking.id}`,
+        authorId: booking.userId,
+        author: {
+          displayName: booking.user.displayName,
+          avatarUrl: booking.user.avatarUrl,
+          calendarColor: booking.user.calendarColor ?? null,
+        },
+        title,
+        description: `${booking.purpose}${booking.purpose ? '｜' : ''}${statusText}`,
+        eventDate: bStartDate,
+        endDate: isSameDay ? null : bEndDate,
+        eventTime: null,
+        endTime: null,
+        isAllDay: true,
+        color: CAR_EVENT_COLOR,
+        location: null,
+        isRecurring: false,
+        recurringType: null,
+        recurringEndDate: null,
+        needsCar: true,
+        isImportant: false,
+      });
     }
 
     // 加入台灣國定假日、彈性放假、紀念日
