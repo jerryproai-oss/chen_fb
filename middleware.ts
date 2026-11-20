@@ -143,6 +143,6 @@ export const config = {
      * - _next/image (圖片最佳化)
      * - favicon.ico
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|googleba04c83940fd8666\\.html).*)',
   ],
 };
