@@ -442,10 +442,48 @@
 
 .sharesSection { margin-bottom: var(--space-md); padding-top: var(--space-sm); border-top: 1px solid var(--color-border-light); }
 .sharesTitle { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text); margin-bottom: var(--space-xs); }
-.shareItem { display: flex; align-items: center; gap: var(--space-sm); padding: 4px 0; }
-.shareName { font-size: var(--font-size-sm); color: var(--color-text); flex: 1; }
+.shareItem { display: flex; align-items: center; gap: var(--space-sm); padding: 6px 0; flex-wrap: wrap; }
+.shareName { font-size: var(--font-size-sm); color: var(--color-text); flex: 1; min-width: 60px; }
 .shareAmount { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text); }
 .shareBadge { display: inline-flex; padding: 2px 8px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; }
+
+/* ── Payment Buttons ─────────────────────────────────────────── */
+
+.payBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid #FF8F00;
+  border-radius: var(--radius-full);
+  background: rgba(255,143,0,0.08);
+  color: #E65100;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.payBtn:hover:not(:disabled) { background: rgba(255,143,0,0.18); }
+.payBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.confirmPayBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid #2E7D32;
+  border-radius: var(--radius-full);
+  background: rgba(46,125,50,0.08);
+  color: #2E7D32;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.confirmPayBtn:hover:not(:disabled) { background: rgba(46,125,50,0.18); }
+.confirmPayBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Attachment ───────────────────────────────────────────────── */
 
