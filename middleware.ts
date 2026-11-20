@@ -87,7 +87,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/favicon') ||
     pathname.endsWith('.ico') ||
     pathname.endsWith('.png') ||
-    pathname.endsWith('.svg')
+    pathname.endsWith('.svg') ||
+    (pathname.startsWith('/google') && pathname.endsWith('.html'))
   ) {
     return secureNext();
   }
