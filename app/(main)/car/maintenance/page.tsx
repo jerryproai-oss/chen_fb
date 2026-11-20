@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X, Camera, Upload, Sparkles, Loader2, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
 import type { CostRecordItem, PaymentMethodType } from '@/lib/car/types';
 import { PAYMENT_METHOD_LABEL } from '@/lib/car/types';
+import { calculateCostShares } from '@/lib/car/cost-calculator';
+import type { CostConfig, ChildUsage } from '@/lib/car/cost-calculator';
 import styles from './page.module.css';
 
 const MAINTENANCE_KEYWORDS = ['保養', '大保養', '輪胎', '煞車', '機油', '冷氣', '保修', '維修', '保固'];
@@ -107,6 +109,20 @@ interface FamilyUser {
   displayName: string;
 }
 
+interface ConfigItem {
+  id: string;
+  item: string;
+  parentRatio: number;
+  calcMethod: string;
+  dualTrackBaseRatio: number;
+}
+
+interface AccumulatedDay {
+  userId: string;
+  displayName: string;
+  totalDays: number;
+}
+
 // ── 主頁面 ──────────────────────────────────────────────────
 
 export default function MaintenancePage() {
@@ -127,6 +143,11 @@ export default function MaintenancePage() {
   const [formPaymentMethod, setFormPaymentMethod] = useState('CASH');
   const [formNote, setFormNote] = useState('');
   const [formMileage, setFormMileage] = useState('');
+
+  // 分攤規則 + 累計天數
+  const [costConfigs, setCostConfigs] = useState<ConfigItem[]>([]);
+  const [formConfigItem, setFormConfigItem] = useState('一般保養');
+  const [accumulatedDays, setAccumulatedDays] = useState<AccumulatedDay[]>([]);
 
   // 收據上傳 + AI 辨識
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -166,7 +187,7 @@ export default function MaintenancePage() {
     } catch { /* ignore */ }
   }, []);
 
-  // 載入車輛、使用者、家庭成員
+  // 載入車輛、使用者、家庭成員、分攤規則
   const fetchFormData = useCallback(async () => {
     try {
       const [vehiclesRes, meRes, membersRes] = await Promise.all([
@@ -175,12 +196,16 @@ export default function MaintenancePage() {
         fetch('/api/family/members'),
       ]);
 
+      let vehicleId = '';
+
       if (vehiclesRes.ok) {
         const data = await vehiclesRes.json();
-        setVehicles((data.vehicles || []).map((v: { id: string; name: string }) => ({
+        const vList = (data.vehicles || []).map((v: { id: string; name: string }) => ({
           id: v.id,
           name: v.name,
-        })));
+        }));
+        setVehicles(vList);
+        if (vList.length > 0) vehicleId = vList[0].id;
       }
 
       if (meRes.ok) {
@@ -194,6 +219,36 @@ export default function MaintenancePage() {
           id: m.id,
           displayName: m.displayName,
         })));
+      }
+
+      // 載入分攤規則
+      if (vehicleId) {
+        try {
+          const configRes = await fetch(`/api/car/config?vehicleId=${vehicleId}&isActive=true`);
+          if (configRes.ok) {
+            const configData = await configRes.json();
+            setCostConfigs((configData.configs || []).map((c: ConfigItem) => ({
+              id: c.id,
+              item: c.item,
+              parentRatio: c.parentRatio,
+              calcMethod: c.calcMethod,
+              dualTrackBaseRatio: c.dualTrackBaseRatio,
+            })));
+          }
+        } catch { /* ignore */ }
+
+        // 載入近 90 天累計用車天數
+        try {
+          const endDate = getLocalDate();
+          const startD = new Date();
+          startD.setDate(startD.getDate() - 90);
+          const startDate = `${startD.getFullYear()}-${String(startD.getMonth() + 1).padStart(2, '0')}-${String(startD.getDate()).padStart(2, '0')}`;
+          const daysRes = await fetch(`/api/car/accumulated-days?vehicleId=${vehicleId}&startDate=${startDate}&endDate=${endDate}`);
+          if (daysRes.ok) {
+            const daysData = await daysRes.json();
+            setAccumulatedDays(daysData.userDays || []);
+          }
+        } catch { /* ignore */ }
       }
     } catch { /* ignore */ }
   }, []);
@@ -233,6 +288,7 @@ export default function MaintenancePage() {
     setFormPaymentMethod('CASH');
     setFormNote('');
     setFormMileage('');
+    setFormConfigItem('一般保養');
     setReceiptFile(null);
     setReceiptPreview(null);
     setOcrResult(null);
@@ -359,22 +415,54 @@ export default function MaintenancePage() {
         currentUser,
         ...familyMembers.filter(m => m.id !== currentUser.id),
       ];
-      const shares = allUsers.map(u => ({
-        userId: u.id,
-        displayName: u.displayName,
-        usageDays: 0,
-      }));
+
+      // 查找使用者的累計天數
+      const shares = allUsers.map(u => {
+        const days = accumulatedDays.find(d => d.userId === u.id);
+        return {
+          userId: u.id,
+          displayName: u.displayName,
+          usageDays: days?.totalDays || 0,
+        };
+      });
+
+      // 若有匹配的 config，傳送 config 的 item 名稱讓後端精確匹配規則
+      const matchedConfig = costConfigs.find(c => c.item === formConfigItem);
 
       const payload = {
         vehicleId: vehicles[0].id,
         totalAmount: amount,
-        item: formItem.trim(),
+        // 若有匹配的規則，用規則的 item 名稱（後端用此名匹配 CarCostConfig）
+        // 實際保修項目存在 paymentNote 裡
+        item: matchedConfig ? formConfigItem : formItem.trim(),
         paidById: currentUser.id,
         paymentMethod: formPaymentMethod,
         paymentNote: formNote.trim() || null,
         settlementDate: formDate,
         shares,
       };
+
+      // 如果規則 item 與實際保修項目不同，把詳細項目補到 paymentNote
+      if (matchedConfig && formItem.trim() && formItem.trim() !== formConfigItem) {
+        const existingNote = formNote.trim();
+        // 合併：保修內容 + 原有的 JSON 或文字備註
+        if (existingNote) {
+          try {
+            const parsed = JSON.parse(existingNote);
+            parsed.maintenanceDetail = formItem.trim();
+            payload.paymentNote = JSON.stringify(parsed);
+          } catch {
+            payload.paymentNote = `保修內容：${formItem.trim()}\n${existingNote}`;
+          }
+        } else {
+          payload.paymentNote = `保修內容：${formItem.trim()}`;
+        }
+        // 組合 item 名稱：「一般保養 — 60000公里保養 等 21 項」
+        const detailSuffix = formItem.trim().length > 20
+          ? formItem.trim().slice(0, 20) + '...'
+          : formItem.trim();
+        payload.item = `${formConfigItem} — ${detailSuffix}`;
+      }
 
       const res = await fetch('/api/car/costs', {
         method: 'POST',
@@ -977,6 +1065,96 @@ export default function MaintenancePage() {
                   required
                 />
               </div>
+
+              {/* 費用分攤類型 */}
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>費用分攤類型</label>
+                <select
+                  className={styles.formSelect}
+                  value={formConfigItem}
+                  onChange={e => {
+                    setFormConfigItem(e.target.value);
+                  }}
+                >
+                  <option value="一般保養">一般保養（父母 0%、雙軌制）</option>
+                  <option value="大保養">大保養（父母 30%、雙軌制）</option>
+                  {costConfigs
+                    .filter(c => c.item !== '一般保養' && c.item !== '大保養')
+                    .map(c => (
+                      <option key={c.id} value={c.item}>
+                        {c.item}（父母 {Math.round(c.parentRatio * 100)}%、{c.calcMethod === 'DUAL_TRACK' ? '雙軌制' : '均分制'}）
+                      </option>
+                    ))}
+                </select>
+                <div className={styles.configHint}>
+                  依規則計算父母負擔比率與分攤方式，可在設定頁管理規則
+                </div>
+              </div>
+
+              {/* 分攤預覽 */}
+              {formAmount && parseFloat(formAmount) > 0 && (() => {
+                const amt = parseFloat(formAmount);
+                const matchedCfg = costConfigs.find(c => c.item === formConfigItem);
+                const cfg: CostConfig = matchedCfg
+                  ? {
+                      parentRatio: matchedCfg.parentRatio,
+                      calcMethod: matchedCfg.calcMethod as CostConfig['calcMethod'],
+                      dualTrackBaseRatio: matchedCfg.dualTrackBaseRatio,
+                    }
+                  : formConfigItem === '大保養'
+                    ? { parentRatio: 0.3, calcMethod: 'DUAL_TRACK' as const, dualTrackBaseRatio: 0.5 }
+                    : { parentRatio: 0, calcMethod: 'DUAL_TRACK' as const, dualTrackBaseRatio: 0.5 };
+
+                const allUsers = currentUser
+                  ? [currentUser, ...familyMembers.filter(m => m.id !== currentUser.id)]
+                  : familyMembers;
+
+                const childUsages: ChildUsage[] = allUsers.map(u => ({
+                  userId: u.id,
+                  displayName: u.displayName,
+                  usageDays: accumulatedDays.find(d => d.userId === u.id)?.totalDays || 0,
+                }));
+
+                if (childUsages.length === 0 || isNaN(amt) || amt <= 0) return null;
+
+                try {
+                  const result = calculateCostShares(
+                    amt,
+                    cfg,
+                    childUsages,
+                    currentUser?.id || '',
+                    currentUser?.displayName || '',
+                    currentUser?.id || '',
+                  );
+
+                  return (
+                    <div className={styles.previewSection}>
+                      <div className={styles.previewTitle}>📊 分攤預覽</div>
+                      <div className={styles.previewInfo}>
+                        父母負擔 {Math.round(cfg.parentRatio * 100)}%
+                        {cfg.calcMethod === 'DUAL_TRACK' ? `・雙軌制（均分 ${Math.round(cfg.dualTrackBaseRatio * 100)}% + 天數 ${Math.round((1 - cfg.dualTrackBaseRatio) * 100)}%）` : '・均分制'}
+                      </div>
+                      {accumulatedDays.length > 0 && (
+                        <div className={styles.previewDays}>
+                          近 90 天用車：{accumulatedDays.map(d => `${d.displayName} ${d.totalDays}天`).join('、')}
+                        </div>
+                      )}
+                      <div className={styles.previewShares}>
+                        {result.shares.map(s => (
+                          <div key={s.userId} className={styles.previewShareRow}>
+                            <span>{s.displayName}</span>
+                            <span className={styles.previewShareAmount}>
+                              NT$ {s.amount.toLocaleString()}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                } catch {
+                  return null;
+                }
+              })()}
 
               {/* 日期 */}
               <div className={styles.formGroup}>

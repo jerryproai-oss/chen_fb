@@ -158,8 +158,8 @@ export const POST = withAdmin(async ({ user }, req: NextRequest) => {
       return NextResponse.json({ error: '繳費人不存在' }, { status: 404 });
     }
 
-    // 查找對應的 CarCostConfig 規則
-    const config = await prisma.carCostConfig.findFirst({
+    // 查找對應的 CarCostConfig 規則（先精確匹配，再嘗試前綴匹配）
+    let config = await prisma.carCostConfig.findFirst({
       where: {
         vehicleId,
         item: item.trim(),
@@ -167,6 +167,33 @@ export const POST = withAdmin(async ({ user }, req: NextRequest) => {
       },
       orderBy: { effectiveFrom: 'desc' },
     });
+
+    // 若精確匹配不到，嘗試前綴匹配（如「一般保養 — 60000公里保養」→ 匹配「一般保養」）
+    if (!config) {
+      const trimmedItem = item.trim();
+      // 嘗試用「 — 」分割取前綴
+      const dashIdx = trimmedItem.indexOf(' — ');
+      const prefix = dashIdx > 0 ? trimmedItem.slice(0, dashIdx).trim() : null;
+      if (prefix) {
+        config = await prisma.carCostConfig.findFirst({
+          where: {
+            vehicleId,
+            item: prefix,
+            isActive: true,
+          },
+          orderBy: { effectiveFrom: 'desc' },
+        });
+      }
+
+      // 再嘗試包含常見費用類型的模糊匹配
+      if (!config) {
+        const allConfigs = await prisma.carCostConfig.findMany({
+          where: { vehicleId, isActive: true },
+          orderBy: { effectiveFrom: 'desc' },
+        });
+        config = allConfigs.find(c => trimmedItem.includes(c.item)) || null;
+      }
+    }
 
     // 組合計算規則：有資料庫規則就用，沒有就用預設值
     const costConfig: CostConfig = config

@@ -485,6 +485,63 @@
 .confirmPayBtn:hover:not(:disabled) { background: rgba(46,125,50,0.18); }
 .confirmPayBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ── Config Hint & Split Preview ─────────────────────────────── */
+
+.configHint {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+.previewSection {
+  background: rgba(90, 122, 90, 0.06);
+  border: 1px solid rgba(90, 122, 90, 0.2);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-sm);
+}
+
+.previewTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+
+.previewInfo {
+  font-size: 12px;
+  color: var(--color-primary);
+  margin-bottom: 4px;
+}
+
+.previewDays {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+
+.previewShares {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.previewShareRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--font-size-sm);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.previewShareRow:last-child { border-bottom: none; }
+
+.previewShareAmount {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
 /* ── Attachment ───────────────────────────────────────────────── */
 
 .attachSection { padding-top: var(--space-sm); border-top: 1px solid var(--color-border-light); }
