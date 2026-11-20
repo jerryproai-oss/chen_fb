@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X, Camera, Upload, Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X, Camera, Upload, Sparkles, Loader2, ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
 import type { CostRecordItem, PaymentMethodType } from '@/lib/car/types';
 import { PAYMENT_METHOD_LABEL } from '@/lib/car/types';
 import styles from './page.module.css';
@@ -58,38 +58,6 @@ function parseItemDetails(item: string): string[] {
   return item.split('、').map(s => s.trim()).filter(Boolean);
 }
 
-/** 記錄項目顯示元件（可展開長項目） */
-function RecordItemDisplay({ item }: { item: string }) {
-  const [expanded, setExpanded] = useState(false);
-  const details = parseItemDetails(item);
-  const hasDetails = details.length > 1;
-  const displayTitle = hasDetails ? truncateItem(item, 40) : item;
-
-  if (!hasDetails) {
-    return <span className={styles.recordItem}>{item}</span>;
-  }
-
-  return (
-    <div className={styles.recordItemWrap}>
-      <button
-        type="button"
-        className={styles.recordItemToggle}
-        onClick={() => setExpanded(!expanded)}
-      >
-        <span className={styles.recordItem}>{displayTitle}</span>
-        {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-      </button>
-      {expanded && (
-        <div className={styles.recordItemDetails}>
-          {details.map((d, i) => (
-            <span key={i} className={styles.recordItemTag}>{d}</span>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ── 型別 ────────────────────────────────────────────────────
 
 interface VehicleOption {
@@ -138,6 +106,12 @@ export default function MaintenancePage() {
     confidence: number;
   } | null>(null);
   const [ocrError, setOcrError] = useState<string | null>(null);
+
+  // 展開明細 / 編輯 / 刪除
+  const [expandedItem, setExpandedItem] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<CostRecordItem | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchRecords = useCallback(async () => {
     try {
@@ -385,6 +359,64 @@ export default function MaintenancePage() {
     }
   }
 
+  // ── 刪除記錄 ──────────────────────────────────────────────
+
+  async function handleDelete(record: CostRecordItem) {
+    if (!confirm(`確定要刪除「${truncateItem(record.item, 20)}」（NT$ ${Number(record.totalAmount).toLocaleString()}）？\n此操作無法復原。`)) {
+      return;
+    }
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/car/costs/${record.id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || '刪除失敗');
+      }
+      // 調整 index 避免超出範圍
+      if (currentIdx >= records.length - 1 && currentIdx > 0) {
+        setCurrentIdx(currentIdx - 1);
+      }
+      await fetchRecords();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '刪除失敗');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  // ── 開啟編輯 Dialog ────────────────────────────────────────
+
+  function handleOpenEdit(record: CostRecordItem) {
+    setEditingRecord(record);
+    setShowEditDialog(true);
+  }
+
+  // ── 儲存編輯 ──────────────────────────────────────────────
+
+  async function handleSaveEdit(newItem: string, newAmount: number, reason: string) {
+    if (!editingRecord) return;
+    try {
+      const res = await fetch(`/api/car/costs/${editingRecord.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reason,
+          item: newItem.trim(),
+          totalAmount: newAmount,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || '修改失敗');
+      }
+      setShowEditDialog(false);
+      setEditingRecord(null);
+      await fetchRecords();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : '修改失敗');
+    }
+  }
+
   if (loading) {
     return <div className={styles.container}><div className={styles.loading}>載入中...</div></div>;
   }
@@ -449,16 +481,43 @@ export default function MaintenancePage() {
           </div>
 
           {/* Current Record */}
-          {currentRecord && (
+          {currentRecord && (() => {
+            const details = parseItemDetails(currentRecord.item);
+            const hasDetails = details.length > 1;
+            const displayTitle = hasDetails ? truncateItem(currentRecord.item, 40) : currentRecord.item;
+
+            return (
             <div className={styles.recordCard}>
               <div className={styles.recordHeader}>
-                <RecordItemDisplay item={currentRecord.item} />
+                <div className={styles.recordTitleRow}>
+                  {hasDetails ? (
+                    <button
+                      type="button"
+                      className={styles.recordItemToggle}
+                      onClick={() => setExpandedItem(!expandedItem)}
+                    >
+                      <span className={styles.recordItem}>{displayTitle}</span>
+                      {expandedItem ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </button>
+                  ) : (
+                    <span className={styles.recordItem}>{displayTitle}</span>
+                  )}
+                </div>
                 <span className={styles.recordDate}>
                   {new Date(currentRecord.settlementDate).toLocaleDateString('zh-TW', {
                     year: 'numeric', month: 'long', day: 'numeric',
                   })}
                 </span>
               </div>
+
+              {/* 展開的明細 tag */}
+              {hasDetails && expandedItem && (
+                <div className={styles.recordItemDetails}>
+                  {details.map((d, i) => (
+                    <span key={i} className={styles.recordItemTag}>{d}</span>
+                  ))}
+                </div>
+              )}
 
               <div className={styles.detailGrid}>
                 <div className={styles.detailItem}>
@@ -516,8 +575,28 @@ export default function MaintenancePage() {
                   </div>
                 </div>
               )}
+
+              {/* 操作按鈕 */}
+              <div className={styles.recordActions}>
+                <button
+                  type="button"
+                  className={styles.editRecordBtn}
+                  onClick={() => handleOpenEdit(currentRecord)}
+                >
+                  <Pencil size={14} /> 編輯
+                </button>
+                <button
+                  type="button"
+                  className={styles.deleteRecordBtn}
+                  onClick={() => handleDelete(currentRecord)}
+                  disabled={deleting}
+                >
+                  <Trash2 size={14} /> {deleting ? '刪除中...' : '刪除'}
+                </button>
+              </div>
             </div>
-          )}
+            );
+          })()}
 
           {/* Comparison */}
           {prevRecord && (
@@ -819,6 +898,108 @@ export default function MaintenancePage() {
           </div>
         </div>
       )}
+
+      {/* ── 編輯保修記錄 Dialog ─────────────────────────────── */}
+      {showEditDialog && editingRecord && (
+        <EditRecordDialog
+          record={editingRecord}
+          onClose={() => { setShowEditDialog(false); setEditingRecord(null); }}
+          onSave={handleSaveEdit}
+        />
+      )}
+    </div>
+  );
+}
+
+// ── 編輯 Dialog 元件 ─────────────────────────────────────────
+
+function EditRecordDialog({
+  record,
+  onClose,
+  onSave,
+}: {
+  record: CostRecordItem;
+  onClose: () => void;
+  onSave: (item: string, amount: number, reason: string) => Promise<void>;
+}) {
+  const [item, setItem] = useState(record.item);
+  const [amount, setAmount] = useState(String(Number(record.totalAmount)));
+  const [reason, setReason] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!item.trim()) { alert('請輸入保修項目'); return; }
+    if (!reason.trim()) { alert('請輸入修改原因'); return; }
+    const numAmount = parseFloat(amount);
+    if (isNaN(numAmount) || numAmount <= 0) { alert('請輸入有效金額'); return; }
+    setSaving(true);
+    try {
+      await onSave(item, numAmount, reason);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modal} onClick={e => e.stopPropagation()}>
+        <div className={styles.modalHeader}>
+          <h2 className={styles.modalTitle}>編輯保修記錄</h2>
+          <button type="button" className={styles.modalClose} onClick={onClose}>
+            <X size={20} />
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              保修項目 <span className={styles.required}>*</span>
+            </label>
+            <textarea
+              className={styles.formTextarea}
+              value={item}
+              onChange={e => setItem(e.target.value)}
+              rows={3}
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              金額 (NT$) <span className={styles.required}>*</span>
+            </label>
+            <input
+              type="number"
+              className={styles.formInput}
+              value={amount}
+              onChange={e => setAmount(e.target.value)}
+              min="1"
+              required
+            />
+          </div>
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>
+              修改原因 <span className={styles.required}>*</span>
+            </label>
+            <input
+              type="text"
+              className={styles.formInput}
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              placeholder="例如：修正項目名稱、更正金額"
+              required
+            />
+            <div className={styles.editHint}>系統會記錄修改歷程</div>
+          </div>
+          <div className={styles.editDialogFooter}>
+            <button type="button" className={styles.editCancelBtn} onClick={onClose}>
+              取消
+            </button>
+            <button type="submit" className={styles.submitBtn} disabled={saving}>
+              {saving ? '儲存中...' : '儲存修改'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
