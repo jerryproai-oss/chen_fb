@@ -1,0 +1,468 @@
+/* ── Car Management Panel — 行事曆頁面用車管理面板 ──────────── */
+
+.panel {
+  margin-top: var(--space-md);
+}
+
+/* ── 快速操作列 ────────────────────────────────────────────── */
+
+.quickActionsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-sm);
+}
+
+.quickActionsTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.quickActionsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: var(--space-md);
+}
+
+.quickActionBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  color: inherit;
+}
+
+.quickActionBtn:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+.quickActionEmoji {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.quickActionLabel {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* ── 車輛迷你卡 ────────────────────────────────────────────── */
+
+.vehicleCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-sm);
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  transition: all var(--transition-fast);
+}
+
+.vehicleCard:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-bg);
+}
+
+.vehicleInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vehicleName {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.vehiclePlate {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.vehicleMileage {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* ── 預約列表 ──────────────────────────────────────────────── */
+
+.bookingSection {
+  margin-top: var(--space-sm);
+}
+
+.bookingHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xs);
+}
+
+.bookingTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.bookingCount {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.bookingItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 10px 12px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  margin-bottom: 6px;
+}
+
+.bookingLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+  min-width: 0;
+}
+
+.bookingMeta {
+  min-width: 0;
+}
+
+.bookingUser {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.bookingDate {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+}
+
+.bookingPurpose {
+  font-size: 11px;
+  color: var(--color-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bookingRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.statusBadge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+
+.bookingActions {
+  display: flex;
+  gap: 4px;
+}
+
+.actionBtnPrimary {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+}
+
+.actionBtnPrimary:hover {
+  opacity: 0.85;
+}
+
+.actionBtnDanger {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border: 1.5px solid var(--color-error);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-error);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.actionBtnDanger:hover {
+  background: rgba(213, 0, 0, 0.06);
+}
+
+.actionBtnEdit {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  padding: 3px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.actionBtnEdit:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ── 空狀態 ────────────────────────────────────────────────── */
+
+.emptyState {
+  text-align: center;
+  padding: var(--space-md);
+  color: var(--color-text-secondary);
+}
+
+.emptyIcon {
+  font-size: 28px;
+  margin-bottom: var(--space-xs);
+}
+
+.emptyText {
+  font-size: var(--font-size-sm);
+}
+
+/* ── Modal 對話框 ──────────────────────────────────────────── */
+
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-md);
+}
+
+.modal {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 460px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.modalTitle {
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.modalClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+}
+
+.modalClose:hover {
+  background: var(--color-bg);
+}
+
+.modalBody {
+  padding: var(--space-md);
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-top: 1px solid var(--color-border-light);
+}
+
+.errorMsg {
+  padding: 8px 12px;
+  margin-bottom: var(--space-sm);
+  background: rgba(213, 0, 0, 0.06);
+  border: 1px solid rgba(213, 0, 0, 0.2);
+  border-radius: var(--radius-md);
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+}
+
+.formGroup {
+  margin-bottom: var(--space-sm);
+}
+
+.formLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  margin-bottom: 4px;
+}
+
+.formInput {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  background: var(--color-card);
+  color: var(--color-text);
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.formSelect {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  background: var(--color-card);
+  color: var(--color-text);
+}
+
+.formCheckRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
+}
+
+.formCheckLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.btnCancel {
+  padding: 8px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+
+.btnCancel:hover {
+  background: var(--color-bg);
+}
+
+.btnSave {
+  padding: 8px 20px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btnSave:hover {
+  opacity: 0.9;
+}
+
+.btnSave:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.mileageHint {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--space-sm);
+}
+
+/* ── 分隔線 ────────────────────────────────────────────────── */
+
+.divider {
+  height: 1px;
+  background: var(--color-border-light);
+  margin: var(--space-md) 0;
+}
+
+/* ── 新增預約按鈕 ──────────────────────────────────────────── */
+
+.addBookingBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  padding: 8px;
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.addBookingBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-bg);
+}

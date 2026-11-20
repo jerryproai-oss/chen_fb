@@ -22,6 +22,7 @@ import type { FamilyEventItem, UserProfile } from '@/lib/types';
 import HelpGuide from '@/components/ui/HelpGuide';
 import WeatherWidget from '@/components/WeatherWidget';
 import { calendarHelp } from '@/lib/constants/help-content';
+import CarManagementPanel from '@/components/car/CarManagementPanel';
 import styles from './page.module.css';
 
 // ── 常數 ────────────────────────────────────────────────────
@@ -795,6 +796,7 @@ export default function CalendarPage() {
                 onEdit={handleOpenEditModal}
                 onDelete={handleDeleteEvent}
               />
+              <CarManagementPanel onRefreshCalendar={() => fetchMonthEvents(currentYear, currentMonth)} />
               </div>
             </div>
           )}
@@ -913,6 +915,7 @@ export default function CalendarPage() {
                 onEdit={handleOpenEditModal}
                 onDelete={handleDeleteEvent}
               />
+              <CarManagementPanel onRefreshCalendar={() => fetchMonthEvents(currentYear, currentMonth)} />
               </div>
             </div>
           )}
@@ -1010,6 +1013,7 @@ export default function CalendarPage() {
                 onEdit={handleOpenEditModal}
                 onDelete={handleDeleteEvent}
               />
+              <CarManagementPanel onRefreshCalendar={() => fetchMonthEvents(currentYear, currentMonth)} />
               </div>
             </div>
           )}

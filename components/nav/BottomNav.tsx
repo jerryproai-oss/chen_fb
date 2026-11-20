@@ -17,7 +17,6 @@ import {
   Search,
   Bell,
   Heart,
-  Car,
   X,
 } from 'lucide-react';
 import styles from './BottomNav.module.css';
@@ -32,7 +31,6 @@ const MAIN_ITEMS = [
 
 /** 「更多」選單內的功能 */
 const MORE_ITEMS = [
-  { href: '/car', label: '用車管理', icon: Car },
   { href: '/contacts', label: '通訊錄', icon: BookUser },
   { href: '/almanac', label: '農民曆', icon: Moon },
   { href: '/health', label: '健康紀錄', icon: Heart },
