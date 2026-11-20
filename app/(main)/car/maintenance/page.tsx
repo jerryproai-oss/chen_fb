@@ -52,10 +52,47 @@ function truncateItem(item: string, maxLen = 30): string {
   return item.slice(0, maxLen - 3) + '...';
 }
 
-/** 解析項目文字為明細列表 */
-function parseItemDetails(item: string): string[] {
+// ── 明細行型別 ───────────────────────────────────────────────
+
+interface LineItem {
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+}
+
+interface LineItemData {
+  lineItems: LineItem[];
+  vendor?: string;
+  ocrConfidence?: number;
+}
+
+/** 嘗試從 paymentNote 解析結構化明細 JSON */
+function parseLineItems(paymentNote: string | null): LineItemData | null {
+  if (!paymentNote) return null;
+  try {
+    const data = JSON.parse(paymentNote);
+    if (data && Array.isArray(data.lineItems)) return data as LineItemData;
+  } catch { /* not JSON, that's fine */ }
+  return null;
+}
+
+/** 從「、」分隔的 item 文字轉成簡易 LineItem（無價格） */
+function itemTextToLineItems(item: string): LineItem[] {
   if (!item.includes('、')) return [];
-  return item.split('、').map(s => s.trim()).filter(Boolean);
+  return item.split('、').map(s => s.trim()).filter(Boolean).map(name => ({
+    name,
+    quantity: 1,
+    unitPrice: 0,
+    amount: 0,
+  }));
+}
+
+/** 取得顯示用的明細列表（優先 JSON，其次拆文字） */
+function getDisplayLineItems(record: CostRecordItem): LineItem[] {
+  const json = parseLineItems(record.paymentNote);
+  if (json) return json.lineItems;
+  return itemTextToLineItems(record.item);
 }
 
 // ── 型別 ────────────────────────────────────────────────────
@@ -242,22 +279,25 @@ export default function MaintenancePage() {
       if (result.totalAmount) setFormAmount(String(result.totalAmount));
       if (result.date) setFormDate(result.date);
 
-      // 組合備註：廠商 + 零件明細
-      const noteLines: string[] = [];
-      if (result.vendor) noteLines.push(`廠商：${result.vendor}`);
+      // 將明細以結構化 JSON 存入備註，方便後續顯示為表格
       if (result.items?.length > 0) {
-        noteLines.push('--- 明細 ---');
-        result.items.forEach((i: { name: string; quantity: number; amount: number }) => {
-          noteLines.push(`• ${i.name}  ×${i.quantity}  NT$${i.amount.toLocaleString()}`);
-        });
-      }
-      if (noteLines.length > 0) {
-        setFormNote(prev => prev ? `${prev}\n${noteLines.join('\n')}` : noteLines.join('\n'));
+        const lineItemData: LineItemData = {
+          lineItems: result.items.map((i: { name: string; quantity: number; unitPrice: number; amount: number }) => ({
+            name: i.name,
+            quantity: i.quantity || 1,
+            unitPrice: i.unitPrice || 0,
+            amount: i.amount || 0,
+          })),
+          vendor: result.vendor || undefined,
+          ocrConfidence: result.confidence,
+        };
+        setFormNote(JSON.stringify(lineItemData));
+      } else if (result.vendor) {
+        setFormNote(`廠商：${result.vendor}`);
       }
 
-      // 保修項目用簡潔的主標題（例如「60000公里保養」或建議分類）
+      // 保修項目用簡潔的主標題
       if (result.items?.length > 0) {
-        // 找出主要工作項目（通常是第一項或包含「保養」「維修」的項目）
         const mainItem = result.items.find((i: { name: string }) =>
           /保養|維修|更換|檢查/.test(i.name)
         ) || result.items[0];
@@ -482,15 +522,17 @@ export default function MaintenancePage() {
 
           {/* Current Record */}
           {currentRecord && (() => {
-            const details = parseItemDetails(currentRecord.item);
-            const hasDetails = details.length > 1;
-            const displayTitle = hasDetails ? truncateItem(currentRecord.item, 40) : currentRecord.item;
+            const lineItems = getDisplayLineItems(currentRecord);
+            const hasLineItems = lineItems.length > 0;
+            const displayTitle = hasLineItems ? truncateItem(currentRecord.item, 40) : currentRecord.item;
+            const jsonData = parseLineItems(currentRecord.paymentNote);
+            const hasPrices = lineItems.some(li => li.amount > 0);
 
             return (
             <div className={styles.recordCard}>
               <div className={styles.recordHeader}>
                 <div className={styles.recordTitleRow}>
-                  {hasDetails ? (
+                  {hasLineItems ? (
                     <button
                       type="button"
                       className={styles.recordItemToggle}
@@ -510,12 +552,55 @@ export default function MaintenancePage() {
                 </span>
               </div>
 
-              {/* 展開的明細 tag */}
-              {hasDetails && expandedItem && (
-                <div className={styles.recordItemDetails}>
-                  {details.map((d, i) => (
-                    <span key={i} className={styles.recordItemTag}>{d}</span>
-                  ))}
+              {/* 展開明細 — 整齊的表格 */}
+              {hasLineItems && expandedItem && (
+                <div className={styles.lineItemsSection}>
+                  {jsonData?.vendor && (
+                    <div className={styles.lineItemsVendor}>🏪 {jsonData.vendor}</div>
+                  )}
+                  <div className={styles.lineItemsTableWrap}>
+                    <table className={styles.lineItemsTable}>
+                      <thead>
+                        <tr>
+                          <th className={styles.liColIdx}>#</th>
+                          <th className={styles.liColName}>項目</th>
+                          <th className={styles.liColQty}>數量</th>
+                          {hasPrices && <th className={styles.liColPrice}>單價</th>}
+                          {hasPrices && <th className={styles.liColAmount}>小計</th>}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {lineItems.map((li, i) => (
+                          <tr key={i}>
+                            <td className={styles.liColIdx}>{i + 1}</td>
+                            <td className={styles.liColName}>{li.name}</td>
+                            <td className={styles.liColQty}>{li.quantity}</td>
+                            {hasPrices && (
+                              <td className={styles.liColPrice}>
+                                {li.unitPrice > 0 ? `$${li.unitPrice.toLocaleString()}` : '—'}
+                              </td>
+                            )}
+                            {hasPrices && (
+                              <td className={styles.liColAmount}>
+                                {li.amount > 0 ? `$${li.amount.toLocaleString()}` : '—'}
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                      {hasPrices && (
+                        <tfoot>
+                          <tr className={styles.liTotalRow}>
+                            <td colSpan={3} className={styles.liTotalLabel}>合計</td>
+                            <td></td>
+                            <td className={styles.liTotalAmount}>
+                              ${lineItems.reduce((s, li) => s + li.amount, 0).toLocaleString()}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      )}
+                    </table>
+                  </div>
                 </div>
               )}
 
@@ -563,16 +648,6 @@ export default function MaintenancePage() {
                       </span>
                     </div>
                   ))}
-                </div>
-              )}
-
-              {/* 附件預覽 */}
-              {currentRecord.attachmentCount > 0 && (
-                <div className={styles.attachSection}>
-                  <div className={styles.attachTitle}>📎 附件 ({currentRecord.attachmentCount})</div>
-                  <div className={styles.attachHint}>
-                    前往費用結算頁面查看附件詳細內容
-                  </div>
                 </div>
               )}
 
@@ -922,20 +997,62 @@ function EditRecordDialog({
   onClose: () => void;
   onSave: (item: string, amount: number, reason: string) => Promise<void>;
 }) {
-  const [item, setItem] = useState(record.item);
-  const [amount, setAmount] = useState(String(Number(record.totalAmount)));
+  // 解析既有明細
+  const existingLineItems = getDisplayLineItems(record);
+  const hasLineItems = existingLineItems.length > 0;
+
+  const [title, setTitle] = useState(
+    hasLineItems ? truncateItem(record.item, 100) : record.item
+  );
+  const [items, setItems] = useState<LineItem[]>(
+    hasLineItems
+      ? existingLineItems
+      : [{ name: record.item, quantity: 1, unitPrice: 0, amount: Number(record.totalAmount) }]
+  );
   const [reason, setReason] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const totalFromItems = items.reduce((s, li) => s + (li.amount || 0), 0);
+  const displayTotal = totalFromItems > 0 ? totalFromItems : Number(record.totalAmount);
+
+  const updateItem = (idx: number, field: keyof LineItem, value: string | number) => {
+    setItems(prev => prev.map((li, i) => {
+      if (i !== idx) return li;
+      const updated = { ...li, [field]: value };
+      // 自動計算小計
+      if (field === 'quantity' || field === 'unitPrice') {
+        updated.amount = (Number(updated.quantity) || 1) * (Number(updated.unitPrice) || 0);
+      }
+      return updated;
+    }));
+  };
+
+  const removeItem = (idx: number) => {
+    if (items.length <= 1) return;
+    setItems(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const addItem = () => {
+    setItems(prev => [...prev, { name: '', quantity: 1, unitPrice: 0, amount: 0 }]);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!item.trim()) { alert('請輸入保修項目'); return; }
     if (!reason.trim()) { alert('請輸入修改原因'); return; }
-    const numAmount = parseFloat(amount);
-    if (isNaN(numAmount) || numAmount <= 0) { alert('請輸入有效金額'); return; }
+
+    // 組合項目名稱：如果只有一項就用該項名稱，多項用摘要
+    const validItems = items.filter(li => li.name.trim());
+    if (validItems.length === 0) { alert('至少需要一個項目'); return; }
+
+    const finalTitle = validItems.length === 1
+      ? validItems[0].name
+      : title.trim() || `${validItems[0].name} 等 ${validItems.length} 項`;
+
+    const finalAmount = totalFromItems > 0 ? totalFromItems : Number(record.totalAmount);
+
     setSaving(true);
     try {
-      await onSave(item, numAmount, reason);
+      await onSave(finalTitle, finalAmount, reason);
     } finally {
       setSaving(false);
     }
@@ -943,7 +1060,7 @@ function EditRecordDialog({
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modal} onClick={e => e.stopPropagation()}>
+      <div className={styles.editModal} onClick={e => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <h2 className={styles.modalTitle}>編輯保修記錄</h2>
           <button type="button" className={styles.modalClose} onClick={onClose}>
@@ -951,31 +1068,100 @@ function EditRecordDialog({
           </button>
         </div>
         <form onSubmit={handleSubmit} className={styles.form}>
+          {/* 主標題 */}
           <div className={styles.formGroup}>
-            <label className={styles.formLabel}>
-              保修項目 <span className={styles.required}>*</span>
-            </label>
-            <textarea
-              className={styles.formTextarea}
-              value={item}
-              onChange={e => setItem(e.target.value)}
-              rows={3}
-              required
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label className={styles.formLabel}>
-              金額 (NT$) <span className={styles.required}>*</span>
-            </label>
+            <label className={styles.formLabel}>保修主題</label>
             <input
-              type="number"
+              type="text"
               className={styles.formInput}
-              value={amount}
-              onChange={e => setAmount(e.target.value)}
-              min="1"
-              required
+              value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="例如：60000公里保養"
             />
           </div>
+
+          {/* 明細列表 */}
+          <div className={styles.formGroup}>
+            <label className={styles.formLabel}>明細項目</label>
+            <div className={styles.editItemsTableWrap}>
+              <table className={styles.editItemsTable}>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>項目名稱</th>
+                    <th>數量</th>
+                    <th>單價</th>
+                    <th>小計</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((li, i) => (
+                    <tr key={i}>
+                      <td className={styles.editItemIdx}>{i + 1}</td>
+                      <td>
+                        <input
+                          type="text"
+                          className={styles.editItemInput}
+                          value={li.name}
+                          onChange={e => updateItem(i, 'name', e.target.value)}
+                          placeholder="項目名稱"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          className={styles.editItemNum}
+                          value={li.quantity}
+                          onChange={e => updateItem(i, 'quantity', Number(e.target.value))}
+                          min={1}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          className={styles.editItemNum}
+                          value={li.unitPrice || ''}
+                          onChange={e => updateItem(i, 'unitPrice', Number(e.target.value))}
+                          placeholder="0"
+                          min={0}
+                        />
+                      </td>
+                      <td className={styles.editItemAmount}>
+                        ${(li.amount || 0).toLocaleString()}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          className={styles.editItemRemove}
+                          onClick={() => removeItem(i)}
+                          disabled={items.length <= 1}
+                          title="移除"
+                        >
+                          <X size={14} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colSpan={4} className={styles.editItemTotalLabel}>
+                      <button type="button" className={styles.addItemBtn} onClick={addItem}>
+                        <Plus size={14} /> 新增項目
+                      </button>
+                    </td>
+                    <td className={styles.editItemTotalValue}>
+                      ${displayTotal.toLocaleString()}
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+
+          {/* 修改原因 */}
           <div className={styles.formGroup}>
             <label className={styles.formLabel}>
               修改原因 <span className={styles.required}>*</span>
@@ -990,6 +1176,7 @@ function EditRecordDialog({
             />
             <div className={styles.editHint}>系統會記錄修改歷程</div>
           </div>
+
           <div className={styles.editDialogFooter}>
             <button type="button" className={styles.editCancelBtn} onClick={onClose}>
               取消

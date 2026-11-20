@@ -78,6 +78,64 @@
 .recordItem { font-size: var(--font-size-lg); font-weight: 700; color: var(--color-text); }
 .recordDate { font-size: var(--font-size-sm); color: var(--color-text-secondary); white-space: nowrap; }
 
+/* ── Line Items Table (記錄展開) ──────────────────────────────── */
+
+.lineItemsSection {
+  margin-bottom: var(--space-md);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.lineItemsVendor {
+  padding: 8px 12px;
+  background: rgba(90, 122, 90, 0.04);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.lineItemsTableWrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.lineItemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.lineItemsTable th {
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid var(--color-border-light);
+  white-space: nowrap;
+}
+
+.lineItemsTable td {
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  color: var(--color-text);
+}
+
+.lineItemsTable tbody tr:last-child td { border-bottom: none; }
+
+.liColIdx { width: 36px; text-align: center; color: var(--color-text-secondary); font-size: 12px; }
+.liColName { min-width: 120px; }
+.liColQty { width: 50px; text-align: center; }
+.liColPrice { width: 80px; text-align: right; font-family: monospace; }
+.liColAmount { width: 90px; text-align: right; font-family: monospace; font-weight: 600; }
+
+.liTotalRow td { border-top: 2px solid var(--color-border); font-weight: 700; padding: 8px 10px; }
+.liTotalLabel { text-align: right; color: var(--color-text); }
+.liTotalAmount { text-align: right; font-family: monospace; color: var(--color-primary); font-size: 14px; }
+
 /* ── Record Item（可展開明細） ────────────────────────────────── */
 
 .recordTitleRow {
@@ -182,6 +240,167 @@
 .deleteRecordBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* ── Edit Modal（更大） ───────────────────────────────────────── */
+
+.editModal {
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+/* ── Edit Items Table ────────────────────────────────────────── */
+
+.editItemsTableWrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.editItemsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.editItemsTable th {
+  padding: 8px 8px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.editItemsTable td {
+  padding: 4px 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  vertical-align: middle;
+}
+
+.editItemsTable tfoot td {
+  padding: 8px;
+  border-top: 2px solid var(--color-border);
+}
+
+.editItemIdx {
+  width: 32px;
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+.editItemInput {
+  width: 100%;
+  min-width: 100px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 13px;
+  color: var(--color-text);
+  font-family: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.editItemInput:hover,
+.editItemInput:focus {
+  border-color: var(--color-border);
+  background: var(--color-bg);
+  outline: none;
+}
+
+.editItemNum {
+  width: 70px;
+  padding: 6px 6px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 13px;
+  text-align: right;
+  color: var(--color-text);
+  font-family: inherit;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.editItemNum:hover,
+.editItemNum:focus {
+  border-color: var(--color-border);
+  background: var(--color-bg);
+  outline: none;
+}
+
+.editItemAmount {
+  text-align: right;
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--color-text);
+  padding: 6px 8px !important;
+  white-space: nowrap;
+}
+
+.editItemRemove {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.editItemRemove:hover:not(:disabled) {
+  background: rgba(211, 47, 47, 0.08);
+  color: #d32f2f;
+}
+
+.editItemRemove:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.editItemTotalLabel {
+  text-align: left;
+}
+
+.addItemBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.addItemBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.editItemTotalValue {
+  text-align: right;
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-primary);
+  white-space: nowrap;
 }
 
 /* ── Edit Dialog ─────────────────────────────────────────────── */
@@ -604,4 +823,9 @@
   .recordHeader { flex-direction: column; align-items: flex-start; gap: 4px; }
   .headerRow { flex-direction: column; }
   .modal { max-width: 100%; margin: var(--space-sm); }
+  .editModal { max-width: 100%; margin: var(--space-xs); max-height: 95vh; }
+  .editItemNum { width: 55px; }
+  .editItemInput { min-width: 80px; }
+  .lineItemsTable { font-size: 12px; }
+  .lineItemsTable th, .lineItemsTable td { padding: 5px 6px; }
 }
