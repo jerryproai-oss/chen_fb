@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { FileText, Download, Calendar, DollarSign, Users, ChevronLeft, ChevronRight, ArrowLeft, Fuel } from 'lucide-react';
+import { FileText, Download, Calendar, DollarSign, Users, ChevronLeft, ChevronRight, ArrowLeft, Fuel as FuelIcon } from 'lucide-react';
 import styles from './page.module.css';
 
 // ── 型別定義 ──────────────────────────────────────────────────
@@ -229,8 +229,8 @@ export default function ReportsPage() {
 
   // ── 格式化金額 ─────────────────────────────────────────────
 
-  const formatAmount = (amount: number) =>
-    amount.toLocaleString('zh-TW', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  const formatAmount = (amount: number | null | undefined) =>
+    (amount ?? 0).toLocaleString('zh-TW', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
   // ── Render ─────────────────────────────────────────────────
 
@@ -246,7 +246,7 @@ export default function ReportsPage() {
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <Link href="/car" className={styles.backLink || ''}>
+        <Link href="/car" className={styles.backLink}>
           <ArrowLeft size={16} /> 用車管理
         </Link>
         <h1 className={styles.pageTitle}>
@@ -364,7 +364,7 @@ export default function ReportsPage() {
 
             <div className={styles.summaryCard}>
               <div className={styles.summaryIcon}>
-                <Fuel size={20} />
+                <FuelIcon size={20} />
               </div>
               <div className={styles.summaryNumber}>${formatAmount(reportData.summary.totalFuelAmount)}</div>
               <div className={styles.summaryLabel}>油費</div>

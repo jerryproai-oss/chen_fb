@@ -372,6 +372,9 @@ export default function FuelPage() {
             </div>
             <div className={styles.modalBody}>
               {error && <div className={styles.errorMsg}>{error}</div>}
+              {!vehicleId && !error && (
+                <div className={styles.errorMsg}>尚無車輛資料，請先到車輛資訊頁設定車輛</div>
+              )}
               <div className={styles.formRow}>
                 <div className={styles.formGroup}>
                   <label className={styles.formLabel}>日期</label>

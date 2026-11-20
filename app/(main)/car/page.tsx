@@ -333,7 +333,10 @@ export default function CarPage() {
   };
 
   const handleUpdateMileage = async () => {
-    if (!vehicle) return;
+    if (!vehicle) {
+      setError('尚無車輛資料，請先到車輛資訊頁設定');
+      return;
+    }
     setSaving(true);
     setError('');
     try {

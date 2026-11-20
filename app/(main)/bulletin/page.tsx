@@ -90,12 +90,21 @@ export default function BulletinPage() {
     return new Set(data.carConflicts.map((c) => c.date));
   }, [data]);
 
-  // 按日期分組
+  // 按日期分組（多日事件只顯示在起始日）
   const groupedEvents = useMemo(() => {
     if (!data) return {};
     const source = activeTab === 'car' ? data.carSchedule : data.events;
+    // 多日事件只歸入 eventDate（起始日），不拆天
     const groups: Record<string, FamilyEventItem[]> = {};
+    // 追蹤已出現的多日事件 ID，避免重複
+    const seenMultiDay = new Set<string>();
     for (const ev of source) {
+      // 如果已處理過的多日事件（同 ID 或相同標題/日期範圍），跳過
+      if (ev.endDate && ev.endDate !== ev.eventDate) {
+        const dedupeKey = `${ev.title}|${ev.eventDate}|${ev.endDate}`;
+        if (seenMultiDay.has(dedupeKey)) continue;
+        seenMultiDay.add(dedupeKey);
+      }
       if (!groups[ev.eventDate]) groups[ev.eventDate] = [];
       groups[ev.eventDate].push(ev);
     }

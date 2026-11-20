@@ -104,7 +104,7 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
 
   // ── 驗證 ────────────────────────────────────────
   if (!vehicleId || typeof vehicleId !== 'string') {
-    return NextResponse.json({ error: 'vehicleId 為必填' }, { status: 400 });
+    return NextResponse.json({ error: '尚無車輛資料，請先到車輛資訊頁設定車輛' }, { status: 400 });
   }
   if (!fuelDate || typeof fuelDate !== 'string') {
     return NextResponse.json({ error: 'fuelDate 為必填（YYYY-MM-DD）' }, { status: 400 });

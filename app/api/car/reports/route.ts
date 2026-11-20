@@ -28,7 +28,7 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
   const month = parseInt(searchParams.get('month') || String(now.getMonth() + 1), 10);
 
   if (!vehicleId) {
-    return NextResponse.json({ error: 'vehicleId 為必填' }, { status: 400 });
+    return NextResponse.json({ error: '尚無車輛資料，請先到車輛資訊頁設定車輛' }, { status: 400 });
   }
 
   if (!['month', 'quarter', 'year'].includes(reportType)) {
@@ -230,7 +230,9 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
     });
   } catch (error) {
     console.error('[GET /api/car/reports] 查詢失敗:', error);
-    return NextResponse.json({ error: '無法產生報表' }, { status: 500 });
+    // 回傳詳細錯誤以便偵錯
+    const message = error instanceof Error ? error.message : '未知錯誤';
+    return NextResponse.json({ error: `無法產生報表: ${message}` }, { status: 500 });
   }
 });
 

@@ -11,6 +11,20 @@
   margin-bottom: var(--space-md);
 }
 
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  text-decoration: none;
+  margin-bottom: var(--space-xs);
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
 .pageTitle {
   font-size: var(--font-size-2xl);
   font-weight: 700;
