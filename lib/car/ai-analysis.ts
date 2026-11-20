@@ -96,7 +96,7 @@ export async function analyzeMaintenance(
   previousRecords: MaintenanceRecord[],
 ): Promise<MaintenanceAnalysis | null> {
   try {
-    const model = await getGenerativeModel('gemini-2.0-flash');
+    const model = await getGenerativeModel('gemini-3.8-flash');
     if (!model) return null;
 
     const prompt = `你是一位經驗豐富的汽車保養專家。請分析以下保修記錄的合理性。
@@ -164,7 +164,7 @@ export async function predictNextMaintenance(
   vehicle: VehicleBasicInfo,
 ): Promise<MaintenancePrediction | null> {
   try {
-    const model = await getGenerativeModel('gemini-2.0-flash');
+    const model = await getGenerativeModel('gemini-3.8-flash');
     if (!model) return null;
 
     const today = new Date().toISOString().split('T')[0];
@@ -228,7 +228,7 @@ export async function recognizeReceipt(
   imageMimeType: string = 'image/jpeg',
 ): Promise<ReceiptRecognitionResult | null> {
   try {
-    const model = await getGenerativeModel('gemini-2.0-flash');
+    const model = await getGenerativeModel('gemini-3.8-flash');
     if (!model) return null;
 
     const prompt = `你是一個收據/發票辨識專家。請分析這張圖片中的收據資訊。
