@@ -66,8 +66,9 @@ export default function CarSettingsPage() {
     fetch('/api/me')
       .then(r => r.json())
       .then(data => {
-        if (data.user) {
-          setUserInfo({ id: data.user.id, role: data.user.role });
+        const u = data.user || data;
+        if (u?.id) {
+          setUserInfo({ id: u.id, role: u.role });
         }
       })
       .catch(() => {});

@@ -64,7 +64,7 @@ export default function VehiclePage() {
       }
       if (uRes.ok) {
         const uData = await uRes.json();
-        setIsAdmin(uData.user?.role === 'ADMIN');
+        setIsAdmin((uData.user || uData)?.role === 'ADMIN');
       }
     } catch { /* ignore */ }
   }, []);

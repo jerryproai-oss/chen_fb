@@ -117,7 +117,7 @@ export default function CarHistoryPage() {
         const res = await fetch('/api/me');
         if (res.ok) {
           const data = await res.json();
-          setUser(data.user);
+          setUser(data.user || data);
         }
       } catch { /* ignore */ }
     })();
