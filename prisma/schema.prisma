@@ -185,6 +185,7 @@ model User {
 
   // ── 用車管理 ────────────────────
   familyRole            FamilyRole?   @map("family_role")
+  familyTitle           String?       @map("family_title")              // 輩分（爸爸、媽媽、大兒子…）
   notifyEmails          Json?         @map("notify_emails")           // 通知信箱陣列
   emailNotifyEnabled    Boolean       @default(false) @map("email_notify_enabled")
 

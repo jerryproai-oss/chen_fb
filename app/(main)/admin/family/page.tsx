@@ -25,6 +25,8 @@ interface FamilyMember {
   role: 'ADMIN' | 'MEMBER';
   status: 'ACTIVE' | 'DISABLED';
   mustChangePassword: boolean;
+  familyRole: 'PARENT' | 'CHILD' | null;
+  familyTitle: string | null;
   createdAt: string;
 }
 
@@ -61,6 +63,7 @@ export default function AdminFamilyPage() {
   const [editMember, setEditMember] = useState<FamilyMember | null>(null);
   const [editDisplayName, setEditDisplayName] = useState('');
   const [editRole, setEditRole] = useState<'MEMBER' | 'ADMIN'>('MEMBER');
+  const [editFamilyTitle, setEditFamilyTitle] = useState('');
   const [editing, setEditing] = useState(false);
   const [editError, setEditError] = useState('');
   const [editSuccess, setEditSuccess] = useState('');
@@ -192,6 +195,7 @@ export default function AdminFamilyPage() {
     setEditMember(member);
     setEditDisplayName(member.displayName);
     setEditRole(member.role);
+    setEditFamilyTitle(member.familyTitle || '');
     setEditError('');
   }
 
@@ -207,6 +211,7 @@ export default function AdminFamilyPage() {
         body: JSON.stringify({
           displayName: editDisplayName.trim(),
           role: editRole,
+          familyTitle: editFamilyTitle.trim() || null,
         }),
       });
 
@@ -443,6 +448,9 @@ export default function AdminFamilyPage() {
                   {member.mustChangePassword && (
                     <span className={styles.tempBadge}>需更改密碼</span>
                   )}
+                  {member.familyTitle && (
+                    <span className={styles.familyBadge}>{member.familyTitle}</span>
+                  )}
                 </div>
                 <div className={styles.memberMeta}>
                   @{member.username} · 加入 {formatDate(member.createdAt)}
@@ -529,6 +537,34 @@ export default function AdminFamilyPage() {
                 <option value="MEMBER">👤 成員</option>
                 <option value="ADMIN">👑 管理員</option>
               </select>
+            </div>
+            <div className={styles.formField}>
+              <label className={styles.formLabel} htmlFor="edit-family-title">
+                輩分
+              </label>
+              <select
+                id="edit-family-title"
+                className={styles.formSelect}
+                value={editFamilyTitle}
+                onChange={(e) => setEditFamilyTitle(e.target.value)}
+              >
+                <option value="">未設定</option>
+                <optgroup label="父母">
+                  <option value="爸爸">👨 爸爸</option>
+                  <option value="媽媽">👩 媽媽</option>
+                </optgroup>
+                <optgroup label="子女">
+                  <option value="大兒子">👦 大兒子</option>
+                  <option value="二兒子">👦 二兒子</option>
+                  <option value="小兒子">👦 小兒子</option>
+                  <option value="大女兒">👧 大女兒</option>
+                  <option value="二女兒">👧 二女兒</option>
+                  <option value="小女兒">👧 小女兒</option>
+                </optgroup>
+              </select>
+              <p className={styles.formHint}>
+                爸爸/媽媽自動歸為「父母」，其餘歸為「子女」，用於費用分攤計算。
+              </p>
             </div>
             <div className={styles.formField}>
               <p className={styles.formHint}>

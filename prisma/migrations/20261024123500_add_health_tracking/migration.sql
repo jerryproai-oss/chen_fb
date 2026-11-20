@@ -1,4 +1,4 @@
-﻿CREATE TABLE IF NOT EXISTS health_records (
+CREATE TABLE IF NOT EXISTS health_records (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   recorded_at TIMESTAMPTZ NOT NULL,

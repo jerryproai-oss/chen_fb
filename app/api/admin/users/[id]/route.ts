@@ -19,6 +19,8 @@ function sanitizeUser(user: {
   temporaryPasswordExpiresAt: Date | null;
   passwordVersion: number;
   passwordChangedAt: Date | null;
+  familyRole: string | null;
+  familyTitle: string | null;
   createdAt: Date;
   updatedAt: Date;
 }) {
@@ -33,6 +35,8 @@ function sanitizeUser(user: {
     temporaryPasswordExpiresAt: user.temporaryPasswordExpiresAt,
     passwordVersion: user.passwordVersion,
     passwordChangedAt: user.passwordChangedAt,
+    familyRole: user.familyRole,
+    familyTitle: user.familyTitle,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
@@ -113,10 +117,11 @@ export const PATCH = withAdmin(async ({ user: admin }, request: NextRequest, rou
     );
   }
 
-  const { displayName, role, status } = body as {
+  const { displayName, role, status, familyTitle } = body as {
     displayName?: unknown;
     role?: unknown;
     status?: unknown;
+    familyTitle?: unknown;
   };
 
   const updateData: Record<string, unknown> = {};
@@ -195,6 +200,30 @@ export const PATCH = withAdmin(async ({ user: admin }, request: NextRequest, rou
     }
 
     updateData.status = status;
+  }
+
+  // ── 驗證 familyTitle（輩分）────────────────────────────
+  if (familyTitle !== undefined) {
+    if (familyTitle === null || familyTitle === '') {
+      updateData.familyTitle = null;
+      updateData.familyRole = null;
+    } else if (typeof familyTitle !== 'string') {
+      return NextResponse.json(
+        { error: '輩分格式不正確' },
+        { status: 400 },
+      );
+    } else if (familyTitle.trim().length > 20) {
+      return NextResponse.json(
+        { error: '輩分長度上限 20 字' },
+        { status: 400 },
+      );
+    } else {
+      const title = familyTitle.trim();
+      updateData.familyTitle = title;
+      // 自動推導 familyRole：爸爸/媽媽 → PARENT，其他 → CHILD
+      const parentTitles = ['爸爸', '媽媽', '父親', '母親', '爸', '媽'];
+      updateData.familyRole = parentTitles.includes(title) ? 'PARENT' : 'CHILD';
+    }
   }
 
   // 至少需要一個欄位

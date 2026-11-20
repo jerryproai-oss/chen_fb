@@ -26,6 +26,8 @@ function sanitizeUser(user: {
   temporaryPasswordExpiresAt: Date | null;
   passwordVersion: number;
   passwordChangedAt: Date | null;
+  familyRole: string | null;
+  familyTitle: string | null;
   createdAt: Date;
   updatedAt: Date;
 }) {
@@ -40,6 +42,8 @@ function sanitizeUser(user: {
     temporaryPasswordExpiresAt: user.temporaryPasswordExpiresAt,
     passwordVersion: user.passwordVersion,
     passwordChangedAt: user.passwordChangedAt,
+    familyRole: user.familyRole,
+    familyTitle: user.familyTitle,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };
