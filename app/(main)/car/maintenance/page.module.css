@@ -295,6 +295,152 @@
   color: #fff;
 }
 
+/* ── Upload Area ──────────────────────────────────────────────── */
+
+.uploadArea {
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  text-align: center;
+  transition: border-color 0.15s;
+}
+
+.uploadArea:hover { border-color: var(--color-primary); }
+
+.uploadButtons {
+  display: flex;
+  gap: var(--space-sm);
+  justify-content: center;
+}
+
+.uploadBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 24px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all 0.15s;
+  min-width: 100px;
+}
+
+.uploadBtn:hover { border-color: var(--color-primary); color: var(--color-primary); background: rgba(90, 122, 90, 0.04); }
+
+/* ── Preview ─────────────────────────────────────────────────── */
+
+.previewContainer { display: flex; flex-direction: column; align-items: center; gap: var(--space-sm); }
+
+.previewImg {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: var(--radius-md);
+  object-fit: contain;
+  border: 1px solid var(--color-border-light);
+}
+
+.previewActions { display: flex; gap: var(--space-sm); }
+
+.ocrBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, #1565C0, #42A5F5);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.ocrBtn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(21, 101, 192, 0.3); }
+.ocrBtn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+.removeImgBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-card);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.removeImgBtn:hover { border-color: #e53935; color: #e53935; }
+
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+.spinning { animation: spin 1s linear infinite; }
+
+/* ── OCR Result ──────────────────────────────────────────────── */
+
+.ocrResult {
+  margin-top: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  background: rgba(21, 101, 192, 0.06);
+  border: 1px solid rgba(21, 101, 192, 0.15);
+}
+
+.ocrResultHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: #1565C0;
+  margin-bottom: var(--space-xs);
+}
+
+.ocrResultRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
+.ocrLabel { color: var(--color-text-secondary); font-size: var(--font-size-xs); }
+
+.ocrItems {
+  padding-top: 4px;
+  margin-top: 4px;
+  border-top: 1px solid rgba(21, 101, 192, 0.1);
+}
+
+.ocrHint {
+  margin-top: var(--space-xs);
+  font-size: 11px;
+  color: #2E7D32;
+  font-weight: 500;
+}
+
+.ocrErrorMsg {
+  margin-top: var(--space-xs);
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: rgba(211, 47, 47, 0.08);
+  color: #D32F2F;
+  font-size: var(--font-size-xs);
+}
+
+.formDivider {
+  height: 1px;
+  background: var(--color-border-light);
+  margin: 0 calc(-1 * var(--space-md));
+}
+
 /* ── Submit ───────────────────────────────────────────────────── */
 
 .submitBtn {

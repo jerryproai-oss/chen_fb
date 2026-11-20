@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X, Camera, Upload, Sparkles, Loader2 } from 'lucide-react';
 import type { CostRecordItem, PaymentMethodType } from '@/lib/car/types';
 import { PAYMENT_METHOD_LABEL } from '@/lib/car/types';
 import styles from './page.module.css';
@@ -73,6 +73,22 @@ export default function MaintenancePage() {
   const [formNote, setFormNote] = useState('');
   const [formMileage, setFormMileage] = useState('');
 
+  // 收據上傳 + AI 辨識
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [ocrResult, setOcrResult] = useState<{
+    date: string | null;
+    vendor: string | null;
+    totalAmount: number | null;
+    items: Array<{ name: string; quantity: number; unitPrice: number; amount: number }>;
+    suggestedCategory: string | null;
+    confidence: number;
+  } | null>(null);
+  const [ocrError, setOcrError] = useState<string | null>(null);
+
   const fetchRecords = useCallback(async () => {
     try {
       const res = await fetch('/api/car/costs');
@@ -141,7 +157,82 @@ export default function MaintenancePage() {
     setFormPaymentMethod('CASH');
     setFormNote('');
     setFormMileage('');
+    setReceiptFile(null);
+    setReceiptPreview(null);
+    setOcrResult(null);
+    setOcrError(null);
     setShowForm(true);
+  }
+
+  // ── 收據上傳 + AI 辨識 ──────────────────────────────────
+
+  function handleFileSelect(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      alert('僅支援圖片格式');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('圖片大小不能超過 10MB');
+      return;
+    }
+    setReceiptFile(file);
+    setOcrResult(null);
+    setOcrError(null);
+
+    // 預覽
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      setReceiptPreview(ev.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function handleOcr() {
+    if (!receiptFile) return;
+
+    setOcrLoading(true);
+    setOcrError(null);
+    setOcrResult(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', receiptFile);
+
+      const res = await fetch('/api/car/receipt-ocr', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || '辨識失敗');
+      }
+
+      const data = await res.json();
+      const result = data.result;
+      setOcrResult(result);
+
+      // 自動填入表單
+      if (result.totalAmount) setFormAmount(String(result.totalAmount));
+      if (result.date) setFormDate(result.date);
+      if (result.vendor) {
+        // 如果有廠商名稱，加入備註
+        setFormNote(prev => prev ? `${prev}\n廠商：${result.vendor}` : `廠商：${result.vendor}`);
+      }
+      // 用項目名稱或建議分類填入保修項目
+      if (result.items?.length > 0) {
+        const itemNames = result.items.map((i: { name: string }) => i.name).filter(Boolean).join('、');
+        if (itemNames) setFormItem(itemNames);
+      } else if (result.suggestedCategory) {
+        setFormItem(result.suggestedCategory);
+      }
+    } catch (err) {
+      setOcrError(err instanceof Error ? err.message : '辨識失敗');
+    } finally {
+      setOcrLoading(false);
+    }
   }
 
   // ── 提交新增 ──────────────────────────────────────────────
@@ -437,6 +528,118 @@ export default function MaintenancePage() {
             </div>
 
             <form onSubmit={handleSubmit} className={styles.form}>
+              {/* ── 收據上傳 + AI 辨識 ─────────────────────── */}
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>📸 收據/發票辨識</label>
+                <div className={styles.uploadArea}>
+                  {receiptPreview ? (
+                    <div className={styles.previewContainer}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={receiptPreview} alt="收據預覽" className={styles.previewImg} />
+                      <div className={styles.previewActions}>
+                        <button
+                          type="button"
+                          className={styles.ocrBtn}
+                          onClick={handleOcr}
+                          disabled={ocrLoading}
+                        >
+                          {ocrLoading ? (
+                            <><Loader2 size={14} className={styles.spinning} /> AI 辨識中...</>
+                          ) : (
+                            <><Sparkles size={14} /> AI 辨識並填入</>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.removeImgBtn}
+                          onClick={() => {
+                            setReceiptFile(null);
+                            setReceiptPreview(null);
+                            setOcrResult(null);
+                            setOcrError(null);
+                          }}
+                        >
+                          <X size={14} /> 移除
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className={styles.uploadButtons}>
+                      <button
+                        type="button"
+                        className={styles.uploadBtn}
+                        onClick={() => cameraInputRef.current?.click()}
+                      >
+                        <Camera size={18} />
+                        <span>拍攝收據</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.uploadBtn}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        <Upload size={18} />
+                        <span>選擇圖片</span>
+                      </button>
+                    </div>
+                  )}
+                  <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleFileSelect}
+                    style={{ display: 'none' }}
+                  />
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    style={{ display: 'none' }}
+                  />
+                </div>
+
+                {/* OCR 結果 */}
+                {ocrResult && (
+                  <div className={styles.ocrResult}>
+                    <div className={styles.ocrResultHeader}>
+                      <Sparkles size={14} />
+                      <span>AI 辨識結果（信心度 {Math.round(ocrResult.confidence * 100)}%）</span>
+                    </div>
+                    {ocrResult.vendor && (
+                      <div className={styles.ocrResultRow}>
+                        <span className={styles.ocrLabel}>廠商</span>
+                        <span>{ocrResult.vendor}</span>
+                      </div>
+                    )}
+                    {ocrResult.totalAmount !== null && (
+                      <div className={styles.ocrResultRow}>
+                        <span className={styles.ocrLabel}>總額</span>
+                        <span>NT$ {ocrResult.totalAmount.toLocaleString()}</span>
+                      </div>
+                    )}
+                    {ocrResult.items.length > 0 && (
+                      <div className={styles.ocrItems}>
+                        {ocrResult.items.map((item, i) => (
+                          <div key={i} className={styles.ocrResultRow}>
+                            <span className={styles.ocrLabel}>{item.name}</span>
+                            <span>×{item.quantity} = NT$ {item.amount.toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div className={styles.ocrHint}>已自動填入上方表單欄位</div>
+                  </div>
+                )}
+
+                {ocrError && (
+                  <div className={styles.ocrErrorMsg}>⚠️ {ocrError}</div>
+                )}
+              </div>
+
+              <div className={styles.formDivider} />
+
               {/* 快速選擇 */}
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>快速選擇</label>

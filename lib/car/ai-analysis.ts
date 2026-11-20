@@ -225,6 +225,7 @@ ${records.length > 0
  */
 export async function recognizeReceipt(
   imageBase64: string,
+  imageMimeType: string = 'image/jpeg',
 ): Promise<ReceiptRecognitionResult | null> {
   try {
     const model = await getGenerativeModel('gemini-2.0-flash');
@@ -259,7 +260,7 @@ export async function recognizeReceipt(
       prompt,
       {
         inlineData: {
-          mimeType: 'image/jpeg',
+          mimeType: imageMimeType,
           data: base64Data,
         },
       },
