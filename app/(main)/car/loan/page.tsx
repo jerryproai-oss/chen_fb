@@ -8,8 +8,10 @@ import styles from './page.module.css';
 
 interface LoanItem {
   id: string;
-  vehicleId: string;
-  vehicle: { id: string; name: string };
+  vehicleId: string | null;
+  vehicle: { id: string; name: string } | null;
+  loanType: string;
+  loanName: string | null;
   lender: string;
   totalAmount: number;
   downPayment: number;
@@ -48,6 +50,25 @@ interface VehicleOption {
 interface UserInfo {
   id: string;
   role: string;
+}
+
+// ── 貸款類型 ──────────────────────────────────────────────────
+
+type LoanTypeValue = 'CAR_LOAN' | 'MOTORCYCLE_LOAN' | 'PERSONAL_LOAN' | 'OTHER';
+
+const LOAN_TYPE_OPTIONS: { value: LoanTypeValue; label: string; icon: string }[] = [
+  { value: 'CAR_LOAN', label: '車貸', icon: '🚗' },
+  { value: 'MOTORCYCLE_LOAN', label: '機車貸款', icon: '🏍️' },
+  { value: 'PERSONAL_LOAN', label: '個人貸款', icon: '💳' },
+  { value: 'OTHER', label: '其他', icon: '📋' },
+];
+
+function getLoanTypeLabel(type: string): string {
+  return LOAN_TYPE_OPTIONS.find(o => o.value === type)?.label || type;
+}
+
+function getLoanTypeIcon(type: string): string {
+  return LOAN_TYPE_OPTIONS.find(o => o.value === type)?.icon || '📋';
 }
 
 // ── 格式化輔助 ───────────────────────────────────────────────
@@ -195,7 +216,7 @@ export default function CarLoanPage() {
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>載入車貸資料中...</div>
+        <div className={styles.loading}>載入貸款資料中...</div>
       </div>
     );
   }
@@ -207,7 +228,7 @@ export default function CarLoanPage() {
         <div className={styles.headerTop}>
           <h1 className={styles.pageTitle}>
             <Landmark size={24} />
-            車貸管理
+            貸款管理
           </h1>
           {isAdmin && (
             <button
@@ -216,7 +237,7 @@ export default function CarLoanPage() {
               onClick={() => setShowCreateDialog(true)}
             >
               <Plus size={16} />
-              新增車貸
+              新增貸款
             </button>
           )}
         </div>
@@ -232,7 +253,7 @@ export default function CarLoanPage() {
       {loans.length === 0 ? (
         <div className={styles.emptyState}>
           <Landmark size={48} className={styles.emptyIcon} />
-          <p className={styles.emptyText}>尚無車貸記錄</p>
+          <p className={styles.emptyText}>尚無貸款記錄</p>
           {isAdmin && (
             <button
               type="button"
@@ -240,7 +261,7 @@ export default function CarLoanPage() {
               onClick={() => setShowCreateDialog(true)}
             >
               <Plus size={16} />
-              新增第一筆車貸
+              新增第一筆貸款
             </button>
           )}
         </div>
@@ -256,10 +277,15 @@ export default function CarLoanPage() {
               {/* 車貸資訊卡片 */}
               <div className={styles.loanHeader}>
                 <div className={styles.loanTitleRow}>
-                  <div className={styles.loanIcon}>🏦</div>
+                  <div className={styles.loanIcon}>{getLoanTypeIcon(loan.loanType)}</div>
                   <div className={styles.loanTitleInfo}>
-                    <h2 className={styles.loanTitle}>{loan.lender}</h2>
-                    <span className={styles.loanVehicle}>{loan.vehicle.name}</span>
+                    <h2 className={styles.loanTitle}>
+                      {loan.loanName || loan.lender}
+                    </h2>
+                    <span className={styles.loanVehicle}>
+                      {loan.vehicle ? loan.vehicle.name : getLoanTypeLabel(loan.loanType)}
+                      {loan.loanName && loan.vehicle ? '' : ` · ${loan.lender}`}
+                    </span>
                   </div>
                   {!loan.isActive && (
                     <span className={styles.inactiveBadge}>已結清</span>
@@ -402,6 +428,8 @@ export default function CarLoanPage() {
 
 interface CreateLoanForm {
   vehicleId: string;
+  loanType: LoanTypeValue;
+  loanName: string;
   lender: string;
   totalAmount: number;
   downPayment: number;
@@ -424,6 +452,8 @@ function CreateLoanDialog({
 }) {
   const [form, setForm] = useState<CreateLoanForm>({
     vehicleId: vehicles[0]?.id || '',
+    loanType: 'CAR_LOAN',
+    loanName: '',
     lender: '',
     totalAmount: 0,
     downPayment: 0,
@@ -459,7 +489,11 @@ function CreateLoanDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.vehicleId || !form.lender || form.loanAmount <= 0) {
+    if (form.loanType === 'CAR_LOAN' && !form.vehicleId) {
+      alert('車貸必須選擇車輛');
+      return;
+    }
+    if (!form.lender || form.loanAmount <= 0) {
       alert('請填寫必要欄位');
       return;
     }
@@ -475,27 +509,58 @@ function CreateLoanDialog({
     <div className={styles.dialogOverlay} onClick={onClose}>
       <div className={styles.dialog} onClick={e => e.stopPropagation()}>
         <div className={styles.dialogHeader}>
-          <h2 className={styles.dialogTitle}>新增車貸</h2>
+          <h2 className={styles.dialogTitle}>新增貸款</h2>
           <button type="button" className={styles.dialogCloseBtn} onClick={onClose}>
             <X size={20} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.dialogBody}>
+          {/* 貸款類型 */}
           <div className={styles.formRow}>
             <label className={styles.formLabel}>
-              車輛
+              貸款類型
               <select
                 className={styles.formSelect}
-                value={form.vehicleId}
-                onChange={e => handleChange('vehicleId', e.target.value)}
-                required
+                value={form.loanType}
+                onChange={e => handleChange('loanType', e.target.value)}
               >
-                {vehicles.map(v => (
-                  <option key={v.id} value={v.id}>{v.name}</option>
+                {LOAN_TYPE_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.icon} {opt.label}</option>
                 ))}
               </select>
             </label>
+            {form.loanType !== 'CAR_LOAN' && (
+              <label className={styles.formLabel}>
+                貸款名稱
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  value={form.loanName}
+                  onChange={e => handleChange('loanName', e.target.value)}
+                  placeholder="如：機車貸款"
+                />
+              </label>
+            )}
+          </div>
+
+          <div className={styles.formRow}>
+            {form.loanType === 'CAR_LOAN' && (
+              <label className={styles.formLabel}>
+                車輛
+                <select
+                  className={styles.formSelect}
+                  value={form.vehicleId}
+                  onChange={e => handleChange('vehicleId', e.target.value)}
+                  required
+                >
+                  <option value="">請選擇車輛</option>
+                  {vehicles.map(v => (
+                    <option key={v.id} value={v.id}>{v.name}</option>
+                  ))}
+                </select>
+              </label>
+            )}
             <label className={styles.formLabel}>
               貸款機構
               <input
@@ -511,7 +576,7 @@ function CreateLoanDialog({
 
           <div className={styles.formRow}>
             <label className={styles.formLabel}>
-              車輛總價
+              總價
               <input
                 type="number"
                 className={styles.formInput}
@@ -623,7 +688,7 @@ function CreateLoanDialog({
               取消
             </button>
             <button type="submit" className={styles.submitBtn} disabled={submitting}>
-              {submitting ? '建立中...' : '建立車貸'}
+              {submitting ? '建立中...' : '建立貸款'}
             </button>
           </div>
         </form>

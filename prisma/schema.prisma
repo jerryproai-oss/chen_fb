@@ -894,13 +894,15 @@ model CarCostConfig {
   @@map("car_cost_configs")
 }
 
-// ── Model 7：CarLoan（車貸資訊）──────────────────────────
+// ── Model 7：CarLoan（貸款資訊）──────────────────────────
 
 model CarLoan {
   id                String    @id @default(uuid()) @db.Uuid
-  vehicleId         String    @map("vehicle_id") @db.Uuid
+  vehicleId         String?   @map("vehicle_id") @db.Uuid          // 車貸時關聯車輛（選填）
+  loanType          String    @default("CAR_LOAN") @map("loan_type") // 貸款類型
+  loanName          String?   @map("loan_name")                     // 自訂名稱（如：機車貸款）
   lender            String                                        // 貸款機構
-  totalAmount       Decimal   @map("total_amount") @db.Decimal(12, 2)   // 車輛總價
+  totalAmount       Decimal   @map("total_amount") @db.Decimal(12, 2)   // 總價
   downPayment       Decimal   @map("down_payment") @db.Decimal(12, 2)  // 頭期款
   loanAmount        Decimal   @map("loan_amount") @db.Decimal(12, 2)   // 實際貸款金額
   interestRate      Decimal   @map("interest_rate") @db.Decimal(6, 4)  // 年利率 %
@@ -913,10 +915,11 @@ model CarLoan {
   isActive          Boolean   @default(true) @map("is_active")
   createdAt         DateTime  @default(now()) @map("created_at")
 
-  vehicle           Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  vehicle           Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
   payments          CarLoanPayment[]
 
   @@index([vehicleId])
+  @@index([loanType])
   @@map("car_loans")
 }
 

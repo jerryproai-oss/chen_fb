@@ -7,16 +7,18 @@ import { generateAmortizationSchedule } from '@/lib/car/loan-calculator';
 /**
  * GET /api/car/loans
  *
- * 列出車貸（?vehicleId=&isActive=）含已繳期數
+ * 列出貸款（?vehicleId=&isActive=&loanType=）含已繳期數
  */
 export const GET = withAuth(async (_ctx, req: NextRequest) => {
   const { searchParams } = new URL(req.url);
   const vehicleId = searchParams.get('vehicleId');
   const isActiveParam = searchParams.get('isActive');
+  const loanType = searchParams.get('loanType');
 
   try {
     const where: Record<string, unknown> = {};
     if (vehicleId) where.vehicleId = vehicleId;
+    if (loanType) where.loanType = loanType;
     if (isActiveParam !== null) {
       where.isActive = isActiveParam === 'true';
     }
@@ -37,7 +39,6 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
       const paidPayments = loan.payments.filter((p) => p.status === 'PAID');
       const paidCount = paidPayments.length;
 
-      // 剩餘本金：取最後一筆已繳的 remainingBalance，若無已繳則為貸款金額
       const lastPaid = loan.payments
         .filter((p) => p.status === 'PAID')
         .sort((a, b) => b.installmentNo - a.installmentNo)[0];
@@ -49,6 +50,8 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
         id: loan.id,
         vehicleId: loan.vehicleId,
         vehicle: loan.vehicle,
+        loanType: loan.loanType,
+        loanName: loan.loanName,
         lender: loan.lender,
         totalAmount: Number(loan.totalAmount),
         downPayment: Number(loan.downPayment),
@@ -70,14 +73,15 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
     return NextResponse.json({ loans: formatted });
   } catch (error) {
     console.error('[GET /api/car/loans] 查詢失敗:', error);
-    return NextResponse.json({ error: '無法取得車貸資料' }, { status: 500 });
+    return NextResponse.json({ error: '無法取得貸款資料' }, { status: 500 });
   }
 });
 
 /**
  * POST /api/car/loans (ADMIN)
  *
- * 新增車貸 → 用 loan-calculator 自動產生全部 CarLoanPayment
+ * 新增貸款 → 用 loan-calculator 自動產生全部 CarLoanPayment
+ * 支援 loanType: CAR_LOAN | MOTORCYCLE_LOAN | PERSONAL_LOAN | OTHER
  */
 export const POST = withAdmin(async ({ user }, req: NextRequest) => {
   let body: Record<string, unknown>;
@@ -89,6 +93,8 @@ export const POST = withAdmin(async ({ user }, req: NextRequest) => {
 
   const {
     vehicleId,
+    loanType,
+    loanName,
     lender,
     totalAmount,
     downPayment,
@@ -100,15 +106,26 @@ export const POST = withAdmin(async ({ user }, req: NextRequest) => {
     note,
   } = body;
 
+  const validLoanTypes = ['CAR_LOAN', 'MOTORCYCLE_LOAN', 'PERSONAL_LOAN', 'OTHER'];
+  const resolvedLoanType = typeof loanType === 'string' && validLoanTypes.includes(loanType)
+    ? loanType
+    : 'CAR_LOAN';
+
   // ── 驗證 ────────────────────────────────────────
-  if (!vehicleId || typeof vehicleId !== 'string') {
-    return NextResponse.json({ error: 'vehicleId 為必填' }, { status: 400 });
+  // 車貸必須關聯車輛，其他類型不需要
+  if (resolvedLoanType === 'CAR_LOAN') {
+    if (!vehicleId || typeof vehicleId !== 'string') {
+      return NextResponse.json({ error: '車貸必須選擇車輛' }, { status: 400 });
+    }
+  }
+  if (resolvedLoanType !== 'CAR_LOAN' && !loanName && !lender) {
+    return NextResponse.json({ error: '非車貸請填寫貸款名稱或機構' }, { status: 400 });
   }
   if (!lender || typeof lender !== 'string') {
     return NextResponse.json({ error: '貸款機構為必填' }, { status: 400 });
   }
   if (typeof totalAmount !== 'number' || totalAmount <= 0) {
-    return NextResponse.json({ error: '車輛總價必須大於 0' }, { status: 400 });
+    return NextResponse.json({ error: '總價必須大於 0' }, { status: 400 });
   }
   if (typeof downPayment !== 'number' || downPayment < 0) {
     return NextResponse.json({ error: '頭期款必須 ≥ 0' }, { status: 400 });
@@ -134,10 +151,12 @@ export const POST = withAdmin(async ({ user }, req: NextRequest) => {
     return NextResponse.json({ error: '無效的起始日期' }, { status: 400 });
   }
 
-  // 驗證車輛存在
-  const vehicle = await prisma.vehicle.findUnique({ where: { id: vehicleId } });
-  if (!vehicle) {
-    return NextResponse.json({ error: '車輛不存在' }, { status: 404 });
+  // 驗證車輛存在（僅車貸時）
+  if (vehicleId && typeof vehicleId === 'string') {
+    const vehicle = await prisma.vehicle.findUnique({ where: { id: vehicleId } });
+    if (!vehicle) {
+      return NextResponse.json({ error: '車輛不存在' }, { status: 404 });
+    }
   }
 
   try {
@@ -154,7 +173,9 @@ export const POST = withAdmin(async ({ user }, req: NextRequest) => {
       // 1. 建立車貸
       const loan = await tx.carLoan.create({
         data: {
-          vehicleId,
+          vehicleId: vehicleId && typeof vehicleId === 'string' ? vehicleId : null,
+          loanType: resolvedLoanType,
+          loanName: typeof loanName === 'string' ? loanName.trim() || null : null,
           lender: lender.trim(),
           totalAmount,
           downPayment,
@@ -197,6 +218,8 @@ export const POST = withAdmin(async ({ user }, req: NextRequest) => {
       loan: {
         id: result.id,
         vehicleId: result.vehicleId,
+        loanType: result.loanType,
+        loanName: result.loanName,
         lender: result.lender,
         totalAmount: Number(result.totalAmount),
         downPayment: Number(result.downPayment),

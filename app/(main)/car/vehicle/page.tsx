@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { X, ArrowLeft, Pencil } from 'lucide-react';
+import { X, ArrowLeft, Pencil, Plus } from 'lucide-react';
 import type { VehicleInfo } from '@/lib/car/types';
 import styles from './page.module.css';
 
@@ -43,6 +43,7 @@ export default function VehiclePage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showEdit, setShowEdit] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState<EditForm>({
     name: '', brand: '', model: '', plateNumber: '',
     purchaseDate: '', warrantyEnd: '', insuranceEnd: '',
@@ -73,6 +74,60 @@ export default function VehiclePage() {
     setLoading(true);
     fetchVehicle().finally(() => setLoading(false));
   }, [fetchVehicle]);
+
+  const openCreate = () => {
+    setForm({
+      name: '', brand: '', model: '', plateNumber: '',
+      purchaseDate: '', warrantyEnd: '', insuranceEnd: '',
+      nextMaintenanceDate: '', nextMaintenanceMileage: '', currentMileage: '',
+      color: '', vin: '', note: '',
+    });
+    setError('');
+    setShowCreate(true);
+  };
+
+  const handleCreate = async () => {
+    if (!form.name.trim() || !form.brand.trim() || !form.model.trim() || !form.plateNumber.trim()) {
+      setError('名稱、品牌、車型、車牌為必填');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      const body: Record<string, unknown> = {
+        name: form.name.trim(),
+        brand: form.brand.trim(),
+        model: form.model.trim(),
+        plateNumber: form.plateNumber.trim(),
+      };
+      if (form.purchaseDate) body.purchaseDate = form.purchaseDate;
+      if (form.warrantyEnd) body.warrantyEnd = form.warrantyEnd;
+      if (form.insuranceEnd) body.insuranceEnd = form.insuranceEnd;
+      if (form.nextMaintenanceDate) body.nextMaintenanceDate = form.nextMaintenanceDate;
+      if (form.nextMaintenanceMileage) body.nextMaintenanceMileage = parseInt(form.nextMaintenanceMileage);
+      if (form.currentMileage) body.currentMileage = parseInt(form.currentMileage);
+      if (form.color) body.color = form.color.trim();
+      if (form.vin) body.vin = form.vin.trim();
+      body.note = form.note.trim() || null;
+
+      const res = await fetch('/api/car/vehicles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || '新增失敗');
+        return;
+      }
+      setShowCreate(false);
+      fetchVehicle();
+    } catch {
+      setError('網路錯誤');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const openEdit = () => {
     if (!vehicle) return;
@@ -149,7 +204,87 @@ export default function VehiclePage() {
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}>🚙</div>
           <div className={styles.emptyText}>尚未設定車輛資訊</div>
+          {isAdmin && (
+            <button type="button" className={styles.btnSave} onClick={openCreate} style={{ marginTop: '1rem' }}>
+              <Plus size={16} /> 新增車輛
+            </button>
+          )}
         </div>
+
+        {/* 新增車輛 Dialog */}
+        {showCreate && (
+          <div className={styles.modalOverlay} onClick={() => setShowCreate(false)}>
+            <div className={styles.modal} onClick={e => e.stopPropagation()}>
+              <div className={styles.modalHeader}>
+                <h2 className={styles.modalTitle}>新增車輛</h2>
+                <button type="button" className={styles.modalClose} onClick={() => setShowCreate(false)}>
+                  <X size={20} />
+                </button>
+              </div>
+              <div className={styles.modalBody}>
+                {error && <div className={styles.errorMsg}>{error}</div>}
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>名稱 *</label>
+                    <input type="text" className={styles.formInput} value={form.name}
+                      placeholder="如：CX-30"
+                      onChange={e => setForm({ ...form, name: e.target.value })} />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>品牌 *</label>
+                    <input type="text" className={styles.formInput} value={form.brand}
+                      placeholder="如：Mazda"
+                      onChange={e => setForm({ ...form, brand: e.target.value })} />
+                  </div>
+                </div>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>車型 *</label>
+                    <input type="text" className={styles.formInput} value={form.model}
+                      placeholder="如：CX-30 旗艦進化型"
+                      onChange={e => setForm({ ...form, model: e.target.value })} />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>車牌號碼 *</label>
+                    <input type="text" className={styles.formInput} value={form.plateNumber}
+                      placeholder="如：ABC-1234"
+                      onChange={e => setForm({ ...form, plateNumber: e.target.value })} />
+                  </div>
+                </div>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>車色</label>
+                    <input type="text" className={styles.formInput} value={form.color}
+                      onChange={e => setForm({ ...form, color: e.target.value })} />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>目前里程 (km)</label>
+                    <input type="number" className={styles.formInput} value={form.currentMileage}
+                      onChange={e => setForm({ ...form, currentMileage: e.target.value })} />
+                  </div>
+                </div>
+                <div className={styles.formRow}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>購入日期</label>
+                    <input type="date" className={styles.formInput} value={form.purchaseDate}
+                      onChange={e => setForm({ ...form, purchaseDate: e.target.value })} />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>保固到期日</label>
+                    <input type="date" className={styles.formInput} value={form.warrantyEnd}
+                      onChange={e => setForm({ ...form, warrantyEnd: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+              <div className={styles.modalFooter}>
+                <button type="button" className={styles.btnCancel} onClick={() => setShowCreate(false)}>取消</button>
+                <button type="button" className={styles.btnSave} onClick={handleCreate} disabled={saving}>
+                  {saving ? '新增中...' : '新增車輛'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

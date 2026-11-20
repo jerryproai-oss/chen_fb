@@ -26,7 +26,7 @@ const QUICK_ACTIONS = [
   { emoji: '📸', label: '拍照', href: '' },
   { emoji: '🧮', label: '結算', href: '/car/calculator' },
   { emoji: '📊', label: '報表', href: '/car/reports' },
-  { emoji: '🏦', label: '車貸', href: '/car/loan' },
+  { emoji: '🏦', label: '貸款', href: '/car/loan' },
 ] as const;
 
 function getLocalDateString(): string {

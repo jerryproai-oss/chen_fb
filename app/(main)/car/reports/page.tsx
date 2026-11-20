@@ -109,7 +109,7 @@ export default function ReportsPage() {
 
     const params = new URLSearchParams({
       vehicleId: selectedVehicleId,
-      type: reportType,
+      type: reportType === 'monthly' ? 'month' : reportType === 'quarterly' ? 'quarter' : 'year',
       year: String(year),
     });
 
@@ -188,7 +188,7 @@ export default function ReportsPage() {
     try {
       const params = new URLSearchParams({
         vehicleId: selectedVehicleId,
-        type: reportType,
+        type: reportType === 'monthly' ? 'month' : reportType === 'quarterly' ? 'quarter' : 'year',
         year: String(year),
         format: 'csv',
       });
