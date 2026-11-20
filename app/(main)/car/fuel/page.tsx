@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { X, Plus, ArrowLeft } from 'lucide-react';
+import { X, Plus, ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import type {
   FuelRecordItem,
   FuelTypeValue,
@@ -64,6 +64,8 @@ export default function FuelPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [vehicleId, setVehicleId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchVehicle = useCallback(async () => {
     try {
@@ -137,6 +139,72 @@ export default function FuelPage() {
     }
   };
 
+  const openEdit = (rec: FuelRecordItem) => {
+    setEditingId(rec.id);
+    setForm({
+      fuelDate: rec.fuelDate,
+      fuelType: rec.fuelType as FuelTypeValue,
+      amount: String(rec.amount),
+      liters: rec.liters ? String(rec.liters) : '',
+      mileage: String(rec.mileage),
+      station: rec.station || '',
+      paymentMethod: rec.paymentMethod as PaymentMethodType,
+      note: rec.note || '',
+    });
+    setError('');
+    setShowModal(true);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId) return;
+    setSaving(true);
+    setError('');
+    try {
+      if (!form.amount || !form.mileage) {
+        setError('金額與里程為必填');
+        setSaving(false);
+        return;
+      }
+      const body: Record<string, unknown> = {
+        fuelDate: form.fuelDate,
+        fuelType: form.fuelType,
+        amount: parseFloat(form.amount),
+        mileage: parseInt(form.mileage),
+        paymentMethod: form.paymentMethod,
+        liters: form.liters ? parseFloat(form.liters) : null,
+        station: form.station.trim() || null,
+        note: form.note.trim() || null,
+      };
+      const res = await fetch(`/api/car/fuel/${editingId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || '更新失敗');
+        return;
+      }
+      setShowModal(false);
+      setEditingId(null);
+      fetchRecords();
+    } catch {
+      setError('網路錯誤');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('確定要刪除此加油記錄？')) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/car/fuel/${id}`, { method: 'DELETE' });
+      if (res.ok) fetchRecords();
+    } catch { /* ignore */ }
+    finally { setDeleting(false); }
+  };
+
   // 計算油耗
   const calcEfficiency = (rec: FuelRecordItem, prev: FuelRecordItem | null): string => {
     if (!prev || !rec.liters || rec.liters <= 0) return '—';
@@ -194,7 +262,7 @@ export default function FuelPage() {
       {/* Controls */}
       <div className={styles.controls}>
         <div />
-        <button type="button" className={styles.addBtn} onClick={() => { setForm(defaultForm()); setError(''); setShowModal(true); }}>
+        <button type="button" className={styles.addBtn} onClick={() => { setEditingId(null); setForm(defaultForm()); setError(''); setShowModal(true); }}>
           <Plus size={16} /> 新增加油
         </button>
       </div>
@@ -264,6 +332,28 @@ export default function FuelPage() {
                 {rec.station && (
                   <div className={styles.recordStation}>📍 {rec.station}</div>
                 )}
+                {rec.note && (
+                  <div className={styles.recordStation}>📝 {rec.note}</div>
+                )}
+                <div className={styles.recordActions}>
+                  <button
+                    type="button"
+                    className={styles.actionBtnEdit}
+                    onClick={() => openEdit(rec)}
+                    title="編輯"
+                  >
+                    <Pencil size={14} /> 編輯
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.actionBtnDelete}
+                    onClick={() => handleDelete(rec.id)}
+                    disabled={deleting}
+                    title="刪除"
+                  >
+                    <Trash2 size={14} /> 刪除
+                  </button>
+                </div>
               </div>
             );
           })
@@ -275,8 +365,8 @@ export default function FuelPage() {
         <div className={styles.modalOverlay} onClick={() => setShowModal(false)}>
           <div className={styles.modal} onClick={e => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>新增加油</h2>
-              <button type="button" className={styles.modalClose} onClick={() => setShowModal(false)}>
+              <h2 className={styles.modalTitle}>{editingId ? '編輯加油' : '新增加油'}</h2>
+              <button type="button" className={styles.modalClose} onClick={() => { setShowModal(false); setEditingId(null); }}>
                 <X size={20} />
               </button>
             </div>
@@ -338,9 +428,9 @@ export default function FuelPage() {
               </div>
             </div>
             <div className={styles.modalFooter}>
-              <button type="button" className={styles.btnCancel} onClick={() => setShowModal(false)}>取消</button>
-              <button type="button" className={styles.btnSave} onClick={handleSave} disabled={saving}>
-                {saving ? '儲存中...' : '儲存'}
+              <button type="button" className={styles.btnCancel} onClick={() => { setShowModal(false); setEditingId(null); }}>取消</button>
+              <button type="button" className={styles.btnSave} onClick={editingId ? handleUpdate : handleSave} disabled={saving}>
+                {saving ? '儲存中...' : (editingId ? '更新' : '儲存')}
               </button>
             </div>
           </div>
