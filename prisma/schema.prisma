@@ -43,6 +43,100 @@ enum ReactionType {
   NO_PROBLEM  // 沒問題
 }
 
+// ── 用車管理 Enums ────────────────────────────────────────
+
+enum FamilyRole {
+  PARENT
+  CHILD
+}
+
+enum BookingStatus {
+  RESERVED    // 已預約
+  OUT         // 已出車
+  COMPLETED   // 已完成
+  CANCELLED   // 已取消
+}
+
+enum RecurringType {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+enum PaymentMethod {
+  CASH          // 現金
+  CREDIT_CARD   // 信用卡
+  DEBIT_CARD    // 簽帳金融卡
+  BANK_TRANSFER // 銀行轉帳
+  LINE_PAY      // LINE Pay
+  APPLE_PAY     // Apple Pay
+  OTHER         // 其他
+}
+
+enum CostStatus {
+  PENDING     // 待確認
+  CONFIRMED   // 已確認
+}
+
+enum PaymentStatus {
+  UNPAID      // 待繳
+  PAID        // 已繳（本人標記）
+  CONFIRMED   // 已確認（ADMIN 確認）
+}
+
+enum CalcMethod {
+  DUAL_TRACK  // 雙軌天數計費制（均分+天數）
+  EVEN_SPLIT  // 直接均分制
+}
+
+enum EffectiveMode {
+  RETROACTIVE // 含設定前（所有結算適用）
+  IMMEDIATE   // 即刻生效
+  SCHEDULED   // 指定生效日
+}
+
+enum FuelType {
+  GASOLINE    // 汽油
+  DIESEL      // 柴油
+  ELECTRIC    // 電動
+  OTHER       // 其他
+}
+
+enum DocType {
+  RECEIPT     // 收據
+  WARRANTY    // 保修單
+  INSURANCE   // 保險單
+  INSPECTION  // 檢驗報告
+  LOAN        // 貸款文件
+  OTHER       // 其他
+}
+
+enum LoanPaymentStatus {
+  UPCOMING    // 即將到期
+  PAID        // 已繳
+  OVERDUE     // 逾期
+}
+
+enum MileageSource {
+  MANUAL        // 手動更新
+  BOOKING_START // 出車記錄
+  BOOKING_END   // 還車記錄
+  FUEL          // 加油記錄
+}
+
+enum CarNotificationType {
+  BOOKING_NEW           // 有人預約用車
+  BOOKING_CONFLICT      // 預約衝突
+  BOOKING_STATUS        // 預約狀態變更
+  COST_NEW              // 新增費用結算
+  COST_PAYMENT_DUE      // 未繳款提醒
+  COST_PAYMENT_CONFIRMED // 繳款已確認
+  MAINTENANCE_DUE       // 保養到期提醒
+  INSURANCE_EXPIRING    // 保險即將到期
+  LOAN_PAYMENT_DUE      // 車貸繳款提醒
+  CONFIG_CHANGED        // 規則變更通知
+}
+
 // ── Models ────────────────────────────────────────────────
 
 model User {
@@ -88,6 +182,23 @@ model User {
   wikiEdits             WikiPageVersion[]
   wikiPermissions       WikiPagePermission[]
   contacts              Contact[]
+
+  // ── 用車管理 ────────────────────
+  familyRole            FamilyRole?   @map("family_role")
+  notifyEmails          Json?         @map("notify_emails")           // 通知信箱陣列
+  emailNotifyEnabled    Boolean       @default(false) @map("email_notify_enabled")
+
+  carBookings           CarBooking[]
+  carCostRecordsPaid    CarCostRecord[]    @relation("costPaidBy")
+  carCostRecordsCreated CarCostRecord[]    @relation("costCreatedBy")
+  carCostShares         CarCostShare[]
+  carCostSharesConfirmed CarCostShare[]    @relation("shareConfirmedBy")
+  carCostAttachments    CarCostAttachment[]
+  carCostConfigs        CarCostConfig[]
+  carFuelRecords        CarFuelRecord[]
+  carCostAmendments     CarCostAmendment[]
+  carNotifications      CarNotification[]
+  carMileageLogs        CarMileageLog[]
 
   @@map("users")
 }
@@ -605,4 +716,312 @@ model Contact {
   @@index([isShared])
   @@index([name])
   @@map("contacts")
+}
+
+// ══════════════════════════════════════════════════════════════
+// ── 用車管理模組 ─────────────────────────────────────────────
+// ══════════════════════════════════════════════════════════════
+
+// ── Model 1：Vehicle（車輛資訊）────────────────────────────
+
+model Vehicle {
+  id                    String    @id @default(uuid()) @db.Uuid
+  name                  String                                    // 車輛名稱（如「CX-30」）
+  brand                 String                                    // 品牌（Mazda）
+  model                 String                                    // 車型（CX-30）
+  plateNumber           String    @map("plate_number")            // 車牌號碼
+  purchaseDate          DateTime? @map("purchase_date") @db.Date  // 購入日期
+  warrantyEnd           DateTime? @map("warranty_end") @db.Date   // 保固到期日
+  insuranceEnd          DateTime? @map("insurance_end") @db.Date  // 保險到期日
+  nextMaintenanceDate   DateTime? @map("next_maintenance_date") @db.Date  // 下次保養日期
+  nextMaintenanceMileage Int?     @map("next_maintenance_mileage")        // 下次保養里程
+  currentMileage        Int?      @map("current_mileage")                 // 目前里程數
+  color                 String?                                    // 車色
+  vin                   String?                                    // 車身號碼
+  note                  String?                                    // 備註
+  isActive              Boolean   @default(true) @map("is_active")
+  createdAt             DateTime  @default(now()) @map("created_at")
+
+  bookings              CarBooking[]
+  costRecords           CarCostRecord[]
+  costConfigs           CarCostConfig[]
+  loans                 CarLoan[]
+  fuelRecords           CarFuelRecord[]
+  mileageLogs           CarMileageLog[]
+
+  @@map("vehicles")
+}
+
+// ── Model 2：CarBooking（用車預約）────────────────────────
+
+model CarBooking {
+  id                String         @id @default(uuid()) @db.Uuid
+  vehicleId         String         @map("vehicle_id") @db.Uuid
+  userId            String         @map("user_id") @db.Uuid
+  startDate         DateTime       @map("start_date") @db.Date
+  endDate           DateTime       @map("end_date") @db.Date
+  applyDays         Int            @map("apply_days")              // 申請天數
+  purpose           String                                          // 用途
+  status            BookingStatus  @default(RESERVED)
+  countedDays       Int            @default(0) @map("counted_days") // 計入天數
+  startMileage      Int?           @map("start_mileage")           // 出車里程
+  endMileage        Int?           @map("end_mileage")             // 還車里程
+  tripDistance      Int?           @map("trip_distance")           // 本次行駛公里數
+  isRecurring       Boolean        @default(false) @map("is_recurring")
+  recurringType     RecurringType? @map("recurring_type")
+  recurringEndDate  DateTime?      @map("recurring_end_date") @db.Date
+  parentBookingId   String?        @map("parent_booking_id") @db.Uuid
+  createdAt         DateTime       @default(now()) @map("created_at")
+
+  vehicle           Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentBooking     CarBooking?    @relation("recurringBookings", fields: [parentBookingId], references: [id], onDelete: SetNull)
+  childBookings     CarBooking[]   @relation("recurringBookings")
+
+  @@index([vehicleId])
+  @@index([userId])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([status])
+  @@index([parentBookingId])
+  @@map("car_bookings")
+}
+
+// ── Model 3：CarCostRecord（費用結算）─────────────────────
+
+model CarCostRecord {
+  id              String         @id @default(uuid()) @db.Uuid
+  vehicleId       String         @map("vehicle_id") @db.Uuid
+  settlementDate  DateTime       @map("settlement_date") @db.Date  // 結算日期
+  item            String                                            // 費用項目名稱
+  totalAmount     Decimal        @map("total_amount") @db.Decimal(12, 2)
+  parentAmount    Decimal        @map("parent_amount") @db.Decimal(12, 2)
+  paidById        String         @map("paid_by_id") @db.Uuid       // 實際繳費人
+  paymentMethod   PaymentMethod  @map("payment_method")
+  paymentRef      String?        @map("payment_ref")               // 繳費參考
+  paymentNote     String?        @map("payment_note")              // 繳費備註
+  configId        String?        @map("config_id") @db.Uuid        // 套用的規則版本
+  periodStart     DateTime?      @map("period_start") @db.Date     // 統計期間起
+  periodEnd       DateTime?      @map("period_end") @db.Date       // 統計期間迄
+  auditCheck      Boolean        @default(false) @map("audit_check")
+  status          CostStatus     @default(PENDING)
+  createdBy       String         @map("created_by") @db.Uuid
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  vehicle         Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  paidBy          User           @relation("costPaidBy", fields: [paidById], references: [id], onDelete: Cascade)
+  creator         User           @relation("costCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
+  config          CarCostConfig? @relation(fields: [configId], references: [id], onDelete: SetNull)
+  shares          CarCostShare[]
+  attachments     CarCostAttachment[]
+  amendments      CarCostAmendment[]
+
+  @@index([vehicleId])
+  @@index([settlementDate])
+  @@index([item])
+  @@index([paidById])
+  @@index([createdBy])
+  @@map("car_cost_records")
+}
+
+// ── Model 4：CarCostShare（每人分攤明細）──────────────────
+
+model CarCostShare {
+  id              String         @id @default(uuid()) @db.Uuid
+  costRecordId    String         @map("cost_record_id") @db.Uuid
+  userId          String         @map("user_id") @db.Uuid
+  usageDays       Int            @map("usage_days")               // 使用天數
+  amount          Decimal        @db.Decimal(12, 2)                // 分攤金額
+  paymentStatus   PaymentStatus  @default(UNPAID) @map("payment_status")
+  paidAt          DateTime?      @map("paid_at")
+  confirmedBy     String?        @map("confirmed_by") @db.Uuid
+  confirmedAt     DateTime?      @map("confirmed_at")
+
+  costRecord      CarCostRecord  @relation(fields: [costRecordId], references: [id], onDelete: Cascade)
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  confirmer       User?          @relation("shareConfirmedBy", fields: [confirmedBy], references: [id], onDelete: SetNull)
+
+  @@index([costRecordId])
+  @@index([userId])
+  @@index([paymentStatus])
+  @@map("car_cost_shares")
+}
+
+// ── Model 5：CarCostAttachment（費用附件）─────────────────
+
+model CarCostAttachment {
+  id              String         @id @default(uuid()) @db.Uuid
+  costRecordId    String         @map("cost_record_id") @db.Uuid
+  uploaderId      String         @map("uploader_id") @db.Uuid
+  filename        String                                           // 原始檔名
+  storagePath     String         @map("storage_path")              // gdrive:<fileId>
+  mimeType        String         @map("mime_type")
+  fileSize        Int            @map("file_size")                 // bytes
+  docType         DocType        @default(OTHER) @map("doc_type")
+  note            String?
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  costRecord      CarCostRecord  @relation(fields: [costRecordId], references: [id], onDelete: Cascade)
+  uploader        User           @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+
+  @@index([costRecordId])
+  @@map("car_cost_attachments")
+}
+
+// ── Model 6：CarCostConfig（費用分攤規則）─────────────────
+
+model CarCostConfig {
+  id                  String         @id @default(uuid()) @db.Uuid
+  vehicleId           String         @map("vehicle_id") @db.Uuid
+  item                String                                       // 費用項目名稱
+  parentRatio         Decimal        @map("parent_ratio") @db.Decimal(5, 4)  // 0~1
+  calcMethod          CalcMethod     @map("calc_method")
+  dualTrackBaseRatio  Decimal        @default(0.5) @map("dual_track_base_ratio") @db.Decimal(5, 4)
+  effectiveFrom       DateTime       @map("effective_from") @db.Date
+  effectiveMode       EffectiveMode  @map("effective_mode")
+  isActive            Boolean        @default(true) @map("is_active")
+  note                String?
+  createdBy           String         @map("created_by") @db.Uuid
+  createdAt           DateTime       @default(now()) @map("created_at")
+
+  vehicle             Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  creator             User           @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  costRecords         CarCostRecord[]
+
+  @@index([vehicleId, item])
+  @@index([effectiveFrom])
+  @@map("car_cost_configs")
+}
+
+// ── Model 7：CarLoan（車貸資訊）──────────────────────────
+
+model CarLoan {
+  id                String    @id @default(uuid()) @db.Uuid
+  vehicleId         String    @map("vehicle_id") @db.Uuid
+  lender            String                                        // 貸款機構
+  totalAmount       Decimal   @map("total_amount") @db.Decimal(12, 2)   // 車輛總價
+  downPayment       Decimal   @map("down_payment") @db.Decimal(12, 2)  // 頭期款
+  loanAmount        Decimal   @map("loan_amount") @db.Decimal(12, 2)   // 實際貸款金額
+  interestRate      Decimal   @map("interest_rate") @db.Decimal(6, 4)  // 年利率 %
+  totalInstallments Int       @map("total_installments")                // 總期數
+  monthlyPayment    Decimal   @map("monthly_payment") @db.Decimal(12, 2)
+  startDate         DateTime  @map("start_date") @db.Date
+  endDate           DateTime  @map("end_date") @db.Date
+  paymentDay        Int       @map("payment_day")                      // 每月扣款日（1-31）
+  note              String?
+  isActive          Boolean   @default(true) @map("is_active")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  vehicle           Vehicle   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  payments          CarLoanPayment[]
+
+  @@index([vehicleId])
+  @@map("car_loans")
+}
+
+// ── Model 8：CarLoanPayment（車貸還款記錄）────────────────
+
+model CarLoanPayment {
+  id                String             @id @default(uuid()) @db.Uuid
+  loanId            String             @map("loan_id") @db.Uuid
+  installmentNo     Int                @map("installment_no")          // 第幾期
+  dueDate           DateTime           @map("due_date") @db.Date      // 應繳日期
+  amount            Decimal            @db.Decimal(12, 2)              // 應繳金額
+  principal         Decimal            @db.Decimal(12, 2)              // 本金
+  interest          Decimal            @db.Decimal(12, 2)              // 利息
+  remainingBalance  Decimal            @map("remaining_balance") @db.Decimal(12, 2)
+  status            LoanPaymentStatus  @default(UPCOMING)
+  paidAt            DateTime?          @map("paid_at")
+  note              String?
+
+  loan              CarLoan            @relation(fields: [loanId], references: [id], onDelete: Cascade)
+
+  @@index([loanId])
+  @@index([dueDate])
+  @@index([status])
+  @@map("car_loan_payments")
+}
+
+// ── Model 9：CarFuelRecord（加油/充電記錄）────────────────
+
+model CarFuelRecord {
+  id              String         @id @default(uuid()) @db.Uuid
+  vehicleId       String         @map("vehicle_id") @db.Uuid
+  userId          String         @map("user_id") @db.Uuid          // 加油人
+  fuelDate        DateTime       @map("fuel_date") @db.Date
+  fuelType        FuelType       @map("fuel_type")
+  amount          Decimal        @db.Decimal(12, 2)                 // 金額
+  liters          Decimal?       @db.Decimal(8, 2)                  // 公升數
+  kwh             Decimal?       @db.Decimal(8, 2)                  // 度數
+  pricePerUnit    Decimal?       @map("price_per_unit") @db.Decimal(8, 2)
+  mileage         Int                                               // 加油時里程
+  station         String?                                           // 加油站名稱
+  paymentMethod   PaymentMethod  @map("payment_method")
+  note            String?
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  vehicle         Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
+  @@index([userId])
+  @@index([fuelDate])
+  @@map("car_fuel_records")
+}
+
+// ── Model 10：CarCostAmendment（費用修正記錄）─────────────
+
+model CarCostAmendment {
+  id              String         @id @default(uuid()) @db.Uuid
+  costRecordId    String         @map("cost_record_id") @db.Uuid
+  amendedBy       String         @map("amended_by") @db.Uuid
+  reason          String                                           // 修正原因
+  fieldChanged    String         @map("field_changed")             // 修改的欄位
+  oldValue        String         @map("old_value")
+  newValue        String         @map("new_value")
+  createdAt       DateTime       @default(now()) @map("created_at")
+
+  costRecord      CarCostRecord  @relation(fields: [costRecordId], references: [id], onDelete: Cascade)
+  amendedByUser   User           @relation(fields: [amendedBy], references: [id], onDelete: Cascade)
+
+  @@index([costRecordId])
+  @@map("car_cost_amendments")
+}
+
+// ── Model 11：CarNotification（用車通知）──────────────────
+
+model CarNotification {
+  id              String               @id @default(uuid()) @db.Uuid
+  userId          String               @map("user_id") @db.Uuid
+  type            CarNotificationType
+  title           String
+  message         String
+  relatedId       String?              @map("related_id") @db.Uuid
+  isRead          Boolean              @default(false) @map("is_read")
+  createdAt       DateTime             @default(now()) @map("created_at")
+
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@map("car_notifications")
+}
+
+// ── Model 12：CarMileageLog（里程記錄）────────────────────
+
+model CarMileageLog {
+  id              String         @id @default(uuid()) @db.Uuid
+  vehicleId       String         @map("vehicle_id") @db.Uuid
+  userId          String         @map("user_id") @db.Uuid
+  mileage         Int                                              // 里程數
+  source          MileageSource                                    // 記錄來源
+  note            String?
+  recordedAt      DateTime       @map("recorded_at") @default(now())
+
+  vehicle         Vehicle        @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId, recordedAt])
+  @@index([userId])
+  @@map("car_mileage_logs")
 }
