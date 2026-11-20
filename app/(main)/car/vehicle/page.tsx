@@ -367,15 +367,15 @@ export default function VehiclePage() {
 
       {/* Status Tags */}
       <div className={styles.statusGrid}>
-        <div className={`${styles.statusCard} ${warranty.urgent ? styles.statusUrgent : ''}`}>
+        <Link href="/car/warranty" className={`${styles.statusCard} ${warranty.urgent ? styles.statusUrgent : ''}`} style={{ textDecoration: 'none', color: 'inherit' }}>
           <span className={styles.statusIcon}>🛡️</span>
           <span className={styles.statusText}>{warranty.text}</span>
-        </div>
-        <div className={`${styles.statusCard} ${insurance.urgent ? styles.statusUrgent : ''}`}>
+        </Link>
+        <Link href="/car/insurance" className={`${styles.statusCard} ${insurance.urgent ? styles.statusUrgent : ''}`} style={{ textDecoration: 'none', color: 'inherit' }}>
           <span className={styles.statusIcon}>📋</span>
           <span className={styles.statusText}>{insurance.text}</span>
-        </div>
-        <div className={`${styles.statusCard} ${maintenance.urgent ? styles.statusUrgent : ''}`}>
+        </Link>
+        <Link href="/car/maintenance" className={`${styles.statusCard} ${maintenance.urgent ? styles.statusUrgent : ''}`} style={{ textDecoration: 'none', color: 'inherit' }}>
           <span className={styles.statusIcon}>🔧</span>
           <span className={styles.statusText}>{maintenance.text}</span>
           {vehicle.nextMaintenanceMileage && (
@@ -383,7 +383,7 @@ export default function VehiclePage() {
               或 {vehicle.nextMaintenanceMileage.toLocaleString()} km
             </span>
           )}
-        </div>
+        </Link>
       </div>
 
       {vehicle.note && (

@@ -171,13 +171,18 @@ export default function CarPage() {
     setSaving(true);
     setError('');
     try {
+      if (!vehicle?.id) {
+        setError('尚無車輛資料，請先到車輛資訊頁新增車輛');
+        setSaving(false);
+        return;
+      }
       const start = new Date(bookingForm.startDate);
       const end = new Date(bookingForm.endDate);
       if (end < start) { setError('結束日期不能早於開始日期'); setSaving(false); return; }
       const applyDays = Math.ceil((end.getTime() - start.getTime()) / 86400000) + 1;
 
       const body: Record<string, unknown> = {
-        vehicleId: vehicle?.id,
+        vehicleId: vehicle.id,
         startDate: bookingForm.startDate,
         endDate: bookingForm.endDate,
         applyDays,
