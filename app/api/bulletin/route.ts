@@ -81,46 +81,40 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
       orderBy: { startDate: 'asc' },
     });
 
-    // 將 CarBooking 展開為每天一筆 FamilyEventItem，以便按日期分組顯示
-    const bookingItems: FamilyEventItem[] = [];
-    for (const b of bookings) {
-      const start = b.startDate < todayUTC ? todayUTC : b.startDate;
-      const end = b.endDate > futureDate ? futureDate : b.endDate;
-      // 展開每一天
-      const cursor = new Date(start);
-      while (cursor <= end) {
-        const dateStr = cursor.toISOString().split('T')[0];
-        const vehicleLabel = b.vehicle.plateNumber
-          ? `${b.vehicle.name}（${b.vehicle.plateNumber}）`
-          : b.vehicle.name;
-        const statusLabel = b.status === 'OUT' ? '🚗 出車中' : '📋 已預約';
+    // 將 CarBooking 轉為 FamilyEventItem（整筆連續行程，不拆天）
+    const bookingItems: FamilyEventItem[] = bookings.map((b) => {
+      const vehicleLabel = b.vehicle.plateNumber
+        ? `${b.vehicle.name}（${b.vehicle.plateNumber}）`
+        : b.vehicle.name;
+      const statusLabel = b.status === 'OUT' ? '🚗 出車中' : '📋 已預約';
+      const startStr = b.startDate.toISOString().split('T')[0];
+      const endStr = b.endDate.toISOString().split('T')[0];
+      const days = Math.round((b.endDate.getTime() - b.startDate.getTime()) / 86400000) + 1;
 
-        bookingItems.push({
-          id: `booking-${b.id}-${dateStr}`,
-          authorId: b.userId,
-          author: {
-            displayName: b.user.displayName,
-            avatarUrl: b.user.avatarUrl,
-            calendarColor: b.user.calendarColor,
-          },
-          title: `${statusLabel} ${vehicleLabel} — ${b.purpose}`,
-          description: null,
-          eventDate: dateStr,
-          endDate: null,
-          eventTime: null,
-          endTime: null,
-          isAllDay: true,
-          color: '#1565C0',   // 用車主題色
-          location: null,
-          isRecurring: false,
-          recurringType: null,
-          recurringEndDate: null,
-          needsCar: true,
-          isImportant: false,
-        });
-        cursor.setUTCDate(cursor.getUTCDate() + 1);
-      }
-    }
+      return {
+        id: `booking-${b.id}`,
+        authorId: b.userId,
+        author: {
+          displayName: b.user.displayName,
+          avatarUrl: b.user.avatarUrl,
+          calendarColor: b.user.calendarColor,
+        },
+        title: `${statusLabel} ${vehicleLabel} — ${b.purpose}${days > 1 ? `（${days}天）` : ''}`,
+        description: null,
+        eventDate: startStr,
+        endDate: startStr !== endStr ? endStr : null,
+        eventTime: null,
+        endTime: null,
+        isAllDay: true,
+        color: '#1565C0',   // 用車主題色
+        location: null,
+        isRecurring: false,
+        recurringType: null,
+        recurringEndDate: null,
+        needsCar: true,
+        isImportant: false,
+      };
+    });
 
     // ── 3. 合併並分類 ─────────────────────────────────────────
     const allItems = [...formattedEvents, ...bookingItems]

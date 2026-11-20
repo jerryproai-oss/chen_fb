@@ -73,6 +73,7 @@ export default function CarPage() {
   const [showReturn, setShowReturn] = useState(false);
   const [activeBookingId, setActiveBookingId] = useState<string | null>(null);
   const [showFab, setShowFab] = useState(false);
+  const [showMileage, setShowMileage] = useState(false);
 
   // Forms
   const [bookingForm, setBookingForm] = useState<BookingForm>({
@@ -84,6 +85,7 @@ export default function CarPage() {
   });
   const [checkoutForm, setCheckoutForm] = useState<MileageForm>({ mileage: '', note: '' });
   const [returnForm, setReturnForm] = useState<MileageForm>({ mileage: '', note: '' });
+  const [mileageForm, setMileageForm] = useState<MileageForm>({ mileage: '', note: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -147,6 +149,7 @@ export default function CarPage() {
     if (action.href) {
       router.push(action.href);
     } else if (idx === 0) {
+      // 預約
       setError('');
       setBookingForm({
         startDate: getLocalDateString(),
@@ -156,6 +159,11 @@ export default function CarPage() {
         recurringType: 'WEEKLY',
       });
       setShowBooking(true);
+    } else if (idx === 3) {
+      // 里程
+      setError('');
+      setMileageForm({ mileage: vehicle?.currentMileage?.toString() || '', note: '' });
+      setShowMileage(true);
     }
   };
 
@@ -257,6 +265,41 @@ export default function CarPage() {
       const res = await fetch(`/api/car/bookings/${id}`, { method: 'DELETE' });
       if (res.ok) fetchData();
     } catch { /* ignore */ }
+  };
+
+  const handleUpdateMileage = async () => {
+    if (!vehicle) return;
+    setSaving(true);
+    setError('');
+    try {
+      const mileage = parseInt(mileageForm.mileage);
+      if (isNaN(mileage) || mileage <= 0) {
+        setError('請輸入有效的里程數');
+        setSaving(false);
+        return;
+      }
+      const res = await fetch('/api/car/mileage', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vehicleId: vehicle.id,
+          mileage,
+          source: 'MANUAL',
+          note: mileageForm.note.trim() || null,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || '更新失敗');
+        return;
+      }
+      setShowMileage(false);
+      fetchData();
+    } catch {
+      setError('網路錯誤');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const openCheckout = (id: string) => {
@@ -537,6 +580,46 @@ export default function CarPage() {
               <button type="button" className={styles.btnCancel} onClick={() => setShowReturn(false)}>取消</button>
               <button type="button" className={styles.btnSave} onClick={handleReturn} disabled={saving}>
                 {saving ? '處理中...' : '確認還車'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Mileage Dialog ─────────────────────────────── */}
+      {showMileage && (
+        <div className={styles.modalOverlay} onClick={() => setShowMileage(false)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>📏 更新里程</h2>
+              <button type="button" className={styles.modalClose} onClick={() => setShowMileage(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              {error && <div className={styles.errorMsg}>{error}</div>}
+              {vehicle?.currentMileage != null && (
+                <div style={{ marginBottom: '12px', fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
+                  目前里程：{vehicle.currentMileage.toLocaleString()} km
+                </div>
+              )}
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>新里程 (km) *</label>
+                <input type="number" className={styles.formInput} placeholder="輸入最新里程"
+                  value={mileageForm.mileage}
+                  onChange={e => setMileageForm({ ...mileageForm, mileage: e.target.value })} />
+              </div>
+              <div className={styles.formGroup} style={{ marginTop: '12px' }}>
+                <label className={styles.formLabel}>備註</label>
+                <input type="text" className={styles.formInput} placeholder="例如：定期回報"
+                  value={mileageForm.note}
+                  onChange={e => setMileageForm({ ...mileageForm, note: e.target.value })} />
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button type="button" className={styles.btnCancel} onClick={() => setShowMileage(false)}>取消</button>
+              <button type="button" className={styles.btnSave} onClick={handleUpdateMileage} disabled={saving || !mileageForm.mileage}>
+                {saving ? '更新中...' : '更新里程'}
               </button>
             </div>
           </div>

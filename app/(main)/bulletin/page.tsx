@@ -268,7 +268,12 @@ export default function BulletinPage() {
                           {ev.endTime ? ` — ${ev.endTime}` : ''}
                         </span>
                       )}
-                      {ev.isAllDay && <span>全天</span>}
+                      {ev.isAllDay && !ev.endDate && <span>全天</span>}
+                      {ev.isAllDay && ev.endDate && (
+                        <span>
+                          {formatShortDate(ev.eventDate)} ~ {formatShortDate(ev.endDate)}
+                        </span>
+                      )}
                       {ev.location && <span>📍 {ev.location}</span>}
                       {ev.needsCar && (
                         <span className={`${styles.eventBadge} ${styles.carBadge}`}>

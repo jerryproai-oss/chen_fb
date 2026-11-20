@@ -306,9 +306,14 @@ export default function VehiclePage() {
         <div className={styles.headerRow}>
           <h1 className={styles.pageTitle}>🚙 車輛資訊</h1>
           {isAdmin && (
-            <button type="button" className={styles.editBtn} onClick={openEdit}>
-              <Pencil size={14} /> 編輯
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button type="button" className={styles.editBtn} onClick={openCreate}>
+                <Plus size={14} /> 新增車輛
+              </button>
+              <button type="button" className={styles.editBtn} onClick={openEdit}>
+                <Pencil size={14} /> 編輯
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -481,6 +486,81 @@ export default function VehiclePage() {
               <button type="button" className={styles.btnCancel} onClick={() => setShowEdit(false)}>取消</button>
               <button type="button" className={styles.btnSave} onClick={handleSave} disabled={saving}>
                 {saving ? '儲存中...' : '儲存'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Dialog (共用，vehicle 存在或不存在都可用) */}
+      {showCreate && (
+        <div className={styles.modalOverlay} onClick={() => setShowCreate(false)}>
+          <div className={styles.modal} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>新增車輛</h2>
+              <button type="button" className={styles.modalClose} onClick={() => setShowCreate(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className={styles.modalBody}>
+              {error && <div className={styles.errorMsg}>{error}</div>}
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>名稱 *</label>
+                  <input type="text" className={styles.formInput} value={form.name}
+                    placeholder="如：CX-30"
+                    onChange={e => setForm({ ...form, name: e.target.value })} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>品牌 *</label>
+                  <input type="text" className={styles.formInput} value={form.brand}
+                    placeholder="如：Mazda"
+                    onChange={e => setForm({ ...form, brand: e.target.value })} />
+                </div>
+              </div>
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>車型 *</label>
+                  <input type="text" className={styles.formInput} value={form.model}
+                    placeholder="如：CX-30 旗艦進化型"
+                    onChange={e => setForm({ ...form, model: e.target.value })} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>車牌號碼 *</label>
+                  <input type="text" className={styles.formInput} value={form.plateNumber}
+                    placeholder="如：ABC-1234"
+                    onChange={e => setForm({ ...form, plateNumber: e.target.value })} />
+                </div>
+              </div>
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>車色</label>
+                  <input type="text" className={styles.formInput} value={form.color}
+                    onChange={e => setForm({ ...form, color: e.target.value })} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>目前里程 (km)</label>
+                  <input type="number" className={styles.formInput} value={form.currentMileage}
+                    onChange={e => setForm({ ...form, currentMileage: e.target.value })} />
+                </div>
+              </div>
+              <div className={styles.formRow}>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>購入日期</label>
+                  <input type="date" className={styles.formInput} value={form.purchaseDate}
+                    onChange={e => setForm({ ...form, purchaseDate: e.target.value })} />
+                </div>
+                <div className={styles.formGroup}>
+                  <label className={styles.formLabel}>保固到期日</label>
+                  <input type="date" className={styles.formInput} value={form.warrantyEnd}
+                    onChange={e => setForm({ ...form, warrantyEnd: e.target.value })} />
+                </div>
+              </div>
+            </div>
+            <div className={styles.modalFooter}>
+              <button type="button" className={styles.btnCancel} onClick={() => setShowCreate(false)}>取消</button>
+              <button type="button" className={styles.btnSave} onClick={handleCreate} disabled={saving}>
+                {saving ? '新增中...' : '新增車輛'}
               </button>
             </div>
           </div>

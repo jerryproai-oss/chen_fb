@@ -63,6 +63,19 @@ export default function FuelPage() {
   const [form, setForm] = useState<FuelForm>(defaultForm());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [vehicleId, setVehicleId] = useState<string | null>(null);
+
+  const fetchVehicle = useCallback(async () => {
+    try {
+      const res = await fetch('/api/car/vehicles');
+      if (res.ok) {
+        const data = await res.json();
+        const vehicles = data.vehicles || [];
+        const active = vehicles.find((v: { isActive: boolean }) => v.isActive) || vehicles[0];
+        if (active) setVehicleId(active.id);
+      }
+    } catch { /* ignore */ }
+  }, []);
 
   const fetchRecords = useCallback(async () => {
     try {
@@ -76,8 +89,8 @@ export default function FuelPage() {
 
   useEffect(() => {
     setLoading(true);
-    fetchRecords().finally(() => setLoading(false));
-  }, [fetchRecords]);
+    Promise.all([fetchRecords(), fetchVehicle()]).finally(() => setLoading(false));
+  }, [fetchRecords, fetchVehicle]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -88,7 +101,13 @@ export default function FuelPage() {
         setSaving(false);
         return;
       }
+      if (!vehicleId) {
+        setError('尚無車輛資料，請先到車輛資訊頁設定');
+        setSaving(false);
+        return;
+      }
       const body: Record<string, unknown> = {
+        vehicleId,
         fuelDate: form.fuelDate,
         fuelType: form.fuelType,
         amount: parseFloat(form.amount),

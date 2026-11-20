@@ -1,32 +1,65 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { FileText, Download, Calendar, DollarSign, Users, ChevronLeft, ChevronRight } from 'lucide-react';
-import { PAYMENT_STATUS_LABEL, PAYMENT_STATUS_COLOR } from '@/lib/car/types';
-import type { CostRecordItem, PaymentStatusType } from '@/lib/car/types';
+import Link from 'next/link';
+import { FileText, Download, Calendar, DollarSign, Users, ChevronLeft, ChevronRight, ArrowLeft, Fuel } from 'lucide-react';
 import styles from './page.module.css';
 
 // ── 型別定義 ──────────────────────────────────────────────────
 
 type ReportType = 'monthly' | 'quarterly' | 'yearly';
 
-interface ShareSummary {
+interface UserDayItem {
   userId: string;
   displayName: string;
-  days: number;
-  cost: number;
-  ratio: number;
+  totalDays: number;
 }
 
-interface ReportSummary {
-  totalDays: number;
-  totalCost: number;
-  shares: ShareSummary[];
+interface UserCostItem {
+  userId: string;
+  displayName: string;
+  totalAmount: number;
+}
+
+interface ItemCostItem {
+  item: string;
+  amount: number;
+}
+
+interface PaymentSummary {
+  totalShareCount: number;
+  unpaidCount: number;
+  paidCount: number;
+  confirmedCount: number;
+  unpaidAmount: number;
+}
+
+interface FuelTrendItem {
+  date: string;
+  mileage: number;
+  amount: number;
+  liters: number | null;
+  efficiency: number | null;
+  user: string;
+}
+
+interface LoanSummary {
+  totalDue: number;
+  paid: number;
+  overdue: number;
+  upcoming: number;
+  totalDueAmount: number;
 }
 
 interface ReportData {
-  summary: ReportSummary;
-  records: CostRecordItem[];
+  period: { type: string; year: number; month?: number; startDate: string; endDate: string };
+  summary: { totalCostAmount: number; totalFuelAmount: number; totalBookings: number };
+  userDays: UserDayItem[];
+  userCosts: UserCostItem[];
+  itemCosts: ItemCostItem[];
+  paymentSummary: PaymentSummary;
+  fuelTrend: FuelTrendItem[];
+  loanSummary: LoanSummary;
 }
 
 interface VehicleInfo {
@@ -45,35 +78,23 @@ const REPORT_TYPE_LABELS: Record<ReportType, string> = {
 
 const QUARTER_LABELS = ['Q1 (1-3月)', 'Q2 (4-6月)', 'Q3 (7-9月)', 'Q4 (10-12月)'];
 
-type SortDirection = 'asc' | 'desc';
-
 // ── Main Component ────────────────────────────────────────────
 
 export default function ReportsPage() {
   const now = new Date();
 
-  // 基本狀態
   const [loading, setLoading] = useState(true);
   const [reportType, setReportType] = useState<ReportType>('monthly');
   const [year, setYear] = useState(now.getFullYear());
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [quarter, setQuarter] = useState(Math.ceil((now.getMonth() + 1) / 3));
 
-  // 車輛
   const [vehicles, setVehicles] = useState<VehicleInfo[]>([]);
   const [selectedVehicleId, setSelectedVehicleId] = useState('');
-
-  // 報表資料
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [fetchError, setFetchError] = useState('');
-
-  // 表格排序
-  const [sortDir, setSortDir] = useState<SortDirection>('desc');
-
-  // 匯出中
   const [exporting, setExporting] = useState(false);
 
-  // ── 年份選項（過去 3 年）────────────────────────────────────
   const yearOptions: number[] = [];
   for (let y = now.getFullYear(); y >= now.getFullYear() - 2; y--) {
     yearOptions.push(y);
@@ -116,7 +137,6 @@ export default function ReportsPage() {
     if (reportType === 'monthly') {
       params.set('month', String(month));
     } else if (reportType === 'quarterly') {
-      // 以季度第一個月代表
       params.set('month', String((quarter - 1) * 3 + 1));
     }
 
@@ -148,25 +168,15 @@ export default function ReportsPage() {
     if (reportType === 'monthly') {
       let newMonth = month + delta;
       let newYear = year;
-      if (newMonth < 1) {
-        newMonth = 12;
-        newYear--;
-      } else if (newMonth > 12) {
-        newMonth = 1;
-        newYear++;
-      }
+      if (newMonth < 1) { newMonth = 12; newYear--; }
+      else if (newMonth > 12) { newMonth = 1; newYear++; }
       setMonth(newMonth);
       setYear(newYear);
     } else if (reportType === 'quarterly') {
       let newQ = quarter + delta;
       let newYear = year;
-      if (newQ < 1) {
-        newQ = 4;
-        newYear--;
-      } else if (newQ > 4) {
-        newQ = 1;
-        newYear++;
-      }
+      if (newQ < 1) { newQ = 4; newYear--; }
+      else if (newQ > 4) { newQ = 1; newYear++; }
       setQuarter(newQ);
       setYear(newYear);
     } else {
@@ -217,55 +227,10 @@ export default function ReportsPage() {
     }
   };
 
-  // ── 排序記錄 ───────────────────────────────────────────────
-
-  const sortedRecords = (() => {
-    if (!reportData?.records) return [];
-    return [...reportData.records].sort((a, b) => {
-      const dateA = new Date(a.settlementDate).getTime();
-      const dateB = new Date(b.settlementDate).getTime();
-      return sortDir === 'asc' ? dateA - dateB : dateB - dateA;
-    });
-  })();
-
-  const toggleSort = () => {
-    setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'));
-  };
-
   // ── 格式化金額 ─────────────────────────────────────────────
 
   const formatAmount = (amount: number) =>
     amount.toLocaleString('zh-TW', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return `${d.getMonth() + 1}/${d.getDate()}`;
-  };
-
-  // ── 取得所有成員名單（從 shares） ─────────────────────────
-
-  const shareMembers = reportData?.summary?.shares || [];
-
-  // ── 取得記錄中某人的分攤金額 ───────────────────────────────
-
-  const getShareAmount = (record: CostRecordItem, userId: string): number => {
-    const share = record.shares?.find((s) => s.userId === userId);
-    return share?.amount ?? 0;
-  };
-
-  const getShareStatus = (record: CostRecordItem, userId: string): PaymentStatusType => {
-    const share = record.shares?.find((s) => s.userId === userId);
-    return (share?.paymentStatus as PaymentStatusType) ?? 'UNPAID';
-  };
-
-  // ── 整體付款狀態 ──────────────────────────────────────────
-
-  const getRecordOverallStatus = (record: CostRecordItem): PaymentStatusType => {
-    if (!record.shares || record.shares.length === 0) return 'UNPAID';
-    if (record.shares.every((s) => s.paymentStatus === 'CONFIRMED')) return 'CONFIRMED';
-    if (record.shares.some((s) => s.paymentStatus === 'PAID' || s.paymentStatus === 'CONFIRMED')) return 'PAID';
-    return 'UNPAID';
-  };
 
   // ── Render ─────────────────────────────────────────────────
 
@@ -281,6 +246,9 @@ export default function ReportsPage() {
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
+        <Link href="/car" className={styles.backLink || ''}>
+          <ArrowLeft size={16} /> 用車管理
+        </Link>
         <h1 className={styles.pageTitle}>
           <FileText size={28} />
           明細報表
@@ -303,7 +271,6 @@ export default function ReportsPage() {
 
       {/* Controls */}
       <div className={styles.controlRow}>
-        {/* Vehicle Selector */}
         {vehicles.length > 1 && (
           <select
             className={styles.selectControl}
@@ -317,8 +284,6 @@ export default function ReportsPage() {
             ))}
           </select>
         )}
-
-        {/* Year Selector */}
         <select
           className={styles.selectControl}
           value={year}
@@ -330,8 +295,6 @@ export default function ReportsPage() {
             </option>
           ))}
         </select>
-
-        {/* Month Selector (monthly only) */}
         {reportType === 'monthly' && (
           <select
             className={styles.selectControl}
@@ -345,8 +308,6 @@ export default function ReportsPage() {
             ))}
           </select>
         )}
-
-        {/* Quarter Selector (quarterly only) */}
         {reportType === 'quarterly' && (
           <select
             className={styles.selectControl}
@@ -385,120 +346,162 @@ export default function ReportsPage() {
         <>
           {/* Summary Cards */}
           <div className={styles.summaryGrid}>
-            {/* 總天數 */}
             <div className={styles.summaryCard}>
               <div className={styles.summaryIcon}>
                 <Calendar size={20} />
               </div>
-              <div className={styles.summaryNumber}>{reportData.summary.totalDays}</div>
-              <div className={styles.summaryLabel}>總天數</div>
+              <div className={styles.summaryNumber}>{reportData.summary.totalBookings}</div>
+              <div className={styles.summaryLabel}>用車次數</div>
             </div>
 
-            {/* 總費用 */}
             <div className={styles.summaryCard}>
               <div className={styles.summaryIcon}>
                 <DollarSign size={20} />
               </div>
-              <div className={styles.summaryNumber}>${formatAmount(reportData.summary.totalCost)}</div>
-              <div className={styles.summaryLabel}>總費用</div>
+              <div className={styles.summaryNumber}>${formatAmount(reportData.summary.totalCostAmount)}</div>
+              <div className={styles.summaryLabel}>保修費用</div>
             </div>
 
-            {/* 各人佔比 */}
             <div className={styles.summaryCard}>
               <div className={styles.summaryIcon}>
-                <Users size={20} />
+                <Fuel size={20} />
               </div>
-              <div className={styles.summaryLabel} style={{ marginBottom: 4 }}>各人佔比</div>
-              <div className={styles.sharesList}>
-                {shareMembers.map((s) => (
-                  <div key={s.userId} className={styles.shareRow}>
-                    <span>{s.displayName}</span>
-                    <span className={styles.shareRatio}>{(s.ratio * 100).toFixed(1)}%</span>
-                  </div>
-                ))}
-                {shareMembers.length === 0 && (
-                  <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-secondary)' }}>
-                    無資料
-                  </div>
-                )}
-              </div>
+              <div className={styles.summaryNumber}>${formatAmount(reportData.summary.totalFuelAmount)}</div>
+              <div className={styles.summaryLabel}>油費</div>
             </div>
           </div>
 
-          {/* Action Row — Export */}
+          {/* 各人用車天數 */}
+          {reportData.userDays.length > 0 && (
+            <div className={styles.summaryCard} style={{ marginBottom: 'var(--space-md)' }}>
+              <div className={styles.summaryIcon}><Users size={20} /></div>
+              <div className={styles.summaryLabel} style={{ marginBottom: 4 }}>各人用車天數</div>
+              <div className={styles.sharesList}>
+                {reportData.userDays.map((u) => (
+                  <div key={u.userId} className={styles.shareRow}>
+                    <span>{u.displayName}</span>
+                    <span className={styles.shareRatio}>{u.totalDays} 天</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 各人費用分攤 */}
+          {reportData.userCosts.length > 0 && (
+            <div className={styles.summaryCard} style={{ marginBottom: 'var(--space-md)' }}>
+              <div className={styles.summaryIcon}><DollarSign size={20} /></div>
+              <div className={styles.summaryLabel} style={{ marginBottom: 4 }}>各人費用分攤</div>
+              <div className={styles.sharesList}>
+                {reportData.userCosts.map((u) => (
+                  <div key={u.userId} className={styles.shareRow}>
+                    <span>{u.displayName}</span>
+                    <span className={styles.shareRatio}>${formatAmount(u.totalAmount)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 繳款狀態 */}
+          {reportData.paymentSummary.totalShareCount > 0 && (
+            <div className={styles.summaryCard} style={{ marginBottom: 'var(--space-md)' }}>
+              <div className={styles.summaryLabel}>繳款狀態</div>
+              <div className={styles.sharesList}>
+                <div className={styles.shareRow}>
+                  <span>已確認</span>
+                  <span style={{ color: '#2E7D32' }}>{reportData.paymentSummary.confirmedCount} 筆</span>
+                </div>
+                <div className={styles.shareRow}>
+                  <span>已繳</span>
+                  <span style={{ color: '#FF8F00' }}>{reportData.paymentSummary.paidCount} 筆</span>
+                </div>
+                <div className={styles.shareRow}>
+                  <span>待繳</span>
+                  <span style={{ color: '#D32F2F' }}>
+                    {reportData.paymentSummary.unpaidCount} 筆
+                    {reportData.paymentSummary.unpaidAmount > 0 && (
+                      <>（${formatAmount(reportData.paymentSummary.unpaidAmount)}）</>
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 費用項目分佈 */}
+          {reportData.itemCosts.length > 0 && (
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={styles.th}>項目</th>
+                    <th className={styles.th} style={{ textAlign: 'right' }}>金額</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportData.itemCosts.map((item) => (
+                    <tr key={item.item} className={styles.tr}>
+                      <td className={styles.td}>{item.item}</td>
+                      <td className={`${styles.td} ${styles.tdAmount}`}>
+                        ${formatAmount(item.amount)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* 油耗趨勢 */}
+          {reportData.fuelTrend.length > 0 && (
+            <div className={styles.tableWrap}>
+              <div style={{ padding: 'var(--space-sm)', fontWeight: 600 }}>⛽ 加油記錄</div>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={styles.th}>日期</th>
+                    <th className={styles.th}>加油人</th>
+                    <th className={styles.th} style={{ textAlign: 'right' }}>金額</th>
+                    <th className={styles.th} style={{ textAlign: 'right' }}>公升</th>
+                    <th className={styles.th} style={{ textAlign: 'right' }}>油耗(km/L)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportData.fuelTrend.map((f, i) => (
+                    <tr key={i} className={styles.tr}>
+                      <td className={styles.td}>{f.date}</td>
+                      <td className={styles.td}>{f.user}</td>
+                      <td className={`${styles.td} ${styles.tdAmount}`}>${formatAmount(f.amount)}</td>
+                      <td className={`${styles.td} ${styles.tdAmount}`}>{f.liters?.toFixed(1) || '—'}</td>
+                      <td className={`${styles.td} ${styles.tdAmount}`}>{f.efficiency?.toFixed(1) || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Export */}
           <div className={styles.actionRow}>
             <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
-              共 {sortedRecords.length} 筆記錄
+              期間：{reportData.period.startDate} ~ {reportData.period.endDate}
             </span>
             <button
               type="button"
               className={styles.exportBtn}
               onClick={handleExportCSV}
-              disabled={exporting || sortedRecords.length === 0}
+              disabled={exporting}
             >
               <Download size={14} />
               {exporting ? '匯出中...' : '匯出 CSV'}
             </button>
           </div>
 
-          {/* Detail Table */}
-          {sortedRecords.length > 0 ? (
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th
-                      className={`${styles.th} ${styles.thActive}`}
-                      onClick={toggleSort}
-                    >
-                      日期
-                      <span className={styles.sortIcon}>{sortDir === 'asc' ? '▲' : '▼'}</span>
-                    </th>
-                    <th className={styles.th}>項目</th>
-                    <th className={styles.th} style={{ textAlign: 'right' }}>總額</th>
-                    <th className={styles.th}>繳費人</th>
-                    {shareMembers.map((s) => (
-                      <th key={s.userId} className={styles.th} style={{ textAlign: 'right' }}>
-                        {s.displayName}
-                      </th>
-                    ))}
-                    <th className={styles.th}>狀態</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedRecords.map((record) => {
-                    const overallStatus = getRecordOverallStatus(record);
-                    return (
-                      <tr key={record.id} className={styles.tr}>
-                        <td className={styles.td}>{formatDate(record.settlementDate)}</td>
-                        <td className={styles.td}>{record.item}</td>
-                        <td className={`${styles.td} ${styles.tdAmount}`}>
-                          ${formatAmount(record.totalAmount)}
-                        </td>
-                        <td className={styles.td}>{record.paidBy?.displayName || '-'}</td>
-                        {shareMembers.map((s) => (
-                          <td key={s.userId} className={`${styles.td} ${styles.tdAmount}`}>
-                            ${formatAmount(getShareAmount(record, s.userId))}
-                          </td>
-                        ))}
-                        <td className={styles.td}>
-                          <span
-                            className={styles.statusBadge}
-                            style={{
-                              backgroundColor: `${PAYMENT_STATUS_COLOR[overallStatus]}18`,
-                              color: PAYMENT_STATUS_COLOR[overallStatus],
-                            }}
-                          >
-                            {PAYMENT_STATUS_LABEL[overallStatus]}
-                          </span>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
+          {/* 無資料 */}
+          {reportData.summary.totalCostAmount === 0 &&
+            reportData.summary.totalFuelAmount === 0 &&
+            reportData.summary.totalBookings === 0 && (
             <div className={styles.emptyState}>
               <div className={styles.emptyIcon}>
                 <FileText size={48} />
