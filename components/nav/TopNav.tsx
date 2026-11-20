@@ -3,18 +3,16 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BookOpen, Users, Calendar, PenSquare, UserCircle, Search, Bell, FileText, ClipboardList, BookUser, Moon, Car } from 'lucide-react';
+import { Home, BookOpen, Users, Calendar, PenSquare, UserCircle, Search, Bell, BookUser, Car } from 'lucide-react';
 import styles from './TopNav.module.css';
 
 const LINKS = [
+  { href: '/bulletin', label: '首頁', icon: Home },
   { href: '/journal', label: '生活手札', icon: BookOpen },
   { href: '/family', label: '家庭動態', icon: Users },
   { href: '/calendar', label: '行事曆', icon: Calendar },
   { href: '/car', label: '用車', icon: Car },
-  { href: '/bulletin', label: '公佈欄', icon: ClipboardList },
   { href: '/contacts', label: '通訊錄', icon: BookUser },
-  { href: '/almanac', label: '農民曆', icon: Moon },
-  { href: '/wiki', label: '文件庫', icon: FileText },
   { href: '/profile', label: '我的', icon: UserCircle },
 ] as const;
 
@@ -54,7 +52,7 @@ export default function TopNav() {
 
   return (
     <header className={styles.topNav} aria-label="頂部導航">
-      <Link href="/journal" className={styles.brand}>
+      <Link href="/bulletin" className={styles.brand}>
         拾日
       </Link>
 

@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/auth/middleware";
 
 /**
  * Root page
- * - 已登入 → 跳轉到 /journal（生活手札）
+ * - 已登入 → 跳轉到 /bulletin（首頁）
  * - 未登入 → 跳轉到 /login
  */
 export default async function HomePage() {
@@ -13,5 +13,5 @@ export default async function HomePage() {
     redirect("/login");
   }
 
-  redirect("/journal");
+  redirect("/bulletin");
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { ClipboardList, Car, Star, AlertTriangle, Plus, Calendar } from 'lucide-react';
+import { Home, Car, Star, AlertTriangle, Plus, Calendar } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import { getEventDisplayColor } from '@/lib/constants/calendar-colors';
 import type { FamilyEventItem } from '@/lib/types';
@@ -109,7 +109,7 @@ export default function BulletinPage() {
   if (loading) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>載入公佈欄…</div>
+        <div className={styles.loading}>載入首頁…</div>
       </div>
     );
   }
@@ -129,8 +129,8 @@ export default function BulletinPage() {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>
-          <ClipboardList size={24} />
-          家庭公佈欄
+          <Home size={24} />
+          首頁
           <HelpGuide content={bulletinHelp} />
         </h1>
         <p className={styles.pageSubtitle}>

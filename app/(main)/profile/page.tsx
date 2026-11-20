@@ -15,7 +15,7 @@ import {
   Trash2,
   Heart,
   FileText,
-  ClipboardList,
+  Moon,
   Palette,
   Check,
 } from 'lucide-react';
@@ -407,6 +407,7 @@ export default function ProfilePage() {
 
       {/* Menu */}
       <div className={styles.menu}>
+        {/* 📝 內容管理 */}
         <Link href="/bookmarks" className={styles.menuItem}>
           <span className={styles.menuItemIcon}>
             <Bookmark size={18} />
@@ -417,6 +418,17 @@ export default function ProfilePage() {
           </span>
         </Link>
 
+        <Link href="/trash" className={styles.menuItem}>
+          <span className={styles.menuItemIcon}>
+            <Trash2 size={18} />
+          </span>
+          <span className={styles.menuItemLabel}>資源回收桶</span>
+          <span className={styles.menuItemArrow}>
+            <ChevronRight size={18} />
+          </span>
+        </Link>
+
+        {/* 🔧 帳號設定 */}
         <Link href="/change-password" className={styles.menuItem}>
           <span className={styles.menuItemIcon}>
             <KeyRound size={18} />
@@ -439,31 +451,12 @@ export default function ProfilePage() {
           </Link>
         )}
 
-        <Link href="/vault" className={styles.menuItem}>
+        {/* 📚 更多功能 */}
+        <Link href="/almanac" className={styles.menuItem}>
           <span className={styles.menuItemIcon}>
-            <Lock size={18} />
+            <Moon size={18} />
           </span>
-          <span className={styles.menuItemLabel}>特別區</span>
-          <span className={styles.menuItemArrow}>
-            <ChevronRight size={18} />
-          </span>
-        </Link>
-
-        <Link href="/health" className={styles.menuItem}>
-          <span className={styles.menuItemIcon}>
-            <Heart size={18} />
-          </span>
-          <span className={styles.menuItemLabel}>健康記錄</span>
-          <span className={styles.menuItemArrow}>
-            <ChevronRight size={18} />
-          </span>
-        </Link>
-
-        <Link href="/bulletin" className={styles.menuItem}>
-          <span className={styles.menuItemIcon}>
-            <ClipboardList size={18} />
-          </span>
-          <span className={styles.menuItemLabel}>家庭公佈欄</span>
+          <span className={styles.menuItemLabel}>農民曆</span>
           <span className={styles.menuItemArrow}>
             <ChevronRight size={18} />
           </span>
@@ -479,16 +472,27 @@ export default function ProfilePage() {
           </span>
         </Link>
 
-        <Link href="/trash" className={styles.menuItem}>
+        <Link href="/health" className={styles.menuItem}>
           <span className={styles.menuItemIcon}>
-            <Trash2 size={18} />
+            <Heart size={18} />
           </span>
-          <span className={styles.menuItemLabel}>資源回收桶</span>
+          <span className={styles.menuItemLabel}>健康記錄</span>
           <span className={styles.menuItemArrow}>
             <ChevronRight size={18} />
           </span>
         </Link>
 
+        <Link href="/vault" className={styles.menuItem}>
+          <span className={styles.menuItemIcon}>
+            <Lock size={18} />
+          </span>
+          <span className={styles.menuItemLabel}>特別區</span>
+          <span className={styles.menuItemArrow}>
+            <ChevronRight size={18} />
+          </span>
+        </Link>
+
+        {/* 🎨 個人化 */}
         <FontSizeSwitcher />
         <ThemeSwitcher />
       </div>
