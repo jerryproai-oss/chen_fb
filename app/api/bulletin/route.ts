@@ -6,7 +6,7 @@ import type { FamilyEventItem } from '@/lib/types';
 /**
  * GET /api/bulletin?days=14
  *
- * 取得未來 N 天內所有重要行程 + 用車排程，彙整為公佈欄資料
+ * 取得未來 N 天內所有重要行程 + 用車排程（含 CarBooking 預約），彙整為首頁資料
  */
 export const GET = withAuth(async (_ctx, req: NextRequest) => {
   const { searchParams } = new URL(req.url);
@@ -20,13 +20,13 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
   futureDate.setUTCDate(futureDate.getUTCDate() + days);
 
   try {
+    // ── 1. 行事曆事件（重要 / 需用車）──────────────────────────
     const events = await prisma.familyEvent.findMany({
       where: {
         OR: [
           { needsCar: true },
           { isImportant: true },
         ],
-        // 事件日期在今天到未來 N 天之間
         eventDate: {
           gte: todayUTC,
           lte: futureDate,
@@ -62,11 +62,74 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
 
     const formattedEvents = events.map(formatEvent);
 
-    // 分類
-    const importantEvents = formattedEvents.filter((e) => e.isImportant);
-    const carSchedule = formattedEvents.filter((e) => e.needsCar);
+    // ── 2. 用車模組預約（CarBooking）──────────────────────────
+    const bookings = await prisma.carBooking.findMany({
+      where: {
+        status: { in: ['RESERVED', 'OUT'] },
+        // 預約日期範圍與查詢期間有交集
+        startDate: { lte: futureDate },
+        endDate: { gte: todayUTC },
+      },
+      include: {
+        user: {
+          select: { id: true, displayName: true, avatarUrl: true, calendarColor: true },
+        },
+        vehicle: {
+          select: { name: true, plateNumber: true },
+        },
+      },
+      orderBy: { startDate: 'asc' },
+    });
 
-    // 找出用車衝突日期（同日 ≥2 個用車事件）
+    // 將 CarBooking 展開為每天一筆 FamilyEventItem，以便按日期分組顯示
+    const bookingItems: FamilyEventItem[] = [];
+    for (const b of bookings) {
+      const start = b.startDate < todayUTC ? todayUTC : b.startDate;
+      const end = b.endDate > futureDate ? futureDate : b.endDate;
+      // 展開每一天
+      const cursor = new Date(start);
+      while (cursor <= end) {
+        const dateStr = cursor.toISOString().split('T')[0];
+        const vehicleLabel = b.vehicle.plateNumber
+          ? `${b.vehicle.name}（${b.vehicle.plateNumber}）`
+          : b.vehicle.name;
+        const statusLabel = b.status === 'OUT' ? '🚗 出車中' : '📋 已預約';
+
+        bookingItems.push({
+          id: `booking-${b.id}-${dateStr}`,
+          authorId: b.userId,
+          author: {
+            displayName: b.user.displayName,
+            avatarUrl: b.user.avatarUrl,
+            calendarColor: b.user.calendarColor,
+          },
+          title: `${statusLabel} ${vehicleLabel} — ${b.purpose}`,
+          description: null,
+          eventDate: dateStr,
+          endDate: null,
+          eventTime: null,
+          endTime: null,
+          isAllDay: true,
+          color: '#1565C0',   // 用車主題色
+          location: null,
+          isRecurring: false,
+          recurringType: null,
+          recurringEndDate: null,
+          needsCar: true,
+          isImportant: false,
+        });
+        cursor.setUTCDate(cursor.getUTCDate() + 1);
+      }
+    }
+
+    // ── 3. 合併並分類 ─────────────────────────────────────────
+    const allItems = [...formattedEvents, ...bookingItems]
+      .sort((a, b) => a.eventDate.localeCompare(b.eventDate));
+
+    const importantEvents = allItems.filter((e) => e.isImportant);
+    const carSchedule = allItems.filter((e) => e.needsCar);
+
+    // 找出用車衝突日期（同日 ≥2 個不同使用者的用車事件）
     const carByDate: Record<string, FamilyEventItem[]> = {};
     for (const ev of carSchedule) {
       if (!carByDate[ev.eventDate]) carByDate[ev.eventDate] = [];
@@ -74,12 +137,16 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
     }
 
     const carConflicts = Object.entries(carByDate)
-      .filter(([, evs]) => evs.length >= 2)
+      .filter(([, evs]) => {
+        // 同日有 ≥2 個不同使用者的用車事件才算衝突
+        const uniqueAuthors = new Set(evs.map((e) => e.authorId));
+        return uniqueAuthors.size >= 2;
+      })
       .map(([date, evs]) => ({ date, events: evs }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
     return NextResponse.json({
-      events: formattedEvents,
+      events: allItems,
       importantEvents,
       carSchedule,
       carConflicts,
