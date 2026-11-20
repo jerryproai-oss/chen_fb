@@ -43,7 +43,7 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     return NextResponse.json({ error: '找不到該預約' }, { status: 404 });
   }
 
-  const { status, startMileage, endMileage, purpose } = body;
+  const { status, startMileage, endMileage, purpose, startDate, endDate } = body;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateData: any = {};
@@ -51,6 +51,25 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
   // 若提供 purpose 則更新用途
   if (purpose !== undefined) {
     updateData.purpose = (purpose as string).trim();
+  }
+
+  // 若提供日期且狀態為 RESERVED 則更新日期
+  if (booking.status === 'RESERVED') {
+    if (startDate !== undefined && typeof startDate === 'string') {
+      const parsed = new Date(startDate + 'T00:00:00Z');
+      if (!isNaN(parsed.getTime())) updateData.startDate = parsed;
+    }
+    if (endDate !== undefined && typeof endDate === 'string') {
+      const parsed = new Date(endDate + 'T00:00:00Z');
+      if (!isNaN(parsed.getTime())) updateData.endDate = parsed;
+    }
+    // 重新計算天數
+    const newStart = updateData.startDate || booking.startDate;
+    const newEnd = updateData.endDate || booking.endDate;
+    if (updateData.startDate || updateData.endDate) {
+      const days = Math.round((newEnd.getTime() - newStart.getTime()) / 86400000) + 1;
+      updateData.applyDays = days > 0 ? days : 1;
+    }
   }
 
   // 狀態變更
