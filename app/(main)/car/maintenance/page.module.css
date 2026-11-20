@@ -76,7 +76,51 @@
 }
 
 .recordItem { font-size: var(--font-size-lg); font-weight: 700; color: var(--color-text); }
-.recordDate { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
+.recordDate { font-size: var(--font-size-sm); color: var(--color-text-secondary); white-space: nowrap; }
+
+/* ── Record Item（可展開明細） ────────────────────────────────── */
+
+.recordItemWrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.recordItemToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  color: var(--color-text);
+  text-align: left;
+}
+
+.recordItemToggle:hover {
+  color: var(--color-primary);
+}
+
+.recordItemDetails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: var(--space-xs);
+  padding: var(--space-xs) 0;
+}
+
+.recordItemTag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(90, 122, 90, 0.08);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+}
 
 .detailGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-sm); margin-bottom: var(--space-md); }
 .detailItem { display: flex; flex-direction: column; gap: 2px; }
@@ -113,7 +157,7 @@
 .compareGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: var(--space-sm); }
 .compareItem { display: flex; flex-direction: column; gap: 2px; }
 .compareLabel { font-size: var(--font-size-xs); color: var(--color-text-secondary); }
-.compareValue { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text); }
+.compareValue { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .diffUp { color: #e53935; }
 .diffDown { color: #2E7D32; }
 
@@ -153,10 +197,10 @@
 .listItem:hover { background: rgba(90, 122, 90, 0.04); }
 .listItemActive { background: rgba(90, 122, 90, 0.08); border-left: 3px solid var(--color-primary); }
 
-.listItemLeft { display: flex; align-items: center; gap: var(--space-sm); }
-.listItemDate { font-size: var(--font-size-xs); color: var(--color-text-secondary); min-width: 50px; }
-.listItemName { font-size: var(--font-size-sm); font-weight: 500; color: var(--color-text); }
-.listItemAmount { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-primary); }
+.listItemLeft { display: flex; align-items: center; gap: var(--space-sm); flex: 1; min-width: 0; overflow: hidden; }
+.listItemDate { font-size: var(--font-size-xs); color: var(--color-text-secondary); min-width: 50px; flex-shrink: 0; }
+.listItemName { font-size: var(--font-size-sm); font-weight: 500; color: var(--color-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.listItemAmount { font-size: var(--font-size-sm); font-weight: 600; color: var(--color-primary); white-space: nowrap; flex-shrink: 0; margin-left: var(--space-sm); }
 
 /* ── Empty State ──────────────────────────────────────────────── */
 

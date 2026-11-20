@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X, Camera, Upload, Sparkles, Loader2 } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Plus, X, Camera, Upload, Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import type { CostRecordItem, PaymentMethodType } from '@/lib/car/types';
 import { PAYMENT_METHOD_LABEL } from '@/lib/car/types';
 import styles from './page.module.css';
@@ -38,6 +38,56 @@ function getLocalDate(): string {
   const m = String(now.getMonth() + 1).padStart(2, '0');
   const d = String(now.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}`;
+}
+
+/** 截斷過長項目名稱 */
+function truncateItem(item: string, maxLen = 30): string {
+  if (item.length <= maxLen) return item;
+  // 嘗試在「、」分隔的情況下取第一項 + 數量
+  const parts = item.split('、');
+  if (parts.length > 1) {
+    const first = parts[0].length > maxLen ? parts[0].slice(0, maxLen - 3) + '...' : parts[0];
+    return `${first} 等 ${parts.length} 項`;
+  }
+  return item.slice(0, maxLen - 3) + '...';
+}
+
+/** 解析項目文字為明細列表 */
+function parseItemDetails(item: string): string[] {
+  if (!item.includes('、')) return [];
+  return item.split('、').map(s => s.trim()).filter(Boolean);
+}
+
+/** 記錄項目顯示元件（可展開長項目） */
+function RecordItemDisplay({ item }: { item: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const details = parseItemDetails(item);
+  const hasDetails = details.length > 1;
+  const displayTitle = hasDetails ? truncateItem(item, 40) : item;
+
+  if (!hasDetails) {
+    return <span className={styles.recordItem}>{item}</span>;
+  }
+
+  return (
+    <div className={styles.recordItemWrap}>
+      <button
+        type="button"
+        className={styles.recordItemToggle}
+        onClick={() => setExpanded(!expanded)}
+      >
+        <span className={styles.recordItem}>{displayTitle}</span>
+        {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+      </button>
+      {expanded && (
+        <div className={styles.recordItemDetails}>
+          {details.map((d, i) => (
+            <span key={i} className={styles.recordItemTag}>{d}</span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 // ── 型別 ────────────────────────────────────────────────────
@@ -217,14 +267,30 @@ export default function MaintenancePage() {
       // 自動填入表單
       if (result.totalAmount) setFormAmount(String(result.totalAmount));
       if (result.date) setFormDate(result.date);
-      if (result.vendor) {
-        // 如果有廠商名稱，加入備註
-        setFormNote(prev => prev ? `${prev}\n廠商：${result.vendor}` : `廠商：${result.vendor}`);
-      }
-      // 用項目名稱或建議分類填入保修項目
+
+      // 組合備註：廠商 + 零件明細
+      const noteLines: string[] = [];
+      if (result.vendor) noteLines.push(`廠商：${result.vendor}`);
       if (result.items?.length > 0) {
-        const itemNames = result.items.map((i: { name: string }) => i.name).filter(Boolean).join('、');
-        if (itemNames) setFormItem(itemNames);
+        noteLines.push('--- 明細 ---');
+        result.items.forEach((i: { name: string; quantity: number; amount: number }) => {
+          noteLines.push(`• ${i.name}  ×${i.quantity}  NT$${i.amount.toLocaleString()}`);
+        });
+      }
+      if (noteLines.length > 0) {
+        setFormNote(prev => prev ? `${prev}\n${noteLines.join('\n')}` : noteLines.join('\n'));
+      }
+
+      // 保修項目用簡潔的主標題（例如「60000公里保養」或建議分類）
+      if (result.items?.length > 0) {
+        // 找出主要工作項目（通常是第一項或包含「保養」「維修」的項目）
+        const mainItem = result.items.find((i: { name: string }) =>
+          /保養|維修|更換|檢查/.test(i.name)
+        ) || result.items[0];
+        const summary = result.items.length > 1
+          ? `${mainItem.name} 等 ${result.items.length} 項`
+          : mainItem.name;
+        setFormItem(summary);
       } else if (result.suggestedCategory) {
         setFormItem(result.suggestedCategory);
       }
@@ -386,7 +452,7 @@ export default function MaintenancePage() {
           {currentRecord && (
             <div className={styles.recordCard}>
               <div className={styles.recordHeader}>
-                <span className={styles.recordItem}>{currentRecord.item}</span>
+                <RecordItemDisplay item={currentRecord.item} />
                 <span className={styles.recordDate}>
                   {new Date(currentRecord.settlementDate).toLocaleDateString('zh-TW', {
                     year: 'numeric', month: 'long', day: 'numeric',
@@ -460,7 +526,9 @@ export default function MaintenancePage() {
               <div className={styles.compareGrid}>
                 <div className={styles.compareItem}>
                   <span className={styles.compareLabel}>上次項目</span>
-                  <span className={styles.compareValue}>{prevRecord.item}</span>
+                  <span className={styles.compareValue} title={prevRecord.item}>
+                    {truncateItem(prevRecord.item)}
+                  </span>
                 </div>
                 <div className={styles.compareItem}>
                   <span className={styles.compareLabel}>上次金額</span>
@@ -505,7 +573,9 @@ export default function MaintenancePage() {
                   <span className={styles.listItemDate}>
                     {new Date(r.settlementDate).toLocaleDateString('zh-TW', { month: 'numeric', day: 'numeric' })}
                   </span>
-                  <span className={styles.listItemName}>{r.item}</span>
+                  <span className={styles.listItemName} title={r.item}>
+                    {truncateItem(r.item)}
+                  </span>
                 </div>
                 <span className={styles.listItemAmount}>
                   ${Number(r.totalAmount).toLocaleString()}
