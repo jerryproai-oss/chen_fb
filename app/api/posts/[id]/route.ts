@@ -208,6 +208,7 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     isMilestone,
     milestoneType,
     expectedVersion,
+    poll,
   } = body as Record<string, unknown>;
 
   // ── 構建更新資料 ────────────────────────────────────
@@ -530,6 +531,58 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
 
     await syncPostTags(tx, id, textForTags, user.id);
 
+    // ── 更新投票 ────────────────────────────────────────
+    if (poll !== undefined) {
+      // 先刪除舊的投票（包含 votes 和 options，靠 Cascade）
+      await tx.poll.deleteMany({ where: { postId: id } });
+
+      // 如果 poll 不為 null，建立新的投票
+      if (poll && typeof poll === 'object' && !Array.isArray(poll)) {
+        const pollData = poll as Record<string, unknown>;
+        const question = pollData.question;
+        const options = pollData.options;
+        const multiSelect = pollData.multiSelect === true;
+        const endsAt = pollData.endsAt;
+
+        if (typeof question === 'string' && question.trim().length > 0
+            && Array.isArray(options) && options.length >= 2 && options.length <= 10) {
+          const validOptions = options.filter(
+            (o: unknown) => typeof o === 'object' && o !== null
+              && typeof (o as Record<string, unknown>).text === 'string'
+              && ((o as Record<string, unknown>).text as string).trim().length > 0,
+          );
+
+          if (validOptions.length >= 2) {
+            await tx.poll.create({
+              data: {
+                postId: id,
+                question: question.trim(),
+                multiSelect,
+                endsAt: endsAt && typeof endsAt === 'string' ? new Date(endsAt) : null,
+                options: {
+                  create: validOptions.map((o: unknown, i: number) => {
+                    const opt = o as Record<string, unknown>;
+                    return {
+                      text: (opt.text as string).trim(),
+                      description: opt.description && typeof opt.description === 'string'
+                        ? (opt.description as string).trim() : null,
+                      imageUrl: opt.imageMediaId && typeof opt.imageMediaId === 'string'
+                        ? `/api/media/${opt.imageMediaId}` : null,
+                      linkUrl: opt.linkUrl && typeof opt.linkUrl === 'string'
+                        && /^https?:\/\//i.test((opt.linkUrl as string).trim())
+                        ? (opt.linkUrl as string).trim() : null,
+                      sortOrder: i,
+                    };
+                  }),
+                },
+              },
+            });
+          }
+        }
+      }
+      // poll === null 表示移除投票，上面已經 deleteMany 了
+    }
+
     // 樂觀鎖定：如果提供了 expectedVersion，確認版本一致
     const whereCondition: Record<string, unknown> = { id };
     if (typeof expectedVersion === 'number') {
@@ -555,6 +608,9 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
         },
         tags: {
           include: { tag: true },
+        },
+        poll: {
+          select: { id: true },
         },
         _count: {
           select: {
