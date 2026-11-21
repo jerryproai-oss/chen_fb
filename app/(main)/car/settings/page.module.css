@@ -1,4 +1,4 @@
-/* ── 規則設定頁面 ─────────────────────────────────────────── */
+﻿/* ── 規則設定頁面 ─────────────────────────────────────────── */
 
 .container {
   max-width: 900px;
@@ -692,15 +692,7 @@
   }
 }
 
-.backLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--color-primary);
-  text-decoration: none;
-  font-size: var(--font-size-sm);
-  margin-bottom: 8px;
-}
+.backLink { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-base); color: var(--color-primary); text-decoration: none; margin-bottom: var(--space-sm); padding: 6px 0; font-weight: 500; }
 
 .backLink:hover {
   text-decoration: underline;

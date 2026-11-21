@@ -9,15 +9,7 @@
 
 .header { margin-bottom: var(--space-md); }
 
-.backLink {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: var(--font-size-sm);
-  color: var(--color-primary);
-  text-decoration: none;
-  margin-bottom: var(--space-xs);
-}
+.backLink { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-base); color: var(--color-primary); text-decoration: none; margin-bottom: var(--space-sm); padding: 6px 0; font-weight: 500; }
 
 .backLink:hover { text-decoration: underline; }
 

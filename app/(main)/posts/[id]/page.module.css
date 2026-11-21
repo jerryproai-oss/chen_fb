@@ -7,17 +7,7 @@
 }
 
 /* Back link */
-.backLink {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  margin-bottom: var(--space-md);
-  min-height: 44px;
-  min-width: 44px;
-  text-decoration: none;
-}
+.backLink { display: inline-flex; align-items: center; gap: 6px; font-size: var(--font-size-base); color: var(--color-primary); text-decoration: none; margin-bottom: var(--space-sm); padding: 6px 0; font-weight: 500; }
 
 .backLink:hover {
   color: var(--color-primary);
