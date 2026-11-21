@@ -707,7 +707,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -716,7 +718,7 @@
 }
 
 .modalContent {
-  background: var(--bg-card);
+  background: #ffffff;
   border-radius: 16px;
   width: 100%;
   max-width: 480px;
@@ -988,4 +990,8 @@
 .catCancelBtn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+[data-theme="dark"] .modalContent {
+  background: #1e1e1e;
 }
