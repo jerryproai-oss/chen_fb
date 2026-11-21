@@ -137,13 +137,15 @@ interface TextToolbarProps {
   textareaRef: React.RefObject<HTMLTextAreaElement | null>;
   body: string;
   onBodyChange: (newBody: string) => void;
+  /** 額外渲染在工具列尾端的元件（如 AI 輔助按鈕） */
+  extra?: React.ReactNode;
 }
 
 /**
  * 文字編輯工具列
  * 提供基本格式化工具（Markdown 語法）和 Emoji 選擇器
  */
-export default function TextToolbar({ textareaRef, body, onBodyChange }: TextToolbarProps) {
+export default function TextToolbar({ textareaRef, body, onBodyChange, extra }: TextToolbarProps) {
   function handleTool(tool: ToolAction) {
     const ta = textareaRef.current;
     if (!ta) return;
@@ -190,6 +192,12 @@ export default function TextToolbar({ textareaRef, body, onBodyChange }: TextToo
         ))}
         <span className={styles.divider} />
         <EmojiPicker onSelect={handleEmoji} />
+        {extra && (
+          <>
+            <span className={styles.divider} />
+            {extra}
+          </>
+        )}
       </div>
     </div>
   );

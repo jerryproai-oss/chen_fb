@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { FileText, Download, Calendar, DollarSign, Users, ChevronLeft, ChevronRight, ArrowLeft, Fuel as FuelIcon } from 'lucide-react';
+import { FileText, Download, Calendar, DollarSign, Users, ChevronLeft, ChevronRight, ArrowLeft, Fuel as FuelIcon, Sparkles, X, Loader2, Copy, Check } from 'lucide-react';
 import styles from './page.module.css';
 import HelpGuide from '@/components/ui/HelpGuide';
 import { carReportsHelp } from '@/lib/constants/help-content';
@@ -96,6 +96,11 @@ export default function ReportsPage() {
   const [reportData, setReportData] = useState<ReportData | null>(null);
   const [fetchError, setFetchError] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiReport, setAiReport] = useState('');
+  const [aiError, setAiError] = useState('');
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const yearOptions: number[] = [];
   for (let y = now.getFullYear(); y >= now.getFullYear() - 2; y--) {
@@ -226,6 +231,73 @@ export default function ReportsPage() {
       /* ignore */
     } finally {
       setExporting(false);
+    }
+  };
+
+  // ── AI 分析報告 ──────────────────────────────────────────────
+
+  const handleAIReport = async () => {
+    if (!reportData) return;
+    setAiLoading(true);
+    setAiError('');
+    setAiReport('');
+    setShowAiModal(true);
+    setCopied(false);
+
+    try {
+      const vehicleName = vehicles.find(v => v.id === selectedVehicleId)?.name || '車輛';
+      const payload = {
+        period: getPeriodLabel(),
+        vehicleName,
+        totalBookings: reportData.summary.totalBookings,
+        totalCostAmount: reportData.summary.totalCostAmount,
+        totalFuelAmount: reportData.summary.totalFuelAmount,
+        fuelRecords: reportData.fuelTrend,
+        userShares: reportData.userDays.map((u, i) => ({
+          name: u.displayName,
+          days: u.totalDays,
+          amount: reportData.userCosts[i]?.totalAmount ?? 0,
+        })),
+        itemCosts: reportData.itemCosts,
+        paymentSummary: reportData.paymentSummary,
+      };
+
+      const res = await fetch('/api/ai/report-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'AI 分析失敗');
+      }
+
+      const data = await res.json();
+      setAiReport(data.report);
+    } catch (err) {
+      setAiError(err instanceof Error ? err.message : 'AI 分析失敗');
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleCopyReport = async () => {
+    if (!aiReport) return;
+    try {
+      await navigator.clipboard.writeText(aiReport);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = aiReport;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -490,15 +562,26 @@ export default function ReportsPage() {
             <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)' }}>
               期間：{reportData.period.startDate} ~ {reportData.period.endDate}
             </span>
-            <button
-              type="button"
-              className={styles.exportBtn}
-              onClick={handleExportCSV}
-              disabled={exporting}
-            >
-              <Download size={14} />
-              {exporting ? '匯出中...' : '匯出 CSV'}
-            </button>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <button
+                type="button"
+                className={styles.aiReportBtn}
+                onClick={handleAIReport}
+                disabled={aiLoading}
+              >
+                {aiLoading ? <Loader2 size={14} className={styles.aiSpinner} /> : <Sparkles size={14} />}
+                {aiLoading ? 'AI 分析中...' : 'AI 分析報告'}
+              </button>
+              <button
+                type="button"
+                className={styles.exportBtn}
+                onClick={handleExportCSV}
+                disabled={exporting}
+              >
+                <Download size={14} />
+                {exporting ? '匯出中...' : '匯出 CSV'}
+              </button>
+            </div>
           </div>
 
           {/* 無資料 */}
@@ -513,6 +596,47 @@ export default function ReportsPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* AI 分析報告 Modal */}
+      {showAiModal && (
+        <div className={styles.aiOverlay} onClick={(e) => { if (e.target === e.currentTarget) setShowAiModal(false); }}>
+          <div className={styles.aiModal}>
+            <div className={styles.aiModalHeader}>
+              <div className={styles.aiModalTitle}>
+                <Sparkles size={18} />
+                AI 分析報告
+              </div>
+              <button type="button" className={styles.aiCloseBtn} onClick={() => setShowAiModal(false)}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={styles.aiModalBody}>
+              {aiLoading && (
+                <div className={styles.aiLoadingState}>
+                  <Loader2 size={24} className={styles.aiSpinner} />
+                  <span>AI 正在分析報表資料…</span>
+                </div>
+              )}
+              {aiError && (
+                <div className={styles.aiErrorMsg}>⚠️ {aiError}</div>
+              )}
+              {aiReport && (
+                <div className={styles.aiReportContent}>{aiReport}</div>
+              )}
+            </div>
+
+            {aiReport && (
+              <div className={styles.aiModalFooter}>
+                <button type="button" className={styles.aiCopyBtn} onClick={handleCopyReport}>
+                  {copied ? <Check size={14} /> : <Copy size={14} />}
+                  {copied ? '已複製' : '複製報告'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );

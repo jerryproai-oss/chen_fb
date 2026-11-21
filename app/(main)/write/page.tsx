@@ -11,6 +11,7 @@ import TextToolbar from '@/components/post/TextToolbar';
 import EmojiPicker from '@/components/post/EmojiPicker';
 import MediaUploader from '@/components/post/MediaUploader';
 import PollEditor from '@/components/post/PollEditor';
+import AIAssistButton from '@/components/post/AIAssistButton';
 import PageHeader from '@/components/ui/PageHeader';
 import HelpGuide from '@/components/ui/HelpGuide';
 import { writeHelp } from '@/lib/constants/help-content';
@@ -202,6 +203,12 @@ export default function WritePage() {
             <EmojiPicker
               onSelect={(emoji) => insertEmojiToInput(titleRef, title, setTitle, emoji)}
             />
+            <AIAssistButton
+              fieldType="title"
+              text={title}
+              onApply={setTitle}
+              context={{ body }}
+            />
           </div>
         </div>
 
@@ -222,6 +229,12 @@ export default function WritePage() {
             />
             <EmojiPicker
               onSelect={(emoji) => insertEmojiToInput(subtitleRef, subtitle, setSubtitle, emoji)}
+            />
+            <AIAssistButton
+              fieldType="subtitle"
+              text={subtitle}
+              onApply={setSubtitle}
+              context={{ title, body }}
             />
           </div>
         </div>
@@ -260,6 +273,14 @@ export default function WritePage() {
             textareaRef={bodyRef}
             body={body}
             onBodyChange={setBody}
+            extra={
+              <AIAssistButton
+                fieldType="body"
+                text={body}
+                onApply={setBody}
+                context={{ title, subtitle }}
+              />
+            }
           />
         </div>
 
