@@ -28,6 +28,7 @@ function sanitizeUser(user: {
   passwordChangedAt: Date | null;
   familyRole: string | null;
   familyTitle: string | null;
+  lastLoginAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }) {
@@ -44,6 +45,7 @@ function sanitizeUser(user: {
     passwordChangedAt: user.passwordChangedAt,
     familyRole: user.familyRole,
     familyTitle: user.familyTitle,
+    lastLoginAt: user.lastLoginAt,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
   };

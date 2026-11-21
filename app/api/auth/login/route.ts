@@ -171,6 +171,12 @@ export async function POST(request: NextRequest) {
   // ── 建立 session ────────────────────────────────────────
   const { token } = await createSession(user.id, user.passwordVersion);
 
+  // ── 更新最近登入時間 ──────────────────────────────────────
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { lastLoginAt: new Date() },
+  });
+
   // ── 稽核 ────────────────────────────────────────────────
   await logAudit({
     actorId: user.id,
