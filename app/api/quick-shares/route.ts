@@ -2,11 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/middleware';
 import { prisma } from '@/lib/db/client';
 
-// ── 有效分類 ─────────────────────────────────────────────────
-
-const VALID_CATEGORIES = ['FOOD', 'TRAVEL', 'SHOPPING', 'LIFE', 'WORK', 'STUDY', 'HEALTH', 'OTHER'] as const;
-type Category = (typeof VALID_CATEGORIES)[number];
-
 // ── OG Meta 抓取 ────────────────────────────────────────────
 
 async function fetchOGMeta(url: string): Promise<{ title?: string; description?: string; imageUrl?: string }> {
@@ -37,20 +32,31 @@ async function fetchOGMeta(url: string): Promise<{ title?: string; description?:
   }
 }
 
+// ── include 共用 ─────────────────────────────────────────────
+
+const shareInclude = {
+  author: {
+    select: { id: true, displayName: true, avatarUrl: true },
+  },
+  categoryRef: {
+    select: { id: true, name: true, emoji: true },
+  },
+};
+
 // ── GET /api/quick-shares ────────────────────────────────────
 
 export const GET = withAuth(async ({ user }, req) => {
   const url = new URL(req.url);
   const typeFilter = url.searchParams.get('type')?.toUpperCase();
-  const categoryFilter = url.searchParams.get('category')?.toUpperCase();
+  const categoryId = url.searchParams.get('categoryId');
 
   const validTypes = ['LINK', 'LOCATION', 'MEMO'];
   const whereType = typeFilter && validTypes.includes(typeFilter)
     ? { type: typeFilter as 'LINK' | 'LOCATION' | 'MEMO' }
     : {};
 
-  const whereCategory = categoryFilter && (VALID_CATEGORIES as readonly string[]).includes(categoryFilter)
-    ? { category: categoryFilter as Category }
+  const whereCategory = categoryId
+    ? { categoryId }
     : {};
 
   const shares = await prisma.quickShare.findMany({
@@ -66,11 +72,7 @@ export const GET = withAuth(async ({ user }, req) => {
         whereCategory,
       ],
     },
-    include: {
-      author: {
-        select: { id: true, displayName: true, avatarUrl: true },
-      },
-    },
+    include: shareInclude,
     orderBy: [
       { pinned: 'desc' },
       { createdAt: 'desc' },
@@ -89,7 +91,7 @@ export const POST = withAuth(async ({ user }, req) => {
     title?: string;
     description?: string;
     visibility?: string;
-    category?: string;
+    categoryId?: string | null;
   };
 
   try {
@@ -98,7 +100,7 @@ export const POST = withAuth(async ({ user }, req) => {
     return NextResponse.json({ error: '無效的請求格式' }, { status: 400 });
   }
 
-  const { type, content, title, description, visibility, category } = body;
+  const { type, content, title, description, visibility, categoryId } = body;
 
   // 驗證 type
   if (!type || !['LINK', 'LOCATION', 'MEMO'].includes(type)) {
@@ -113,10 +115,15 @@ export const POST = withAuth(async ({ user }, req) => {
   // 驗證 visibility
   const vis = visibility === 'PRIVATE' ? 'PRIVATE' : 'FAMILY';
 
-  // 驗證 category（選填）
-  const cat = category && (VALID_CATEGORIES as readonly string[]).includes(category.toUpperCase())
-    ? (category.toUpperCase() as Category)
-    : null;
+  // 驗證 categoryId（選填）
+  let catId: string | null = null;
+  if (categoryId) {
+    const catExists = await prisma.shareCategory.findUnique({ where: { id: categoryId } });
+    if (!catExists) {
+      return NextResponse.json({ error: '無效的分類' }, { status: 400 });
+    }
+    catId = categoryId;
+  }
 
   // 依類型處理
   let shareTitle = title?.trim() || null;
@@ -125,12 +132,9 @@ export const POST = withAuth(async ({ user }, req) => {
   let shareMapUrl: string | null = null;
 
   if (type === 'LINK') {
-    // 驗證 URL
     if (!/^https?:\/\//i.test(content.trim())) {
       return NextResponse.json({ error: '請輸入有效的網址（以 http:// 或 https:// 開頭）' }, { status: 400 });
     }
-
-    // 後端抓取 OG meta
     const ogMeta = await fetchOGMeta(content.trim());
     shareTitle = ogMeta.title || content.trim();
     shareDescription = ogMeta.description || null;
@@ -139,7 +143,6 @@ export const POST = withAuth(async ({ user }, req) => {
     shareMapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(content.trim())}`;
     shareDescription = description?.trim() || null;
   } else if (type === 'MEMO') {
-    // 驗證長度 1-500
     if (content.trim().length > 500) {
       return NextResponse.json({ error: '備忘文字不能超過 500 字' }, { status: 400 });
     }
@@ -155,13 +158,9 @@ export const POST = withAuth(async ({ user }, req) => {
       imageUrl: shareImageUrl,
       mapUrl: shareMapUrl,
       visibility: vis as 'PRIVATE' | 'FAMILY',
-      category: cat,
+      categoryId: catId,
     },
-    include: {
-      author: {
-        select: { id: true, displayName: true, avatarUrl: true },
-      },
-    },
+    include: shareInclude,
   });
 
   return NextResponse.json(share, { status: 201 });

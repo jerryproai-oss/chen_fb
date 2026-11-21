@@ -2,11 +2,6 @@ import { NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/middleware';
 import { prisma } from '@/lib/db/client';
 
-// ── 有效分類 ─────────────────────────────────────────────────
-
-const VALID_CATEGORIES = ['FOOD', 'TRAVEL', 'SHOPPING', 'LIFE', 'WORK', 'STUDY', 'HEALTH', 'OTHER'] as const;
-type Category = (typeof VALID_CATEGORIES)[number];
-
 // ── OG Meta 抓取 ────────────────────────────────────────────
 
 async function fetchOGMeta(url: string): Promise<{ title?: string; description?: string; imageUrl?: string }> {
@@ -36,6 +31,17 @@ async function fetchOGMeta(url: string): Promise<{ title?: string; description?:
     return {};
   }
 }
+
+// ── include 共用 ─────────────────────────────────────────────
+
+const shareInclude = {
+  author: {
+    select: { id: true, displayName: true, avatarUrl: true },
+  },
+  categoryRef: {
+    select: { id: true, name: true, emoji: true },
+  },
+};
 
 // ── DELETE /api/quick-shares/[id] ────────────────────────────
 
@@ -71,7 +77,7 @@ export const PATCH = withAuth(async ({ user }, req, routeCtx) => {
     title?: string;
     description?: string;
     visibility?: string;
-    category?: string | null;
+    categoryId?: string | null;
   };
 
   try {
@@ -93,7 +99,6 @@ export const PATCH = withAuth(async ({ user }, req, routeCtx) => {
     return NextResponse.json({ error: '僅作者可以操作' }, { status: 403 });
   }
 
-  // 建構更新資料
   const updateData: Record<string, unknown> = {};
 
   // 置頂
@@ -107,15 +112,19 @@ export const PATCH = withAuth(async ({ user }, req, routeCtx) => {
   }
 
   // 分類 — null 表示清除
-  if (body.category !== undefined) {
-    if (body.category === null || body.category === '') {
-      updateData.category = null;
-    } else if ((VALID_CATEGORIES as readonly string[]).includes(body.category.toUpperCase())) {
-      updateData.category = body.category.toUpperCase();
+  if (body.categoryId !== undefined) {
+    if (body.categoryId === null || body.categoryId === '') {
+      updateData.categoryId = null;
+    } else {
+      const catExists = await prisma.shareCategory.findUnique({ where: { id: body.categoryId } });
+      if (!catExists) {
+        return NextResponse.json({ error: '無效的分類' }, { status: 400 });
+      }
+      updateData.categoryId = body.categoryId;
     }
   }
 
-  // 內容編輯（依類型處理）
+  // 內容編輯
   if (body.content !== undefined && typeof body.content === 'string' && body.content.trim()) {
     updateData.content = body.content.trim();
 
@@ -123,7 +132,6 @@ export const PATCH = withAuth(async ({ user }, req, routeCtx) => {
       if (!/^https?:\/\//i.test(body.content.trim())) {
         return NextResponse.json({ error: '請輸入有效的網址' }, { status: 400 });
       }
-      // 重新抓取 OG meta
       const ogMeta = await fetchOGMeta(body.content.trim());
       updateData.title = ogMeta.title || body.content.trim();
       updateData.description = ogMeta.description || null;
@@ -154,11 +162,7 @@ export const PATCH = withAuth(async ({ user }, req, routeCtx) => {
   const updated = await prisma.quickShare.update({
     where: { id },
     data: updateData,
-    include: {
-      author: {
-        select: { id: true, displayName: true, avatarUrl: true },
-      },
-    },
+    include: shareInclude,
   });
 
   return NextResponse.json(updated);

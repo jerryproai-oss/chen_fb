@@ -186,6 +186,7 @@ model User {
   notes                 Note[]
   noteAudiences         NoteAudience[]
   quickShares           QuickShare[]
+  shareCategories       ShareCategory[]
 
   // ── 用車管理 ────────────────────
   familyRole            FamilyRole?   @map("family_role")
@@ -1096,15 +1097,19 @@ enum QuickShareVisibility {
   FAMILY
 }
 
-enum QuickShareCategory {
-  FOOD        // 美食
-  TRAVEL      // 旅遊
-  SHOPPING    // 購物
-  LIFE        // 生活
-  WORK        // 工作
-  STUDY       // 學習
-  HEALTH      // 醫療健康
-  OTHER       // 其他
+model ShareCategory {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique                                // 分類名稱（唯一）
+  emoji     String   @default("📎")                         // 分類圖示 emoji
+  sortOrder Int      @default(0) @map("sort_order")         // 排序（小在前）
+  createdBy String   @map("created_by") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+
+  creator   User          @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  shares    QuickShare[]
+
+  @@index([sortOrder])
+  @@map("share_categories")
 }
 
 model QuickShare {
@@ -1118,14 +1123,15 @@ model QuickShare {
   mapUrl      String?              @map("map_url")                 // Google Maps URL
   pinned      Boolean              @default(false)
   visibility  QuickShareVisibility @default(FAMILY)
-  category    QuickShareCategory?                                  // 分類標籤（選填）
+  categoryId  String?              @map("category_id") @db.Uuid   // 分類（選填）
   updatedAt   DateTime?            @updatedAt @map("updated_at")   // 編輯時間
   createdAt   DateTime             @default(now()) @map("created_at")
 
   author      User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  categoryRef ShareCategory?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   @@index([authorId])
   @@index([createdAt])
-  @@index([category])
+  @@index([categoryId])
   @@map("quick_shares")
 }
