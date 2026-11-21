@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useMemo, useRef } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, ChevronLeft, ChevronRight } from 'lucide-react';
 import { getDayInfo, type DayInfo } from '@/lib/lunar';
 import HelpGuide from '@/components/ui/HelpGuide';
 import { helpContents } from '@/lib/constants/help-content';
@@ -52,6 +53,9 @@ export default function AlmanacPage() {
   if (!info) {
     return (
       <div className={styles.container}>
+        <Link href="/calendar" className={styles.backLink}>
+          <ArrowLeft size={16} /> 行事曆
+        </Link>
         <h1 className={styles.pageTitle}>📅 農民曆</h1>
         <div className={styles.loading}><div className={styles.spinner} /></div>
       </div>
@@ -60,6 +64,9 @@ export default function AlmanacPage() {
 
   return (
     <div className={styles.container}>
+      <Link href="/calendar" className={styles.backLink}>
+        <ArrowLeft size={16} /> 行事曆
+      </Link>
       <h1 className={styles.pageTitle}>
         📅 農民曆
         {helpContents.almanac && <HelpGuide content={helpContents.almanac} />}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Plus, Search, Lock, Users, Eye, Pin, FileText } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Lock, Users, Eye, Pin, FileText } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import HelpGuide from '@/components/ui/HelpGuide';
 import { wikiHelp } from '@/lib/constants/help-content';
@@ -132,6 +132,9 @@ export default function WikiListPage() {
   return (
     <div className={styles.container}>
       {/* Header */}
+      <Link href="/bulletin" className={styles.backLink}>
+        <ArrowLeft size={16} /> 首頁
+      </Link>
       <div className={styles.header}>
         <div className={styles.headerRow}>
           <h1 className={styles.pageTitle}>

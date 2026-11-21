@@ -6,6 +6,8 @@ import {
   Sparkles, AlertCircle, ChevronDown, ChevronUp, Shield,
   Zap, Loader2,
 } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import styles from './page.module.css';
 
 // ── 型別 ──────────────────────────────────────────────────────
@@ -161,6 +163,9 @@ export default function CarSettingsPage() {
 
   return (
     <div className={styles.container}>
+      <Link href="/calendar" className={styles.backLink}>
+        <ArrowLeft size={16} /> 行事曆
+      </Link>
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerTop}>

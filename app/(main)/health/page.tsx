@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import {
-  Plus, X, Pencil, Trash2, Download, Share2,
+  ArrowLeft, Plus, X, Pencil, Trash2, Download, Share2,
   Heart, Activity, Droplets, Thermometer, Weight, Wind,
   FileText,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import HelpGuide from '@/components/ui/HelpGuide';
 import { healthHelp } from '@/lib/constants/help-content';
+import Link from 'next/link';
 import styles from './page.module.css';
 
 // recharts 圖表元件 — 動態載入避免 SSR 問題
@@ -425,6 +426,9 @@ export default function HealthPage() {
   return (
     <div className={styles.container}>
       {/* Header */}
+      <Link href="/profile" className={styles.backLink}>
+        <ArrowLeft size={16} /> 個人檔案
+      </Link>
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>
           <Heart size={28} />

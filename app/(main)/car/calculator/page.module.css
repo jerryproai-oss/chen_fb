@@ -1,4 +1,4 @@
-﻿/* ── 費用計算機 (Car Cost Calculator) ──────────────────────── */
+/* ── 費用計算機 (Car Cost Calculator) ──────────────────────── */
 
 .container {
   max-width: 900px;
@@ -487,4 +487,18 @@
     font-size: var(--font-size-sm);
     padding: 10px 20px;
   }
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  margin-bottom: 8px;
+}
+
+.backLink:hover {
+  text-decoration: underline;
 }

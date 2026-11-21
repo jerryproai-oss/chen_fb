@@ -1,4 +1,4 @@
-﻿/* ── 規則設定頁面 ─────────────────────────────────────────── */
+/* ── 規則設定頁面 ─────────────────────────────────────────── */
 
 .container {
   max-width: 900px;
@@ -690,4 +690,18 @@
   .aiStatusRow {
     flex-direction: column;
   }
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  margin-bottom: 8px;
+}
+
+.backLink:hover {
+  text-decoration: underline;
 }

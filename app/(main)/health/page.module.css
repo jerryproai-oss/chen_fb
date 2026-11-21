@@ -1,4 +1,4 @@
-﻿/* ── Health Tracking Page ───────────────────────────────────── */
+/* ── Health Tracking Page ───────────────────────────────────── */
 
 /* ── Viewer Selector（查看對象切換）───────────────────────── */
 
@@ -767,4 +767,18 @@
   .chartWrap {
     height: 200px;
   }
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  margin-bottom: 8px;
+}
+
+.backLink:hover {
+  text-decoration: underline;
 }

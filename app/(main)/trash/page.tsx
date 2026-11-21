@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Trash2, RotateCcw, Trash, Image } from 'lucide-react';
 import HelpGuide from '@/components/ui/HelpGuide';
 import { trashHelp } from '@/lib/constants/help-content';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import styles from './page.module.css';
 
 /** 回收桶中的貼文型別 */
@@ -178,6 +180,9 @@ export default function TrashPage() {
 
   return (
     <div className={styles.container}>
+      <Link href="/profile" className={styles.backLink}>
+        <ArrowLeft size={16} /> 個人檔案
+      </Link>
       <div className={styles.header}>
         <div className={styles.headerTop}>
           <div className={styles.titleGroup}>

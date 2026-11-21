@@ -1,4 +1,4 @@
-﻿/* ── Car Cost History Page ──────────────────────────────────── */
+/* ── Car Cost History Page ──────────────────────────────────── */
 
 .container {
   max-width: 900px;
@@ -684,4 +684,18 @@
   .modal {
     max-width: 100%;
   }
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-primary);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  margin-bottom: 8px;
+}
+
+.backLink:hover {
+  text-decoration: underline;
 }

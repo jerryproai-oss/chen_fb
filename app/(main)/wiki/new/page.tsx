@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { FileText, Lock, Users, Eye } from 'lucide-react';
+import { ArrowLeft, FileText, Lock, Users, Eye } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Avatar from '@/components/ui/Avatar';
 import styles from '../page.module.css';
@@ -139,6 +139,9 @@ export default function WikiNewPage() {
   return (
     <div className={styles.container}>
       {/* Header */}
+      <Link href="/wiki" className={styles.backLink}>
+        <ArrowLeft size={16} /> 知識庫
+      </Link>
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>
           <FileText size={28} />

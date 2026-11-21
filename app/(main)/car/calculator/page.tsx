@@ -6,6 +6,8 @@ import { calculateCostShares, calculateSettlements } from '@/lib/car/cost-calcul
 import type { CostConfig, ChildUsage, CostCalculationResult } from '@/lib/car/cost-calculator';
 import { PAYMENT_METHOD_LABEL, PAYMENT_STATUS_LABEL } from '@/lib/car/types';
 import type { PaymentMethodType } from '@/lib/car/types';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import styles from './page.module.css';
 
 // ── 型別 ──────────────────────────────────────────────────────
@@ -372,6 +374,9 @@ export default function CarCalculatorPage() {
 
   return (
     <div className={styles.container}>
+      <Link href="/calendar" className={styles.backLink}>
+        <ArrowLeft size={16} /> 行事曆
+      </Link>
       {/* Header */}
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>

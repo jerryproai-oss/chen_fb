@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Lock, Eye, EyeOff, AlertTriangle, Users } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, Lock, Eye, EyeOff, AlertTriangle, Users } from 'lucide-react';
 import { deriveKey } from '@/lib/vault/crypto';
 import { setVaultKey } from '@/lib/vault/keystore';
 import HelpGuide from '@/components/ui/HelpGuide';
@@ -164,6 +165,9 @@ export default function VaultPage() {
 
   return (
     <div className={styles.container}>
+      <Link href="/profile" className={styles.backLink}>
+        <ArrowLeft size={16} /> 個人檔案
+      </Link>
       <div className={styles.card}>
         <div className={styles.lockIcon}>
           <Lock size={40} />

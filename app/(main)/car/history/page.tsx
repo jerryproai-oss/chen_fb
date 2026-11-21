@@ -16,6 +16,8 @@ import type {
   PaymentStatusType,
   AttachmentItem,
 } from '@/lib/car/types';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import styles from './page.module.css';
 
 // ── Types ─────────────────────────────────────────────────────
@@ -390,6 +392,9 @@ export default function CarHistoryPage() {
 
   return (
     <div className={styles.container}>
+      <Link href="/calendar" className={styles.backLink}>
+        <ArrowLeft size={16} /> 行事曆
+      </Link>
       {/* Header */}
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>

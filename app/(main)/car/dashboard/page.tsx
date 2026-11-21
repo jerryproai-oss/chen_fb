@@ -15,6 +15,8 @@ import type {
   CostShareItem,
   PaymentStatusType,
 } from '@/lib/car/types';
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import styles from './page.module.css';
 
 import type { ShareData, MonthlyData, FuelPoint } from './DashboardCharts';
@@ -236,6 +238,9 @@ export default function CarDashboardPage() {
 
   return (
     <div className={styles.container}>
+      <Link href="/calendar" className={styles.backLink}>
+        <ArrowLeft size={16} /> 行事曆
+      </Link>
       {/* Header */}
       <div className={styles.header}>
         <h1 className={styles.pageTitle}>
