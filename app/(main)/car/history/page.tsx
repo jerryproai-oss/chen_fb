@@ -19,6 +19,8 @@ import type {
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import styles from './page.module.css';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { carHistoryHelp } from '@/lib/constants/help-content';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -400,6 +402,7 @@ export default function CarHistoryPage() {
         <h1 className={styles.pageTitle}>
           <FileText size={28} />
           結算歷史
+          <HelpGuide content={carHistoryHelp} />
         </h1>
         <p className={styles.pageSubtitle}>查看費用結算記錄與付款狀態</p>
       </div>

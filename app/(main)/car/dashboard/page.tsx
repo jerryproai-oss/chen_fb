@@ -18,6 +18,8 @@ import type {
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import styles from './page.module.css';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { carDashboardHelp } from '@/lib/constants/help-content';
 
 import type { ShareData, MonthlyData, FuelPoint } from './DashboardCharts';
 
@@ -246,6 +248,7 @@ export default function CarDashboardPage() {
         <h1 className={styles.pageTitle}>
           <BarChart3 size={28} />
           統計儀表板
+          <HelpGuide content={carDashboardHelp} />
         </h1>
         <p className={styles.pageSubtitle}>
           用車費用總覽與數據分析

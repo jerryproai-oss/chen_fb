@@ -9,6 +9,8 @@ import { calculateCostShares } from '@/lib/car/cost-calculator';
 import type { CostConfig, ChildUsage } from '@/lib/car/cost-calculator';
 import { getLocalDate } from '@/lib/car/hooks';
 import styles from './page.module.css';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { carMaintenanceHelp } from '@/lib/constants/help-content';
 
 const MAINTENANCE_KEYWORDS = ['保養', '大保養', '輪胎', '煞車', '機油', '冷氣', '保修', '維修', '保固'];
 
@@ -551,7 +553,7 @@ export default function MaintenancePage() {
         </Link>
         <div className={styles.headerRow}>
           <div>
-            <h1 className={styles.pageTitle}>🔧 保修歷史</h1>
+            <h1 className={styles.pageTitle}>🔧 保修歷史 <HelpGuide content={carMaintenanceHelp} /></h1>
             <p className={styles.pageSubtitle}>瀏覽車輛保養與維修記錄</p>
           </div>
           <button

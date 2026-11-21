@@ -16,6 +16,8 @@ import {
 import Link from 'next/link';
 import Avatar from '@/components/ui/Avatar';
 import styles from './page.module.css';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { adminFamilyHelp } from '@/lib/constants/help-content';
 
 interface FamilyMember {
   id: string;
@@ -264,7 +266,7 @@ export default function AdminFamilyPage() {
           <ArrowLeft size={16} />
           返回
         </Link>
-        <h1 className={styles.pageTitle}>家庭管理</h1>
+        <h1 className={styles.pageTitle}>家庭管理 <HelpGuide content={adminFamilyHelp} /></h1>
         <p className={styles.pageSubtitle}>
           管理家庭成員帳號
         </p>

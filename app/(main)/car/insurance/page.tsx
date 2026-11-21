@@ -9,6 +9,8 @@ import { calculateCostShares } from '@/lib/car/cost-calculator';
 import type { CostConfig, ChildUsage } from '@/lib/car/cost-calculator';
 import { getLocalDate } from '@/lib/car/hooks';
 import styles from './page.module.css';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { carInsuranceHelp } from '@/lib/constants/help-content';
 
 const INSURANCE_KEYWORDS = ['保險', '強制險', '第三人', '車體險', '竊盜險', '任意險', '車險', '乘客險', '駕駛人傷害險'];
 
@@ -551,7 +553,7 @@ export default function InsurancePage() {
         </Link>
         <div className={styles.headerRow}>
           <div>
-            <h1 className={styles.pageTitle}>🛡️ 保險記錄</h1>
+            <h1 className={styles.pageTitle}>🛡️ 保險記錄 <HelpGuide content={carInsuranceHelp} /></h1>
             <p className={styles.pageSubtitle}>瀏覽車輛保險記錄與費用</p>
           </div>
           <button

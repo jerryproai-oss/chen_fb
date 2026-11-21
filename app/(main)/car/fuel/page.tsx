@@ -15,6 +15,8 @@ import {
 } from '@/lib/car/types';
 import styles from './page.module.css';
 import { getLocalDateString } from '@/lib/car/hooks';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { carFuelHelp } from '@/lib/constants/help-content';
 
 // recharts — 動態載入避免 SSR
 const FuelChart = dynamic(
@@ -253,7 +255,7 @@ export default function FuelPage() {
         <Link href="/calendar" className={styles.backLink}>
           <ArrowLeft size={16} /> 行事曆
         </Link>
-        <h1 className={styles.pageTitle}>⛽ 加油記錄</h1>
+        <h1 className={styles.pageTitle}>⛽ 加油記錄 <HelpGuide content={carFuelHelp} /></h1>
         <p className={styles.pageSubtitle}>追蹤加油記錄與油耗表現</p>
       </div>
 

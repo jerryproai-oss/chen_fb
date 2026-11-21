@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { FileText, Download, Calendar, DollarSign, Users, ChevronLeft, ChevronRight, ArrowLeft, Fuel as FuelIcon } from 'lucide-react';
 import styles from './page.module.css';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { carReportsHelp } from '@/lib/constants/help-content';
 
 // ── 型別定義 ──────────────────────────────────────────────────
 
@@ -252,6 +254,7 @@ export default function ReportsPage() {
         <h1 className={styles.pageTitle}>
           <FileText size={28} />
           明細報表
+          <HelpGuide content={carReportsHelp} />
         </h1>
       </div>
 

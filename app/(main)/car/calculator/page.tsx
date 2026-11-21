@@ -9,6 +9,8 @@ import type { PaymentMethodType } from '@/lib/car/types';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import styles from './page.module.css';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { carCalculatorHelp } from '@/lib/constants/help-content';
 
 // ── 型別 ──────────────────────────────────────────────────────
 
@@ -382,6 +384,7 @@ export default function CarCalculatorPage() {
         <h1 className={styles.pageTitle}>
           <Calculator size={28} />
           費用計算機
+          <HelpGuide content={carCalculatorHelp} />
         </h1>
         <p className={styles.pageSubtitle}>
           計算用車費用分攤，自動依累計天數與規則產生分攤結果

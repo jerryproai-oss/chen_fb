@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { X, ArrowLeft, Pencil, Plus } from 'lucide-react';
 import type { VehicleInfo } from '@/lib/car/types';
 import styles from './page.module.css';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { carVehicleHelp } from '@/lib/constants/help-content';
 
 function daysUntil(dateStr: string | null): number | null {
   if (!dateStr) return null;
@@ -201,7 +203,7 @@ export default function VehiclePage() {
       <div className={styles.container}>
         <div className={styles.header}>
           <Link href="/calendar" className={styles.backLink}><ArrowLeft size={16} /> 行事曆</Link>
-          <h1 className={styles.pageTitle}>🚙 車輛資訊</h1>
+          <h1 className={styles.pageTitle}>🚙 車輛資訊 <HelpGuide content={carVehicleHelp} /></h1>
         </div>
         <div className={styles.emptyState}>
           <div className={styles.emptyIcon}>🚙</div>
@@ -304,7 +306,7 @@ export default function VehiclePage() {
       <div className={styles.header}>
         <Link href="/calendar" className={styles.backLink}><ArrowLeft size={16} /> 行事曆</Link>
         <div className={styles.headerRow}>
-          <h1 className={styles.pageTitle}>🚙 車輛資訊</h1>
+          <h1 className={styles.pageTitle}>🚙 車輛資訊 <HelpGuide content={carVehicleHelp} /></h1>
           {isAdmin && (
             <div style={{ display: 'flex', gap: '8px' }}>
               <button type="button" className={styles.editBtn} onClick={openCreate}>

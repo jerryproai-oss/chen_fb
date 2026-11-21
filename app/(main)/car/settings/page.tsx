@@ -9,6 +9,8 @@ import {
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import styles from './page.module.css';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { carSettingsHelp } from '@/lib/constants/help-content';
 
 // ── 型別 ──────────────────────────────────────────────────────
 
@@ -172,6 +174,7 @@ export default function CarSettingsPage() {
           <h1 className={styles.pageTitle}>
             <Settings size={24} />
             規則設定
+            <HelpGuide content={carSettingsHelp} />
           </h1>
         </div>
       </div>

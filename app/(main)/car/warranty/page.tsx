@@ -9,6 +9,8 @@ import { calculateCostShares } from '@/lib/car/cost-calculator';
 import type { CostConfig, ChildUsage } from '@/lib/car/cost-calculator';
 import { getLocalDate } from '@/lib/car/hooks';
 import styles from './page.module.css';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { carWarrantyHelp } from '@/lib/constants/help-content';
 
 const WARRANTY_KEYWORDS = ['保固', '延保', '延長保固', '原廠保固', '召回', '保固維修', '保固檢查'];
 
@@ -551,7 +553,7 @@ export default function WarrantyPage() {
         </Link>
         <div className={styles.headerRow}>
           <div>
-            <h1 className={styles.pageTitle}>📋 保固記錄</h1>
+            <h1 className={styles.pageTitle}>📋 保固記錄 <HelpGuide content={carWarrantyHelp} /></h1>
             <p className={styles.pageSubtitle}>瀏覽車輛保固記錄與維修</p>
           </div>
           <button

@@ -5,6 +5,8 @@ import { Plus, X, ChevronDown, ChevronUp, Check, AlertCircle, Landmark } from 'l
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import styles from './page.module.css';
+import HelpGuide from '@/components/ui/HelpGuide';
+import { carLoanHelp } from '@/lib/constants/help-content';
 
 // ── 型別 ──────────────────────────────────────────────────────
 
@@ -234,6 +236,7 @@ export default function CarLoanPage() {
           <h1 className={styles.pageTitle}>
             <Landmark size={24} />
             貸款管理
+            <HelpGuide content={carLoanHelp} />
           </h1>
           {isAdmin && (
             <button
