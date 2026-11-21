@@ -18,6 +18,7 @@ import {
   Search,
   Bell,
   Heart,
+  Share2,
   X,
 } from 'lucide-react';
 import styles from './BottomNav.module.css';
@@ -34,6 +35,7 @@ const MAIN_ITEMS = [
 const MORE_ITEMS = [
   { href: '/contacts', label: '通訊錄', icon: BookUser },
   { href: '/notes', label: '記事本', icon: StickyNote },
+  { href: '/shares', label: '快捷分享', icon: Share2 },
   { href: '/almanac', label: '農民曆', icon: Moon },
   { href: '/health', label: '健康紀錄', icon: Heart },
   { href: '/wiki', label: '文件庫', icon: FileText },

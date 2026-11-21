@@ -1124,6 +1124,47 @@ export const adminFamilyHelp: HelpContent = {
   ],
 };
 
+// ── 快捷分享 ────────────────────────────────────────────────
+
+export const sharesHelp: HelpContent = {
+  featureTitle: '快捷分享',
+  subtitle: '家人間的快速分享板，分享網址、位置、備忘',
+  steps: [
+    {
+      icon: '🔗',
+      title: '分享網址',
+      description: '貼上任何網址，系統會自動抓取網頁標題、描述和預覽圖片，產生精美的連結卡片。',
+      tips: ['支援任何 http 或 https 開頭的網址'],
+    },
+    {
+      icon: '📍',
+      title: '分享位置',
+      description: '輸入地址或店名，系統自動產生 Google Maps 導航連結，家人點擊即可開始導航。',
+      tips: ['可額外填寫位置名稱，讓卡片更清楚'],
+    },
+    {
+      icon: '📝',
+      title: '快速備忘',
+      description: '像便利貼一樣的短訊息，適合提醒事項或簡短留言，最多 500 字。',
+    },
+    {
+      icon: '📌',
+      title: '置頂重要分享',
+      description: '點擊 📌 按鈕可將重要分享置頂到最前面，方便家人隨時查看。',
+    },
+    {
+      icon: '🔒',
+      title: '隱私設定',
+      description: '分享預設為「家庭」模式，全家人可見。切換為「私人」模式則只有自己看得到。',
+    },
+  ],
+  generalTips: [
+    '最新的分享會排在最上面，置頂的分享永遠最前',
+    '可用類型篩選 Tab 快速切換檢視網址、位置或備忘',
+    '只有分享的作者可以刪除或置頂自己的分享',
+  ],
+};
+
 // ── 記事本 ──────────────────────────────────────────────────
 
 export const notesHelp: HelpContent = {
@@ -1183,6 +1224,7 @@ export const helpContents = {
   trash: trashHelp,
   contacts: contactsHelp,
   notes: notesHelp,
+  shares: sharesHelp,
   almanac: almanacHelp,
   'car-fuel': carFuelHelp,
   'car-maintenance': carMaintenanceHelp,

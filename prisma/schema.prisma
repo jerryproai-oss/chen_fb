@@ -185,6 +185,7 @@ model User {
   contacts              Contact[]
   notes                 Note[]
   noteAudiences         NoteAudience[]
+  quickShares           QuickShare[]
 
   // ── 用車管理 ────────────────────
   familyRole            FamilyRole?   @map("family_role")
@@ -1080,4 +1081,37 @@ model CarMileageLog {
   @@index([vehicleId, recordedAt])
   @@index([userId])
   @@map("car_mileage_logs")
+}
+
+// ── 快捷分享 ──────────────────────────────────────────────────
+
+enum QuickShareType {
+  LINK
+  LOCATION
+  MEMO
+}
+
+enum QuickShareVisibility {
+  PRIVATE
+  FAMILY
+}
+
+model QuickShare {
+  id          String               @id @default(uuid()) @db.Uuid
+  authorId    String               @map("author_id") @db.Uuid
+  type        QuickShareType                                      // LINK / LOCATION / MEMO
+  content     String                                               // URL / 地址文字 / 備忘文字
+  title       String?                                              // 網址標題 / 位置名稱 / null
+  description String?                                              // OG 描述 / 完整地址 / null
+  imageUrl    String?              @map("image_url")               // OG 圖片 / null
+  mapUrl      String?              @map("map_url")                 // Google Maps URL
+  pinned      Boolean              @default(false)
+  visibility  QuickShareVisibility @default(FAMILY)
+  createdAt   DateTime             @default(now()) @map("created_at")
+
+  author      User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("quick_shares")
 }

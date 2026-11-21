@@ -19,6 +19,7 @@ import {
   Moon,
   Palette,
   Check,
+  Share2,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import ImageLightbox from '@/components/ui/ImageLightbox';
@@ -468,6 +469,16 @@ export default function ProfilePage() {
             <StickyNote size={18} />
           </span>
           <span className={styles.menuItemLabel}>記事本</span>
+          <span className={styles.menuItemArrow}>
+            <ChevronRight size={18} />
+          </span>
+        </Link>
+
+        <Link href="/shares" className={styles.menuItem}>
+          <span className={styles.menuItemIcon}>
+            <Share2 size={18} />
+          </span>
+          <span className={styles.menuItemLabel}>快捷分享</span>
           <span className={styles.menuItemArrow}>
             <ChevronRight size={18} />
           </span>

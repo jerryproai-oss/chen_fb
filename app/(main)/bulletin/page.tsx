@@ -147,6 +147,11 @@ export default function BulletinPage() {
         </p>
       </div>
 
+      {/* 快捷分享入口 */}
+      <Link href="/shares" className={styles.quickShareLink}>
+        📌 快捷分享 — 分享網址、位置、備忘給家人
+      </Link>
+
       {/* 時間範圍選擇 */}
       <div className={styles.rangeSelector}>
         {RANGE_OPTIONS.map((opt) => (

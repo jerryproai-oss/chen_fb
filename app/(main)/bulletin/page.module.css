@@ -28,6 +28,26 @@
   margin-top: var(--space-xs);
 }
 
+/* ── Quick Share 入口連結 ─────────────────────────────────── */
+
+.quickShareLink {
+  display: block;
+  padding: 10px 16px;
+  background: rgba(90, 122, 90, 0.08);
+  border: 1px solid rgba(90, 122, 90, 0.2);
+  border-radius: 10px;
+  color: var(--color-primary, #5a7a5a);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  text-decoration: none;
+  margin-bottom: var(--space-md);
+  transition: background 0.2s;
+}
+
+.quickShareLink:hover {
+  background: rgba(90, 122, 90, 0.15);
+}
+
 /* ── Range Selector ───────────────────────────────────────── */
 
 .rangeSelector {
