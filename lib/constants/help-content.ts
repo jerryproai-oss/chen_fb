@@ -1124,6 +1124,47 @@ export const adminFamilyHelp: HelpContent = {
   ],
 };
 
+// ── 記事本 ──────────────────────────────────────────────────
+
+export const notesHelp: HelpContent = {
+  featureTitle: '記事本',
+  subtitle: '個人與家庭共用的筆記空間，支援 Markdown 與 AI 輔助',
+  steps: [
+    {
+      icon: '📝',
+      title: '瀏覽記事',
+      description: '記事本列出所有你的記事以及家人分享給你的記事。可使用搜尋框即時搜尋，或用標籤篩選。置頂的記事會固定在最前面。',
+      tips: ['支援依修改時間、建立時間、標題排序'],
+    },
+    {
+      icon: '➕',
+      title: '新增記事',
+      description: '點擊「+ 新增記事」按鈕建立新記事。輸入標題（必填）和內容（支援 Markdown 格式），可加入標籤和背景色。',
+    },
+    {
+      icon: '👥',
+      title: '分享設定',
+      description: '記事可設定為「🔒 僅自己」、「👨‍👩‍👧‍👦 全家人」或「👥 指定家人」。選擇指定家人時可勾選要分享的家庭成員。',
+    },
+    {
+      icon: '🏷️',
+      title: '標籤管理',
+      description: '為記事新增自訂標籤，方便分類和篩選。在標籤欄位輸入文字後按 Enter 即可新增，點擊 ✕ 可移除。',
+      tips: ['每篇記事最多 20 個標籤'],
+    },
+    {
+      icon: '✨',
+      title: 'AI 輔助',
+      description: '標題和內容旁的「AI 輔助」按鈕可幫你潤飾文法、精簡文字、擴充內容等，讓記事更完美。',
+    },
+  ],
+  generalTips: [
+    '編輯模式下每 2 秒會自動儲存變更',
+    '記事內容支援 Markdown 格式（標題、列表、粗體等）',
+    '可選擇背景色讓不同類型的記事一目了然',
+  ],
+};
+
 // ── 匯出索引 ────────────────────────────────────────────────
 
 export const helpContents = {
@@ -1141,6 +1182,7 @@ export const helpContents = {
   bookmarks: bookmarksHelp,
   trash: trashHelp,
   contacts: contactsHelp,
+  notes: notesHelp,
   almanac: almanacHelp,
   'car-fuel': carFuelHelp,
   'car-maintenance': carMaintenanceHelp,

@@ -11,6 +11,7 @@ import {
   PenSquare,
   MoreHorizontal,
   BookUser,
+  StickyNote,
   Moon,
   FileText,
   UserCircle,
@@ -32,6 +33,7 @@ const MAIN_ITEMS = [
 /** 「更多」選單內的功能 */
 const MORE_ITEMS = [
   { href: '/contacts', label: '通訊錄', icon: BookUser },
+  { href: '/notes', label: '記事本', icon: StickyNote },
   { href: '/almanac', label: '農民曆', icon: Moon },
   { href: '/health', label: '健康紀錄', icon: Heart },
   { href: '/wiki', label: '文件庫', icon: FileText },

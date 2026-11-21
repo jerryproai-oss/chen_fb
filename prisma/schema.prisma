@@ -183,6 +183,8 @@ model User {
   wikiEdits             WikiPageVersion[]
   wikiPermissions       WikiPagePermission[]
   contacts              Contact[]
+  notes                 Note[]
+  noteAudiences         NoteAudience[]
 
   // ── 用車管理 ────────────────────
   familyRole            FamilyRole?   @map("family_role")
@@ -718,6 +720,55 @@ model Contact {
   @@index([isShared])
   @@index([name])
   @@map("contacts")
+}
+
+// ── 記事本 ──────────────────────────────────────────────────
+
+enum NoteVisibility {
+  PRIVATE    // 僅自己
+  FAMILY     // 全家人
+  SELECTED   // 指定家人
+}
+
+model Note {
+  id          String         @id @default(uuid()) @db.Uuid
+  authorId    String         @map("author_id") @db.Uuid
+  title       String
+  content     String         @default("")        // Markdown 內容
+  color       String?                             // 背景色 hex
+  pinned      Boolean        @default(false)
+  visibility  NoteVisibility @default(PRIVATE)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  author      User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  audiences   NoteAudience[]
+  tags        NoteTag[]
+
+  @@index([authorId])
+  @@map("notes")
+}
+
+model NoteAudience {
+  noteId    String  @map("note_id") @db.Uuid
+  userId    String  @map("user_id") @db.Uuid
+
+  note      Note    @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([noteId, userId])
+  @@map("note_audiences")
+}
+
+model NoteTag {
+  id        String  @id @default(uuid()) @db.Uuid
+  noteId    String  @map("note_id") @db.Uuid
+  name      String
+
+  note      Note    @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@index([noteId])
+  @@map("note_tags")
 }
 
 // ══════════════════════════════════════════════════════════════

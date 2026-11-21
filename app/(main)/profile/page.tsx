@@ -15,6 +15,7 @@ import {
   Trash2,
   Heart,
   FileText,
+  StickyNote,
   Moon,
   Palette,
   Check,
@@ -457,6 +458,16 @@ export default function ProfilePage() {
             <Moon size={18} />
           </span>
           <span className={styles.menuItemLabel}>農民曆</span>
+          <span className={styles.menuItemArrow}>
+            <ChevronRight size={18} />
+          </span>
+        </Link>
+
+        <Link href="/notes" className={styles.menuItem}>
+          <span className={styles.menuItemIcon}>
+            <StickyNote size={18} />
+          </span>
+          <span className={styles.menuItemLabel}>記事本</span>
           <span className={styles.menuItemArrow}>
             <ChevronRight size={18} />
           </span>
