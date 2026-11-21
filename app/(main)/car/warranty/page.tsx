@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
@@ -7,6 +7,7 @@ import type { CostRecordItem, PaymentMethodType } from '@/lib/car/types';
 import { PAYMENT_METHOD_LABEL } from '@/lib/car/types';
 import { calculateCostShares } from '@/lib/car/cost-calculator';
 import type { CostConfig, ChildUsage } from '@/lib/car/cost-calculator';
+import { getLocalDate } from '@/lib/car/hooks';
 import styles from './page.module.css';
 
 const WARRANTY_KEYWORDS = ['保固', '延保', '延長保固', '原廠保固', '召回', '保固維修', '保固檢查'];
@@ -32,14 +33,6 @@ function isWarranty(item: string): boolean {
     lower.includes('warranty') ||
     lower.includes('recall')
   );
-}
-
-function getLocalDate(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
 }
 
 /** 截斷過長項目名稱 */
@@ -553,8 +546,8 @@ export default function WarrantyPage() {
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <Link href="/car" className={styles.backLink}>
-          <ArrowLeft size={16} /> 用車管理
+        <Link href="/calendar" className={styles.backLink}>
+          <ArrowLeft size={16} /> 行事曆
         </Link>
         <div className={styles.headerRow}>
           <div>

@@ -14,6 +14,7 @@ import {
   PAYMENT_METHOD_LABEL,
 } from '@/lib/car/types';
 import styles from './page.module.css';
+import { getLocalDateString } from '@/lib/car/hooks';
 
 // recharts — 動態載入避免 SSR
 const FuelChart = dynamic(
@@ -25,14 +26,6 @@ const FuelChart = dynamic(
     ),
   },
 );
-
-function getLocalDateString(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
 
 interface FuelForm {
   fuelDate: string;
@@ -74,14 +67,19 @@ export default function FuelPage() {
         const data = await res.json();
         const vehicles = data.vehicles || [];
         const active = vehicles.find((v: { isActive: boolean }) => v.isActive) || vehicles[0];
-        if (active) setVehicleId(active.id);
+        if (active) {
+          setVehicleId(active.id);
+          return active.id;
+        }
       }
     } catch { /* ignore */ }
+    return null;
   }, []);
 
-  const fetchRecords = useCallback(async () => {
+  const fetchRecords = useCallback(async (vId?: string | null) => {
     try {
-      const res = await fetch('/api/car/fuel');
+      const url = vId ? `/api/car/fuel?vehicleId=${vId}` : '/api/car/fuel';
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setRecords(data.records || []);
@@ -91,7 +89,7 @@ export default function FuelPage() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([fetchRecords(), fetchVehicle()]).finally(() => setLoading(false));
+    fetchVehicle().then((vId) => fetchRecords(vId)).finally(() => setLoading(false));
   }, [fetchRecords, fetchVehicle]);
 
   const handleSave = async () => {
@@ -252,8 +250,8 @@ export default function FuelPage() {
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <Link href="/car" className={styles.backLink}>
-          <ArrowLeft size={16} /> 用車管理
+        <Link href="/calendar" className={styles.backLink}>
+          <ArrowLeft size={16} /> 行事曆
         </Link>
         <h1 className={styles.pageTitle}>⛽ 加油記錄</h1>
         <p className={styles.pageSubtitle}>追蹤加油記錄與油耗表現</p>

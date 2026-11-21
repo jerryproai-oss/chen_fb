@@ -7,6 +7,7 @@ import type { CostRecordItem, PaymentMethodType } from '@/lib/car/types';
 import { PAYMENT_METHOD_LABEL } from '@/lib/car/types';
 import { calculateCostShares } from '@/lib/car/cost-calculator';
 import type { CostConfig, ChildUsage } from '@/lib/car/cost-calculator';
+import { getLocalDate } from '@/lib/car/hooks';
 import styles from './page.module.css';
 
 const MAINTENANCE_KEYWORDS = ['保養', '大保養', '輪胎', '煞車', '機油', '冷氣', '保修', '維修', '保固'];
@@ -32,14 +33,6 @@ function isMaintenance(item: string): boolean {
     lower.includes('repair') ||
     lower.includes('maintenance')
   );
-}
-
-function getLocalDate(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
 }
 
 /** 截斷過長項目名稱 */
@@ -553,8 +546,8 @@ export default function MaintenancePage() {
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <Link href="/car" className={styles.backLink}>
-          <ArrowLeft size={16} /> 用車管理
+        <Link href="/calendar" className={styles.backLink}>
+          <ArrowLeft size={16} /> 行事曆
         </Link>
         <div className={styles.headerRow}>
           <div>

@@ -836,6 +836,20 @@
   flex: 1;
 }
 
+.almanacFullLink {
+  display: block;
+  text-align: right;
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  text-decoration: none;
+  padding: 4px 0;
+  margin-top: 2px;
+}
+
+.almanacFullLink:hover {
+  text-decoration: underline;
+}
+
 .addEventBtn {
   display: inline-flex;
   align-items: center;

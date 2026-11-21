@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/middleware';
 import { recognizeReceipt } from '@/lib/car/ai-analysis';
 
@@ -59,7 +59,7 @@ export const POST = withAuth(async (_ctx, req: NextRequest) => {
       );
     }
 
-    console.log(`[receipt-ocr] 開始 Gemini Vision 辨識, apiKey=${apiKey.substring(0, 8)}...`);
+    console.log('[receipt-ocr] 開始 Gemini Vision 辨識');
 
     // 呼叫 Gemini Vision 辨識
     const result = await recognizeReceipt(base64Data, mimeType);

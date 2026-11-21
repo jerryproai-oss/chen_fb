@@ -14,6 +14,7 @@ import {
   BOOKING_STATUS_LABEL,
   BOOKING_STATUS_COLOR,
 } from '@/lib/car/types';
+import { getLocalDateString } from '@/lib/car/hooks';
 import styles from './CarManagementPanel.module.css';
 
 // ── 快速操作按鈕 ──────────────────────────────────────────────
@@ -23,19 +24,11 @@ const QUICK_ACTIONS = [
   { emoji: '⛽', label: '加油', href: '/car/fuel' },
   { emoji: '🔧', label: '保養', href: '/car/maintenance' },
   { emoji: '📏', label: '里程', href: '' },
-  { emoji: '📸', label: '拍照', href: '' },
+  { emoji: '🚙', label: '車輛', href: '/car/vehicle' },
   { emoji: '🧮', label: '結算', href: '/car/calculator' },
   { emoji: '📊', label: '報表', href: '/car/reports' },
   { emoji: '🏦', label: '貸款', href: '/car/loan' },
 ] as const;
-
-function getLocalDateString(): string {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
 
 // ── 型別定義 ──────────────────────────────────────────────────
 
@@ -94,12 +87,9 @@ export default function CarManagementPanel({ onRefreshCalendar }: CarManagementP
 
   const fetchData = useCallback(async () => {
     try {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = now.getMonth() + 1;
       const [vRes, bRes] = await Promise.all([
         fetch('/api/car/vehicles'),
-        fetch(`/api/car/bookings?year=${year}&month=${month}`),
+        fetch('/api/car/bookings'),
       ]);
       if (vRes.ok) {
         const vData = await vRes.json();
@@ -111,7 +101,7 @@ export default function CarManagementPanel({ onRefreshCalendar }: CarManagementP
         const bData = await bRes.json();
         setBookings(bData.bookings || []);
       }
-    } catch { /* ignore */ }
+    } catch { setError('無法取得車輛或預約資料'); }
   }, []);
 
   useEffect(() => {
@@ -249,7 +239,7 @@ export default function CarManagementPanel({ onRefreshCalendar }: CarManagementP
         const data = await res.json();
         alert(data.error || '刪除失敗');
       }
-    } catch { /* ignore */ }
+    } catch { alert('網路錯誤，刪除預約失敗'); }
   };
 
   const handleCheckout = async () => {

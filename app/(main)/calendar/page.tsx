@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import {
   ChevronLeft,
   ChevronRight,
@@ -264,6 +265,8 @@ export default function CalendarPage() {
   }
 
   function handleOpenEditModal(event: FamilyEventItem) {
+    // CarBooking 事件不走 FamilyEvent 編輯流程
+    if (event.id.startsWith('carbooking_')) return;
     const realId = event.id.split('_')[0];
     setEditingEvent({ ...event, id: realId });
     setFormTitle(event.title);
@@ -1515,6 +1518,12 @@ function EventsSection({
             </span>
           </div>
         </div>
+      )}
+
+      {almanacSummary && (
+        <Link href="/almanac" className={styles.almanacFullLink}>
+          查看完整農民曆 →
+        </Link>
       )}
 
       {/* 天氣預報 */}

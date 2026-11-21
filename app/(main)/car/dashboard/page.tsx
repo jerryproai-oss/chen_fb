@@ -136,9 +136,9 @@ export default function CarDashboardPage() {
       try {
         const [reportRes, yearReportRes, fuelRes, loanRes, unpaidRes] = await Promise.all([
           // 本月報表
-          fetch(`/api/car/reports?vehicleId=${selectedVehicleId}&type=monthly&year=${year}&month=${month}`),
+          fetch(`/api/car/reports?vehicleId=${selectedVehicleId}&type=month&year=${year}&month=${month}`),
           // 全年報表（累計用）
-          fetch(`/api/car/reports?vehicleId=${selectedVehicleId}&type=monthly&year=${year}&month=0`),
+          fetch(`/api/car/reports?vehicleId=${selectedVehicleId}&type=month&year=${year}&month=0`),
           // 加油記錄
           fetch(`/api/car/fuel?vehicleId=${selectedVehicleId}&limit=20`),
           // 車貸

@@ -200,7 +200,7 @@ export default function VehiclePage() {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
-          <Link href="/car" className={styles.backLink}><ArrowLeft size={16} /> 用車管理</Link>
+          <Link href="/calendar" className={styles.backLink}><ArrowLeft size={16} /> 行事曆</Link>
           <h1 className={styles.pageTitle}>🚙 車輛資訊</h1>
         </div>
         <div className={styles.emptyState}>
@@ -302,7 +302,7 @@ export default function VehiclePage() {
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <Link href="/car" className={styles.backLink}><ArrowLeft size={16} /> 用車管理</Link>
+        <Link href="/calendar" className={styles.backLink}><ArrowLeft size={16} /> 行事曆</Link>
         <div className={styles.headerRow}>
           <h1 className={styles.pageTitle}>🚙 車輛資訊</h1>
           {isAdmin && (

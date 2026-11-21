@@ -246,8 +246,8 @@ export default function ReportsPage() {
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <Link href="/car" className={styles.backLink}>
-          <ArrowLeft size={16} /> 用車管理
+        <Link href="/calendar" className={styles.backLink}>
+          <ArrowLeft size={16} /> 行事曆
         </Link>
         <h1 className={styles.pageTitle}>
           <FileText size={28} />
