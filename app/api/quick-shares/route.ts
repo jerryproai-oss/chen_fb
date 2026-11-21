@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth } from '@/lib/auth/middleware';
 import { prisma } from '@/lib/db/client';
 
+// ── 有效分類 ─────────────────────────────────────────────────
+
+const VALID_CATEGORIES = ['FOOD', 'TRAVEL', 'SHOPPING', 'LIFE', 'WORK', 'STUDY', 'HEALTH', 'OTHER'] as const;
+type Category = (typeof VALID_CATEGORIES)[number];
+
 // ── OG Meta 抓取 ────────────────────────────────────────────
 
 async function fetchOGMeta(url: string): Promise<{ title?: string; description?: string; imageUrl?: string }> {
@@ -37,10 +42,15 @@ async function fetchOGMeta(url: string): Promise<{ title?: string; description?:
 export const GET = withAuth(async ({ user }, req) => {
   const url = new URL(req.url);
   const typeFilter = url.searchParams.get('type')?.toUpperCase();
+  const categoryFilter = url.searchParams.get('category')?.toUpperCase();
 
   const validTypes = ['LINK', 'LOCATION', 'MEMO'];
   const whereType = typeFilter && validTypes.includes(typeFilter)
     ? { type: typeFilter as 'LINK' | 'LOCATION' | 'MEMO' }
+    : {};
+
+  const whereCategory = categoryFilter && (VALID_CATEGORIES as readonly string[]).includes(categoryFilter)
+    ? { category: categoryFilter as Category }
     : {};
 
   const shares = await prisma.quickShare.findMany({
@@ -53,6 +63,7 @@ export const GET = withAuth(async ({ user }, req) => {
           ],
         },
         whereType,
+        whereCategory,
       ],
     },
     include: {
@@ -78,6 +89,7 @@ export const POST = withAuth(async ({ user }, req) => {
     title?: string;
     description?: string;
     visibility?: string;
+    category?: string;
   };
 
   try {
@@ -86,7 +98,7 @@ export const POST = withAuth(async ({ user }, req) => {
     return NextResponse.json({ error: '無效的請求格式' }, { status: 400 });
   }
 
-  const { type, content, title, description, visibility } = body;
+  const { type, content, title, description, visibility, category } = body;
 
   // 驗證 type
   if (!type || !['LINK', 'LOCATION', 'MEMO'].includes(type)) {
@@ -101,6 +113,11 @@ export const POST = withAuth(async ({ user }, req) => {
   // 驗證 visibility
   const vis = visibility === 'PRIVATE' ? 'PRIVATE' : 'FAMILY';
 
+  // 驗證 category（選填）
+  const cat = category && (VALID_CATEGORIES as readonly string[]).includes(category.toUpperCase())
+    ? (category.toUpperCase() as Category)
+    : null;
+
   // 依類型處理
   let shareTitle = title?.trim() || null;
   let shareDescription = description?.trim() || null;
@@ -113,7 +130,7 @@ export const POST = withAuth(async ({ user }, req) => {
       return NextResponse.json({ error: '請輸入有效的網址（以 http:// 或 https:// 開頭）' }, { status: 400 });
     }
 
-    // 後端抓取 OG meta（非阻塞：先回應、背景更新）
+    // 後端抓取 OG meta
     const ogMeta = await fetchOGMeta(content.trim());
     shareTitle = ogMeta.title || content.trim();
     shareDescription = ogMeta.description || null;
@@ -138,6 +155,7 @@ export const POST = withAuth(async ({ user }, req) => {
       imageUrl: shareImageUrl,
       mapUrl: shareMapUrl,
       visibility: vis as 'PRIVATE' | 'FAMILY',
+      category: cat,
     },
     include: {
       author: {

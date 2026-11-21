@@ -1096,6 +1096,17 @@ enum QuickShareVisibility {
   FAMILY
 }
 
+enum QuickShareCategory {
+  FOOD        // 美食
+  TRAVEL      // 旅遊
+  SHOPPING    // 購物
+  LIFE        // 生活
+  WORK        // 工作
+  STUDY       // 學習
+  HEALTH      // 醫療健康
+  OTHER       // 其他
+}
+
 model QuickShare {
   id          String               @id @default(uuid()) @db.Uuid
   authorId    String               @map("author_id") @db.Uuid
@@ -1107,11 +1118,14 @@ model QuickShare {
   mapUrl      String?              @map("map_url")                 // Google Maps URL
   pinned      Boolean              @default(false)
   visibility  QuickShareVisibility @default(FAMILY)
+  category    QuickShareCategory?                                  // 分類標籤（選填）
+  updatedAt   DateTime?            @updatedAt @map("updated_at")   // 編輯時間
   createdAt   DateTime             @default(now()) @map("created_at")
 
   author      User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([authorId])
   @@index([createdAt])
+  @@index([category])
   @@map("quick_shares")
 }

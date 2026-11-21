@@ -185,14 +185,80 @@
   cursor: not-allowed;
 }
 
-/* ── 篩選 Tab ───────────────────────────────────────────────── */
+/* ── 分類選擇器 ─────────────────────────────────────────────── */
+
+.categoryPicker {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.categoryLabel {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+  padding-top: 5px;
+  flex-shrink: 0;
+}
+
+.categoryOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.categoryChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.categoryChip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.categoryChipActive {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+/* ── 篩選區 ─────────────────────────────────────────────────── */
+
+.filterSection {
+  margin-bottom: var(--space-md);
+}
 
 .filterTabs {
   display: flex;
   gap: 6px;
-  margin-bottom: var(--space-md);
+  margin-bottom: 8px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+.categoryFilterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  margin-bottom: 4px;
 }
 
 .filterTab {
@@ -504,4 +570,131 @@
 
 [data-theme="dark"] .errorMsg {
   background: #3d1f1f;
+}
+
+
+/* ── 分類 Badge ─────────────────────────────────────────────── */
+
+.categoryBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 10px;
+  background: rgba(90, 122, 90, 0.1);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.categoryBadge:hover {
+  background: rgba(90, 122, 90, 0.2);
+}
+
+[data-theme="dark"] .categoryBadge {
+  background: rgba(90, 122, 90, 0.25);
+}
+
+/* ── 編輯表單 ───────────────────────────────────────────────── */
+
+.editForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.editCategoryRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.categoryChipSm {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 8px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.categoryChipSm:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.categoryChipSmActive {
+  background: var(--color-primary);
+  color: #fff;
+  border-color: var(--color-primary);
+}
+
+.editActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.editBtns {
+  display: flex;
+  gap: 6px;
+}
+
+.editCancelBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.editCancelBtn:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+.editSaveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.editSaveBtn:hover {
+  opacity: 0.9;
+}
+
+.editSaveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.editCancelBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
