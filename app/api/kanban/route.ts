@@ -42,6 +42,84 @@ const TEMPLATES: Record<string, { emoji: string; title: string; columns: { title
       { title: '複習', color: '#fce4ec' },
     ],
   },
+  health: {
+    emoji: '💪',
+    title: '健康管理',
+    columns: [
+      { title: '目標', color: '#e3f2fd' },
+      { title: '執行中', color: '#fff3e0' },
+      { title: '已達成', color: '#e8f5e9' },
+    ],
+  },
+  meal: {
+    emoji: '🍽️',
+    title: '每週菜單',
+    columns: [
+      { title: '週一～三', color: '#fce4ec' },
+      { title: '週四～五', color: '#e3f2fd' },
+      { title: '週六～日', color: '#f3e5f5' },
+      { title: '備料', color: '#fff3e0' },
+      { title: '完成', color: '#e8f5e9' },
+    ],
+  },
+  budget: {
+    emoji: '💰',
+    title: '家庭預算',
+    columns: [
+      { title: '規劃', color: '#e3f2fd' },
+      { title: '待繳', color: '#fff3e0' },
+      { title: '已繳', color: '#e8f5e9' },
+    ],
+  },
+  event: {
+    emoji: '🎉',
+    title: '活動企劃',
+    columns: [
+      { title: '發想', color: '#f3e5f5' },
+      { title: '準備中', color: '#fff3e0' },
+      { title: '執行', color: '#e3f2fd' },
+      { title: '回顧', color: '#e8f5e9' },
+    ],
+  },
+  reading: {
+    emoji: '📖',
+    title: '閱讀計畫',
+    columns: [
+      { title: '想讀', color: '#f3e5f5' },
+      { title: '閱讀中', color: '#fff3e0' },
+      { title: '讀完', color: '#e8f5e9' },
+      { title: '推薦', color: '#fce4ec' },
+    ],
+  },
+  moving: {
+    emoji: '📦',
+    title: '搬家清單',
+    columns: [
+      { title: '打包', color: '#fff3e0' },
+      { title: '搬運', color: '#e3f2fd' },
+      { title: '整理', color: '#f3e5f5' },
+      { title: '完成', color: '#e8f5e9' },
+    ],
+  },
+  pet: {
+    emoji: '🐾',
+    title: '寵物照顧',
+    columns: [
+      { title: '餵食', color: '#fff3e0' },
+      { title: '清潔', color: '#e3f2fd' },
+      { title: '就醫', color: '#fce4ec' },
+      { title: '用品', color: '#f3e5f5' },
+    ],
+  },
+  garden: {
+    emoji: '🌱',
+    title: '園藝種植',
+    columns: [
+      { title: '播種', color: '#e3f2fd' },
+      { title: '照顧', color: '#fff3e0' },
+      { title: '收成', color: '#e8f5e9' },
+    ],
+  },
 };
 
 /**

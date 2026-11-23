@@ -44,9 +44,22 @@ const TEMPLATES = [
   { key: 'travel', emoji: '✈️', title: '旅行規劃', desc: '構想・規劃・預訂・出發' },
   { key: 'shopping', emoji: '🛒', title: '採購清單', desc: '待買・已買' },
   { key: 'study', emoji: '📚', title: '學習追蹤', desc: '待學習・進行中・完成・複習' },
+  { key: 'health', emoji: '💪', title: '健康管理', desc: '目標・執行中・已達成' },
+  { key: 'meal', emoji: '🍽️', title: '每週菜單', desc: '週一至週日・備料・完成' },
+  { key: 'budget', emoji: '💰', title: '家庭預算', desc: '規劃・待繳・已繳' },
+  { key: 'event', emoji: '🎉', title: '活動企劃', desc: '發想・準備・執行・回顧' },
+  { key: 'reading', emoji: '📖', title: '閱讀計畫', desc: '想讀・閱讀中・讀完・推薦' },
+  { key: 'moving', emoji: '📦', title: '搬家清單', desc: '打包・搬運・整理・完成' },
+  { key: 'pet', emoji: '🐾', title: '寵物照顧', desc: '餵食・清潔・就醫・用品' },
+  { key: 'garden', emoji: '🌱', title: '園藝種植', desc: '播種・照顧・收成' },
 ];
 
-const EMOJIS = ['📋', '🏠', '✈️', '🛒', '📚', '🎯', '💡', '🎨', '🧹', '🎉', '📝', '⭐'];
+const EMOJIS = [
+  '📋', '🏠', '✈️', '🛒', '📚', '🎯', '💡', '🎨',
+  '🧹', '🎉', '📝', '⭐', '💪', '🍽️', '💰', '📦',
+  '🐾', '🌱', '📖', '🎄', '🎓', '🏋️', '🎵', '🎮',
+  '🏖️', '🧳', '🔧', '🏆', '❤️', '🌈', '🍳', '🧸',
+];
 
 export default function KanbanListPage() {
   const router = useRouter();

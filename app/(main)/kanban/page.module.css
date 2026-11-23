@@ -318,7 +318,7 @@
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
   width: 100%;
-  max-width: 480px;
+  max-width: 540px;
   max-height: 80vh;
   overflow-y: auto;
   padding: 24px;
@@ -348,8 +348,8 @@
 
 .templateGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
   margin-bottom: 20px;
 }
 
@@ -357,8 +357,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 16px 12px;
+  gap: 4px;
+  padding: 12px 8px;
   background: var(--bg-page);
   border: 2px solid transparent;
   border-radius: 12px;
@@ -377,7 +377,7 @@
 }
 
 .templateEmoji {
-  font-size: 32px;
+  font-size: 28px;
 }
 
 .templateTitle {

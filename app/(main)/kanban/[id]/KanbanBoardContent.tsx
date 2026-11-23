@@ -48,6 +48,7 @@ import {
   Archive,
 } from 'lucide-react';
 import HelpGuide from '@/components/ui/HelpGuide';
+import AIAssistButton from '@/components/post/AIAssistButton';
 import { kanbanBoardHelp } from '@/lib/constants/help-content';
 import styles from './page.module.css';
 
@@ -108,7 +109,12 @@ const PRIORITY_MAP = {
   HIGH: { label: '高', color: '#f44336', bg: '#ffebee', Icon: Flag },
   URGENT: { label: '緊急', color: '#b71c1c', bg: '#ffcdd2', Icon: AlertCircle },
 };
-const EMOJIS = ['📋', '🏠', '✈️', '🛒', '📚', '🎯', '💡', '🎨', '🧹', '🎉', '📝', '⭐'];
+const EMOJIS = [
+  '📋', '🏠', '✈️', '🛒', '📚', '🎯', '💡', '🎨',
+  '🧹', '🎉', '📝', '⭐', '💪', '🍽️', '💰', '📦',
+  '🐾', '🌱', '📖', '🎄', '🎓', '🏋️', '🎵', '🎮',
+  '🏖️', '🧳', '🔧', '🏆', '❤️', '🌈', '🍳', '🧸',
+];
 
 // ── Sortable Card ───────────────────────────────────────────
 
@@ -968,6 +974,12 @@ export default function KanbanBoardContent() {
             <div className={styles.detailSection}>
               <div className={styles.detailSectionTitle}>
                 <FileText size={16} /> 描述
+                <AIAssistButton
+                  text={detailDesc}
+                  onApply={(newText) => setDetailDesc(newText)}
+                  fieldType="body"
+                  context={{ title: detailTitle, body: detailDesc }}
+                />
               </div>
               <textarea
                 className={styles.detailTextarea}
