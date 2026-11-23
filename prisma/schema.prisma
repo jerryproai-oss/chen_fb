@@ -206,6 +206,11 @@ model User {
   carNotifications      CarNotification[]
   carMileageLogs        CarMileageLog[]
 
+  // ── 看板管理 ────────────────────
+  kanbanBoards        KanbanBoard[]
+  kanbanCardsAssigned KanbanCard[]  @relation("kanbanAssignee")
+  kanbanCardsCreated  KanbanCard[]  @relation("kanbanCreatedBy")
+
   @@map("users")
 }
 
@@ -1134,4 +1139,93 @@ model QuickShare {
   @@index([createdAt])
   @@index([categoryId])
   @@map("quick_shares")
+}
+
+
+// ── 看板管理 (Kanban) ────────────────────────────────────────
+
+enum KanbanVisibility {
+  PRIVATE   // 個人看板
+  FAMILY    // 家庭共用看板
+}
+
+enum CardPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model KanbanBoard {
+  id          String           @id @default(uuid()) @db.Uuid
+  title       String                                              // 看板標題
+  emoji       String           @default("📋")                     // 看板圖示
+  description String?                                             // 看板描述
+  visibility  KanbanVisibility @default(FAMILY)
+  archived    Boolean          @default(false)                    // 是否封存
+  creatorId   String           @map("creator_id") @db.Uuid
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  creator     User             @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  columns     KanbanColumn[]
+
+  @@index([creatorId])
+  @@index([visibility])
+  @@map("kanban_boards")
+}
+
+model KanbanColumn {
+  id        String   @id @default(uuid()) @db.Uuid
+  boardId   String   @map("board_id") @db.Uuid
+  title     String                                                // 欄位標題
+  color     String   @default("#5a7a5a")                          // 欄位顏色
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  board     KanbanBoard   @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards     KanbanCard[]
+
+  @@index([boardId])
+  @@index([sortOrder])
+  @@map("kanban_columns")
+}
+
+model KanbanCard {
+  id          String        @id @default(uuid()) @db.Uuid
+  columnId    String        @map("column_id") @db.Uuid
+  title       String                                              // 卡片標題
+  description String?                                             // 卡片描述
+  priority    CardPriority? // 優先順序
+  label       String?                                             // 標籤顏色 hex
+  dueDate     DateTime?     @map("due_date")                      // 到期日
+  assigneeId  String?       @map("assignee_id") @db.Uuid         // 指派成員
+  sortOrder   Int           @default(0) @map("sort_order")
+  createdById String        @map("created_by_id") @db.Uuid
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  column      KanbanColumn  @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  assignee    User?         @relation("kanbanAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdBy   User          @relation("kanbanCreatedBy", fields: [createdById], references: [id], onDelete: Cascade)
+  checklists  KanbanChecklist[]
+
+  @@index([columnId])
+  @@index([assigneeId])
+  @@index([sortOrder])
+  @@map("kanban_cards")
+}
+
+model KanbanChecklist {
+  id        String   @id @default(uuid()) @db.Uuid
+  cardId    String   @map("card_id") @db.Uuid
+  text      String
+  checked   Boolean  @default(false)
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  card      KanbanCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@index([cardId])
+  @@map("kanban_checklists")
 }

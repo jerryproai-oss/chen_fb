@@ -20,6 +20,7 @@ import {
   Palette,
   Check,
   Share2,
+  LayoutGrid,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import ImageLightbox from '@/components/ui/ImageLightbox';
@@ -479,6 +480,16 @@ export default function ProfilePage() {
             <Share2 size={18} />
           </span>
           <span className={styles.menuItemLabel}>快捷分享</span>
+          <span className={styles.menuItemArrow}>
+            <ChevronRight size={18} />
+          </span>
+        </Link>
+
+        <Link href="/kanban" className={styles.menuItem}>
+          <span className={styles.menuItemIcon}>
+            <LayoutGrid size={18} />
+          </span>
+          <span className={styles.menuItemLabel}>看板</span>
           <span className={styles.menuItemArrow}>
             <ChevronRight size={18} />
           </span>

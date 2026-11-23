@@ -1,0 +1,1008 @@
+.page {
+  height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-page);
+  overflow: hidden;
+}
+
+/* ── 頂部工具列 ─── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--font-size-base);
+  font-weight: 500;
+  padding: 6px 0;
+  flex-shrink: 0;
+}
+
+.backLink:hover {
+  color: var(--text-primary);
+}
+
+.boardTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.boardEmoji {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.boardTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.toolbarBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.toolbarBtn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* ── 看板區域（橫向捲動） ─── */
+.boardContainer {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 16px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+/* ── 欄位 ─── */
+.column {
+  flex-shrink: 0;
+  width: 300px;
+  max-height: calc(100vh - 160px);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border-radius: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.columnDragging {
+  opacity: 0.85;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.columnHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-left: 4px solid var(--column-color, #5a7a5a);
+  flex-shrink: 0;
+}
+
+.columnTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.columnCount {
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: var(--text-tertiary);
+}
+
+.columnActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.columnActionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.columnActionBtn:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text-secondary);
+}
+
+.columnBody {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 60px;
+}
+
+.columnBodyDragOver {
+  background: rgba(90, 122, 90, 0.04);
+}
+
+/* ── 卡片 ─── */
+.card {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  border: 1px solid transparent;
+  position: relative;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.cardDragging {
+  opacity: 0.85;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  transform: rotate(2deg);
+}
+
+.cardDragOverlay {
+  opacity: 0.9;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  transform: rotate(3deg);
+}
+
+.cardLabel {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  margin-bottom: 8px;
+}
+
+.cardTitle {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.cardMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cardPriority {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.priorityLow {
+  color: #4caf50;
+  background: #e8f5e9;
+}
+
+.priorityMedium {
+  color: #ff9800;
+  background: #fff3e0;
+}
+
+.priorityHigh {
+  color: #f44336;
+  background: #ffebee;
+}
+
+.priorityUrgent {
+  color: #b71c1c;
+  background: #ffcdd2;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.cardDueDate {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.cardDueDateOverdue {
+  color: #f44336;
+  font-weight: 600;
+}
+
+.cardDueDateSoon {
+  color: #ff9800;
+  font-weight: 600;
+}
+
+.cardAssignee {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cardAssigneeImg {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.cardChecklist {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.checklistBar {
+  width: 40px;
+  height: 4px;
+  background: #e0e0e0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.checklistBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #66bb6a, #43a047);
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.cardGrip {
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  opacity: 0;
+  transition: opacity 0.15s;
+  cursor: grab;
+}
+
+.card:hover .cardGrip {
+  opacity: 0.5;
+}
+
+/* ── 新增卡片 ─── */
+.addCardArea {
+  padding: 8px 10px 10px;
+  flex-shrink: 0;
+}
+
+.addCardBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  background: none;
+  color: var(--text-tertiary);
+  font-size: var(--font-size-xs);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.addCardBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: rgba(90, 122, 90, 0.04);
+}
+
+.addCardForm {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.addCardInput {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: var(--font-size-sm);
+  background: #fff;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.addCardInput:focus {
+  border-color: var(--color-primary);
+}
+
+.addCardActions {
+  display: flex;
+  gap: 6px;
+}
+
+.addCardSubmit {
+  padding: 6px 14px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.addCardCancel {
+  padding: 6px 10px;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: var(--font-size-xs);
+}
+
+/* ── 新增欄位 ─── */
+.addColumn {
+  flex-shrink: 0;
+  width: 300px;
+}
+
+.addColumnBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.03);
+  border: 2px dashed var(--border-color);
+  border-radius: 14px;
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.addColumnBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.addColumnForm {
+  background: var(--bg-card);
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.addColumnInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: var(--font-size-sm);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  outline: none;
+  margin-bottom: 8px;
+}
+
+.addColumnInput:focus {
+  border-color: var(--color-primary);
+}
+
+.addColumnActions {
+  display: flex;
+  gap: 6px;
+}
+
+/* ── 卡片詳情 Modal ─── */
+.detailModal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.detailBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.detailContent {
+  position: relative;
+  background: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  width: 100%;
+  max-width: 540px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.detailClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.detailClose:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.detailTitleRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.detailTitleInput {
+  flex: 1;
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  outline: none;
+  padding: 4px 0;
+  transition: border-color 0.2s;
+}
+
+.detailTitleInput:focus {
+  border-bottom-color: var(--color-primary);
+}
+
+.detailSection {
+  margin-bottom: 18px;
+}
+
+.detailSectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-sm);
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.detailTextarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-size: var(--font-size-sm);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  outline: none;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.detailTextarea:focus {
+  border-color: var(--color-primary);
+}
+
+/* ── 屬性列表 ─── */
+.propGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.propItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.propLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.propSelect {
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: var(--font-size-xs);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.propSelect:focus {
+  border-color: var(--color-primary);
+}
+
+.propDateInput {
+  padding: 8px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: var(--font-size-xs);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.propDateInput:focus {
+  border-color: var(--color-primary);
+}
+
+/* ── 標籤色 ─── */
+.labelColors {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.labelColorBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.labelColorBtn:hover {
+  transform: scale(1.15);
+}
+
+.labelColorBtnActive {
+  border-color: var(--text-primary);
+  transform: scale(1.15);
+}
+
+.labelColorClear {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px dashed var(--border-color);
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  font-size: 12px;
+}
+
+/* ── Checklist ─── */
+.checklistProgress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.checklistProgressBar {
+  flex: 1;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.checklistProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, #66bb6a, #43a047);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+.checklistProgressText {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.checklistItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.checklistCheckbox {
+  cursor: pointer;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.checklistChecked {
+  color: #43a047;
+}
+
+.checklistText {
+  flex: 1;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+.checklistTextDone {
+  text-decoration: line-through;
+  color: var(--text-tertiary);
+}
+
+.checklistDeleteBtn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 2px;
+}
+
+.checklistItem:hover .checklistDeleteBtn {
+  display: block;
+}
+
+.checklistAddRow {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.checklistAddInput {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: var(--font-size-xs);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.checklistAddInput:focus {
+  border-color: var(--color-primary);
+}
+
+.checklistAddBtn {
+  padding: 6px 12px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── 移動與刪除 ─── */
+.detailFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
+}
+
+.moveSelect {
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: var(--font-size-xs);
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+.deleteCardBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: #ffebee;
+  color: #d32f2f;
+  border: none;
+  border-radius: 8px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.deleteCardBtn:hover {
+  background: #ffcdd2;
+}
+
+/* ── 設定 Modal ─── */
+.settingsContent {
+  position: relative;
+  background: var(--bg-card);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  width: 100%;
+  max-width: 440px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.settingsTitle {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settingsFormGroup {
+  margin-bottom: 14px;
+}
+
+.settingsLabel {
+  display: block;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.settingsInput {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  font-size: var(--font-size-sm);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.settingsInput:focus {
+  border-color: var(--color-primary);
+}
+
+.settingsBtnRow {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.settingsSaveBtn {
+  flex: 1;
+  padding: 10px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.settingsDangerBtn {
+  padding: 10px 16px;
+  background: #ffebee;
+  color: #d32f2f;
+  border: none;
+  border-radius: 10px;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ── Loading ─── */
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: var(--text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+/* ── 空欄位提示 ─── */
+.emptyColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: var(--text-tertiary);
+  font-size: var(--font-size-xs);
+  border: 2px dashed var(--border-color);
+  border-radius: 8px;
+  margin: 4px;
+}
+
+/* ── 欄位編輯選單 ─── */
+.columnMenu {
+  position: absolute;
+  top: 40px;
+  right: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  min-width: 140px;
+  padding: 4px;
+}
+
+.columnMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: none;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.columnMenuItem:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.columnMenuItemDanger {
+  color: #d32f2f;
+}
+
+/* ── 拖曳佔位 ─── */
+.dragPlaceholder {
+  border: 2px dashed var(--color-primary);
+  border-radius: 10px;
+  background: rgba(90, 122, 90, 0.06);
+  min-height: 60px;
+}
+
+/* ── Visibility toggle (settings) ─── */
+.visibilityToggle {
+  display: flex;
+  gap: 8px;
+}
+
+.visibilityBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  background: none;
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.visibilityBtnActive {
+  border-color: var(--color-primary);
+  background: rgba(90, 122, 90, 0.08);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* ── Emoji picker (settings) ─── */
+.emojiPicker {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.emojiBtn {
+  font-size: 24px;
+  padding: 6px;
+  background: none;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.emojiBtn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.emojiBtnActive {
+  border-color: var(--color-primary);
+  background: rgba(90, 122, 90, 0.08);
+}
