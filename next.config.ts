@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
   // Vercel 部署不需要 standalone output
   serverExternalPackages: ["argon2", "@prisma/adapter-pg"],
 
+  // @dnd-kit ESM 模組需要 transpile
+  transpilePackages: ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+
   // 允許大檔案上傳（影片最大 500MB）
   experimental: {
     middlewareClientMaxBodySize: '500mb',

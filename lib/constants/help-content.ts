@@ -1206,42 +1206,6 @@ export const notesHelp: HelpContent = {
   ],
 };
 
-// ── 匯出索引 ────────────────────────────────────────────────
-
-export const helpContents = {
-  journal: journalHelp,
-  family: familyHelp,
-  calendar: calendarHelp,
-  bulletin: bulletinHelp,
-  write: writeHelp,
-  wiki: wikiHelp,
-  profile: profileHelp,
-  search: searchHelp,
-  notifications: notificationsHelp,
-  vault: vaultHelp,
-  health: healthHelp,
-  bookmarks: bookmarksHelp,
-  trash: trashHelp,
-  contacts: contactsHelp,
-  notes: notesHelp,
-  shares: sharesHelp,
-  almanac: almanacHelp,
-  'car-fuel': carFuelHelp,
-  'car-maintenance': carMaintenanceHelp,
-  'car-insurance': carInsuranceHelp,
-  'car-warranty': carWarrantyHelp,
-  'car-vehicle': carVehicleHelp,
-  'car-loan': carLoanHelp,
-  'car-dashboard': carDashboardHelp,
-  'car-history': carHistoryHelp,
-  'car-calculator': carCalculatorHelp,
-  'car-reports': carReportsHelp,
-  'car-settings': carSettingsHelp,
-  'admin-family': adminFamilyHelp,
-  kanban: kanbanHelp,
-  'kanban-board': kanbanBoardHelp,
-} as const;
-
 // ── 看板 ────────────────────────────────────────────────────
 
 export const kanbanHelp: HelpContent = {
@@ -1328,3 +1292,39 @@ export const kanbanBoardHelp: HelpContent = {
     '指派成員讓家人知道誰負責什麼任務',
   ],
 };
+
+// ── 匯出索引 ────────────────────────────────────────────────
+
+export const helpContents = {
+  journal: journalHelp,
+  family: familyHelp,
+  calendar: calendarHelp,
+  bulletin: bulletinHelp,
+  write: writeHelp,
+  wiki: wikiHelp,
+  profile: profileHelp,
+  search: searchHelp,
+  notifications: notificationsHelp,
+  vault: vaultHelp,
+  health: healthHelp,
+  bookmarks: bookmarksHelp,
+  trash: trashHelp,
+  contacts: contactsHelp,
+  notes: notesHelp,
+  shares: sharesHelp,
+  almanac: almanacHelp,
+  'car-fuel': carFuelHelp,
+  'car-maintenance': carMaintenanceHelp,
+  'car-insurance': carInsuranceHelp,
+  'car-warranty': carWarrantyHelp,
+  'car-vehicle': carVehicleHelp,
+  'car-loan': carLoanHelp,
+  'car-dashboard': carDashboardHelp,
+  'car-history': carHistoryHelp,
+  'car-calculator': carCalculatorHelp,
+  'car-reports': carReportsHelp,
+  'car-settings': carSettingsHelp,
+  'admin-family': adminFamilyHelp,
+  kanban: kanbanHelp,
+  'kanban-board': kanbanBoardHelp,
+} as const;
