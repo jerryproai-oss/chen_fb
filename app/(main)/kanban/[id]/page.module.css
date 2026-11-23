@@ -489,12 +489,13 @@
 .detailBackdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
 }
 
 .detailContent {
   position: relative;
-  background: var(--bg-card);
+  background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
   width: 100%;
@@ -809,9 +810,9 @@
 /* ── 設定 Modal ─── */
 .settingsContent {
   position: relative;
-  background: var(--bg-card);
+  background: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
   width: 100%;
   max-width: 440px;
   max-height: 80vh;
