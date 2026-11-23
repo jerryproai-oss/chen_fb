@@ -30,7 +30,7 @@ export interface CarReportData {
 
 // ── Gemini Fallback ──────────────────────────────────────────
 
-const MODEL_FALLBACKS = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-2.5-flash'];
+const MODEL_FALLBACKS = ['gemini-2.0-flash', 'gemini-2.0-flash-lite'];
 
 async function generateWithFallback(contents: string[]): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
