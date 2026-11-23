@@ -21,6 +21,7 @@ import {
   Check,
   Share2,
   LayoutGrid,
+  Wallet,
 } from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import ImageLightbox from '@/components/ui/ImageLightbox';
@@ -490,6 +491,16 @@ export default function ProfilePage() {
             <LayoutGrid size={18} />
           </span>
           <span className={styles.menuItemLabel}>看板</span>
+          <span className={styles.menuItemArrow}>
+            <ChevronRight size={18} />
+          </span>
+        </Link>
+
+        <Link href="/expenses" className={styles.menuItem}>
+          <span className={styles.menuItemIcon}>
+            <Wallet size={18} />
+          </span>
+          <span className={styles.menuItemLabel}>記帳本</span>
           <span className={styles.menuItemArrow}>
             <ChevronRight size={18} />
           </span>

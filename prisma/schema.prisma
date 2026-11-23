@@ -211,6 +211,11 @@ model User {
   kanbanCardsAssigned KanbanCard[]  @relation("kanbanAssignee")
   kanbanCardsCreated  KanbanCard[]  @relation("kanbanCreatedBy")
 
+  // ── 個人記帳 ────────────────────
+  expenseCategories ExpenseCategory[]
+  expenseRecords    ExpenseRecord[]
+  expenseBudgets    ExpenseBudget[]
+
   @@map("users")
 }
 
@@ -1228,4 +1233,60 @@ model KanbanChecklist {
 
   @@index([cardId])
   @@map("kanban_checklists")
+}
+
+
+// ── 個人記帳 ──────────────────────────────────────────────
+
+enum ExpenseType {
+  INCOME
+  EXPENSE
+}
+
+model ExpenseCategory {
+  id        String      @id @default(uuid()) @db.Uuid
+  userId    String      @map("user_id") @db.Uuid
+  name      String
+  emoji     String      @default("📦")
+  type      ExpenseType @default(EXPENSE)
+  sortOrder Int         @default(0) @map("sort_order")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  records ExpenseRecord[]
+
+  @@index([userId])
+  @@map("expense_categories")
+}
+
+model ExpenseRecord {
+  id         String      @id @default(uuid()) @db.Uuid
+  userId     String      @map("user_id") @db.Uuid
+  categoryId String?     @map("category_id") @db.Uuid
+  amount     Int                                          // NT$ 整數
+  type       ExpenseType @default(EXPENSE)
+  date       DateTime    @db.Date
+  note       String?
+  visibility String      @default("PRIVATE")               // PRIVATE or FAMILY
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category ExpenseCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId, date])
+  @@index([categoryId])
+  @@map("expense_records")
+}
+
+model ExpenseBudget {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  month  String                                   // "2026-11" 格式
+  amount Int                                      // NT$ 整數
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, month])
+  @@map("expense_budgets")
 }

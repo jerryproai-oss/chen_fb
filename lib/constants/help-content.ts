@@ -1293,6 +1293,48 @@ export const kanbanBoardHelp: HelpContent = {
   ],
 };
 
+// ── 記帳本 ──────────────────────────────────────────────────
+
+export const expensesHelp: HelpContent = {
+  featureTitle: '記帳本',
+  subtitle: '輕鬆管理個人收支，掌握財務狀況',
+  steps: [
+    {
+      icon: '💰',
+      title: '快速記帳',
+      description: '在頁面上方的快速記帳區域，選擇「支出」或「收入」，輸入金額、選擇分類、填寫日期和備註，即可快速新增一筆紀錄。',
+      tips: ['金額為新台幣整數，系統會自動加上千分位顯示'],
+    },
+    {
+      icon: '📊',
+      title: '月度摘要',
+      description: '頁面上方顯示當月的收入總額、支出總額和結餘，一目了然掌握每月財務狀況。可用左右箭頭切換月份。',
+    },
+    {
+      icon: '🎯',
+      title: '預算管理',
+      description: '點擊設定圖示可以設定每月預算金額，系統會以進度條顯示支出佔預算的比例，超支時會以紅色警示。',
+      tips: ['預算僅計算支出，不包含收入'],
+    },
+    {
+      icon: '📂',
+      title: '分類管理',
+      description: '點擊設定圖示進入分類管理，可以新增、編輯或刪除自訂分類。每個分類有專屬 emoji 圖示，分為支出和收入兩大類。',
+      tips: ['首次使用會自動建立常用的預設分類（如餐飲、交通、薪資等）'],
+    },
+    {
+      icon: '📋',
+      title: '交易紀錄',
+      description: '所有紀錄按日期分組顯示，點擊紀錄可以編輯或刪除。支出以紅色顯示，收入以綠色顯示。',
+    },
+  ],
+  generalTips: [
+    '養成每日記帳的習慣，更能掌握消費模式',
+    '善用備註功能記錄消費細節，日後回顧更方便',
+    '定期檢視分類統計，了解支出大項在哪裡',
+  ],
+};
+
 // ── 匯出索引 ────────────────────────────────────────────────
 
 export const helpContents = {
@@ -1327,4 +1369,5 @@ export const helpContents = {
   'admin-family': adminFamilyHelp,
   kanban: kanbanHelp,
   'kanban-board': kanbanBoardHelp,
+  expenses: expensesHelp,
 } as const;

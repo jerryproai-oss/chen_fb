@@ -312,17 +312,12 @@ export default function CarSettingsPage() {
               <h3 className={styles.aiSubTitle}>使用模型（依序嘗試）</h3>
               <div className={styles.aiModelRow}>
                 <span className={styles.aiModelLabel}>優先</span>
+                <span className={styles.aiModelValue}>gemini-3.5-flash-lite</span>
+                <span className={styles.aiModelTag}>免費</span>
+              </div>
+              <div className={styles.aiModelRow}>
+                <span className={styles.aiModelLabel}>備用</span>
                 <span className={styles.aiModelValue}>gemini-3.8-flash</span>
-                <span className={styles.aiModelTag}>免費</span>
-              </div>
-              <div className={styles.aiModelRow}>
-                <span className={styles.aiModelLabel}>備用 1</span>
-                <span className={styles.aiModelValue}>gemini-3.5-flash</span>
-                <span className={styles.aiModelTag}>免費</span>
-              </div>
-              <div className={styles.aiModelRow}>
-                <span className={styles.aiModelLabel}>備用 2</span>
-                <span className={styles.aiModelValue}>gemini-2.5-flash</span>
                 <span className={styles.aiModelTag}>免費</span>
               </div>
             </div>

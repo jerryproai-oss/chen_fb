@@ -21,6 +21,7 @@ import {
   Share2,
   X,
   LayoutGrid,
+  Wallet,
 } from 'lucide-react';
 import styles from './BottomNav.module.css';
 
@@ -37,6 +38,7 @@ const MORE_ITEMS = [
   { href: '/contacts', label: '通訊錄', icon: BookUser },
   { href: '/notes', label: '記事本', icon: StickyNote },
   { href: '/kanban', label: '看板', icon: LayoutGrid },
+  { href: '/expenses', label: '記帳本', icon: Wallet },
   { href: '/shares', label: '快捷分享', icon: Share2 },
   { href: '/almanac', label: '農民曆', icon: Moon },
   { href: '/health', label: '健康紀錄', icon: Heart },

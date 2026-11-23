@@ -66,7 +66,7 @@ export interface VehicleBasicInfo {
 // ── Gemini Client 初始化 ─────────────────────────────────────
 
 // 依優先順序嘗試可用模型
-const MODEL_FALLBACKS = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-2.5-flash'];
+const MODEL_FALLBACKS = ['gemini-3.5-flash-lite', 'gemini-3.8-flash'];
 
 async function getGenerativeModel(modelName?: string) {
   const apiKey = process.env.GEMINI_API_KEY;
