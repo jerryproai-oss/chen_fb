@@ -24,7 +24,7 @@ export interface AITextContext {
 
 // ── Gemini Fallback ──────────────────────────────────────────
 
-const MODEL_FALLBACKS = ['gemini-2.0-flash', 'gemini-2.0-flash-lite'];
+const MODEL_FALLBACKS = ['gemini-2.0-flash-lite', 'gemini-2.0-flash'];
 
 async function generateWithFallback(contents: string[]): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY;
