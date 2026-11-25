@@ -91,10 +91,10 @@ export const PUT = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
 
   const poll = post.poll;
 
-  // 檢查是否已過期
-  if (poll.endsAt && new Date() > poll.endsAt) {
+  // 檢查是否已過期或已關閉
+  if ((poll.endsAt && new Date() > poll.endsAt) || poll.closedAt) {
     return NextResponse.json(
-      { error: '投票已截止' },
+      { error: '此投票已結束' },
       { status: 400 },
     );
   }
@@ -147,6 +147,24 @@ export const PUT = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     outcome: Outcomes.SUCCESS,
   });
 
+  // 發送投票通知給貼文作者
+  if (post.authorId !== user.id) {
+    const actorName = user.displayName || '有人';
+    prisma.notification
+      .create({
+        data: {
+          userId: post.authorId,
+          actorId: user.id,
+          type: 'POLL_VOTE',
+          title: `${actorName} 在你的投票中投了票`,
+          body: poll.question.slice(0, 100),
+          linkUrl: `/posts/${id}`,
+          resourceId: id,
+        },
+      })
+      .catch((err: unknown) => console.error('[poll-vote] 通知建立失敗:', err));
+  }
+
   return NextResponse.json({ success: true });
 });
 
@@ -195,10 +213,10 @@ export const DELETE = withAuth(async ({ user }, _req: NextRequest, routeCtx) => 
 
   const poll = post.poll;
 
-  // 檢查是否已過期
-  if (poll.endsAt && new Date() > poll.endsAt) {
+  // 檢查是否已過期或已關閉
+  if ((poll.endsAt && new Date() > poll.endsAt) || poll.closedAt) {
     return NextResponse.json(
-      { error: '投票已截止，無法取消' },
+      { error: '此投票已結束，無法取消' },
       { status: 400 },
     );
   }

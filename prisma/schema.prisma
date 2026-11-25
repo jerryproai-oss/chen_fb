@@ -375,6 +375,7 @@ model Poll {
   question    String                         // 投票主題
   multiSelect Boolean   @default(false) @map("multi_select")
   endsAt      DateTime? @map("ends_at")      // 截止時間（可選）
+  closedAt    DateTime? @map("closed_at")    // 手動關閉時間
   createdAt   DateTime  @default(now()) @map("created_at")
 
   post    Post         @relation(fields: [postId], references: [id], onDelete: Cascade)

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { BarChart3, Clock, ExternalLink } from 'lucide-react';
+import { BarChart3, Clock, ExternalLink, Lock } from 'lucide-react';
 import type { PollData, PollOptionItem } from '@/lib/types';
 import styles from './PollDetail.module.css';
 
@@ -18,6 +18,7 @@ export default function PollDetail({ postId }: PollDetailProps) {
   const [poll, setPoll] = useState<PollData | null>(null);
   const [loading, setLoading] = useState(true);
   const [voting, setVoting] = useState(false);
+  const [closing, setClosing] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [error, setError] = useState('');
 
@@ -89,6 +90,28 @@ export default function PollDetail({ postId }: PollDetailProps) {
     }
   }
 
+  async function handleClosePoll() {
+    if (closing) return;
+    if (!confirm('確定要關閉此投票嗎？關閉後將無法再投票。')) return;
+    setClosing(true);
+    setError('');
+
+    try {
+      const res = await fetch(`/api/posts/${postId}/poll`, {
+        method: 'PATCH',
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || '關閉投票失敗');
+      }
+      await fetchPoll();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '關閉投票失敗');
+    } finally {
+      setClosing(false);
+    }
+  }
+
   function toggleOption(optionId: string) {
     if (poll!.isExpired) return;
     setSelected((prev) => {
@@ -118,6 +141,13 @@ export default function PollDetail({ postId }: PollDetailProps) {
           {poll.isExpired
             ? '投票已截止'
             : `截止：${formatDateTime(poll.endsAt)}`}
+        </div>
+      )}
+
+      {poll.closedAt && (
+        <div className={styles.deadline}>
+          <Lock size={12} />
+          已關閉
         </div>
       )}
 
@@ -164,6 +194,20 @@ export default function PollDetail({ postId }: PollDetailProps) {
                 {voting ? '投票中…' : '投票'}
               </button>
             )}
+          </div>
+        )}
+
+        {/* 關閉投票按鈕（僅貼文作者可見，且投票尚未結束） */}
+        {poll.isAuthor && !poll.isExpired && (
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.unvoteBtn}
+              onClick={handleClosePoll}
+              disabled={closing}
+            >
+              {closing ? '處理中…' : '關閉投票'}
+            </button>
           </div>
         )}
       </div>

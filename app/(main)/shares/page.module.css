@@ -1125,6 +1125,11 @@
   background: rgba(211, 47, 47, 0.08);
 }
 
+.catActionBtn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
 .catEditRow {
   display: flex;
   align-items: center;

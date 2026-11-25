@@ -209,8 +209,11 @@ export interface PollData {
   question: string;
   multiSelect: boolean;
   endsAt: string | null;
+  closedAt: string | null;
   isExpired: boolean;
+  isAuthor: boolean;
   totalVotes: number;
+  totalVotesCast: number;
   options: PollOptionItem[];
   myVotes: string[];  // 我投的 optionId
 }

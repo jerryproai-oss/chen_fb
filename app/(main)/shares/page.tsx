@@ -286,6 +286,32 @@ export default function QuickSharesPage() {
     }
   }
 
+  // ── 分類排序 ────────────────────────────────────────────────
+
+  async function handleReorderCategory(catId: string, direction: 'up' | 'down') {
+    const idx = categories.findIndex((c) => c.id === catId);
+    if (idx < 0) return;
+    if (direction === 'up' && idx === 0) return;
+    if (direction === 'down' && idx === categories.length - 1) return;
+
+    const newCategories = [...categories];
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    [newCategories[idx], newCategories[swapIdx]] = [newCategories[swapIdx], newCategories[idx]];
+    setCategories(newCategories);
+
+    // Save to backend
+    try {
+      await fetch('/api/quick-shares/categories/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderedIds: newCategories.map((c) => c.id) }),
+      });
+    } catch {
+      // Revert on error
+      fetchCategories();
+    }
+  }
+
   // ── 分享操作 ────────────────────────────────────────────────
 
   async function handleSubmit() {
@@ -1127,6 +1153,24 @@ export default function QuickSharesPage() {
                           {cat.emoji} {cat.name}
                         </span>
                         <div className={styles.catItemActions}>
+                          <button
+                            type="button"
+                            className={styles.catActionBtn}
+                            onClick={() => handleReorderCategory(cat.id, 'up')}
+                            disabled={categories.indexOf(cat) === 0}
+                            title="上移"
+                          >
+                            <ChevronUp size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            className={styles.catActionBtn}
+                            onClick={() => handleReorderCategory(cat.id, 'down')}
+                            disabled={categories.indexOf(cat) === categories.length - 1}
+                            title="下移"
+                          >
+                            <ChevronDown size={14} />
+                          </button>
                           <button type="button" className={styles.catActionBtn} onClick={() => startEditCategory(cat)} title="編輯">
                             <Pencil size={14} />
                           </button>
