@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Send, X, Check, Plus, Pencil, Trash2, Settings } from 'lucide-react';
+import {
+  ArrowLeft, Send, X, Check, Plus, Pencil, Trash2, Settings,
+  Link2, MapPin, FileText, ChevronDown, ChevronUp,
+} from 'lucide-react';
 import Avatar from '@/components/ui/Avatar';
 import HelpGuide from '@/components/ui/HelpGuide';
 import { sharesHelp } from '@/lib/constants/help-content';
@@ -32,6 +35,13 @@ interface QuickShareItem {
   description: string | null;
   imageUrl: string | null;
   mapUrl: string | null;
+  memo: string | null;
+  linkUrl: string | null;
+  linkTitle: string | null;
+  linkImage: string | null;
+  locationAddress: string | null;
+  locationName: string | null;
+  locationMapUrl: string | null;
   pinned: boolean;
   visibility: 'PRIVATE' | 'FAMILY';
   categoryId: string | null;
@@ -74,6 +84,10 @@ interface EditState {
   title: string;
   visibility: 'FAMILY' | 'PRIVATE';
   categoryId: string;
+  memo: string;
+  linkUrl: string;
+  locationAddress: string;
+  locationName: string;
 }
 
 // ── 常用 Emoji 列表 ─────────────────────────────────────────
@@ -95,7 +109,7 @@ export default function QuickSharesPage() {
   const [filter, setFilter] = useState<FilterType>('');
   const [categoryFilter, setCategoryFilter] = useState('');
 
-  // 新增分享表單
+  // 新增分享表單 — 主要類型
   const [createType, setCreateType] = useState<ShareType>('LINK');
   const [content, setContent] = useState('');
   const [locationTitle, setLocationTitle] = useState('');
@@ -104,9 +118,21 @@ export default function QuickSharesPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
+  // 附加欄位開關
+  const [showExtraUrl, setShowExtraUrl] = useState(false);
+  const [showExtraLocation, setShowExtraLocation] = useState(false);
+  const [showExtraMemo, setShowExtraMemo] = useState(false);
+  const [extraUrl, setExtraUrl] = useState('');
+  const [extraLocationAddress, setExtraLocationAddress] = useState('');
+  const [extraLocationName, setExtraLocationName] = useState('');
+  const [extraMemo, setExtraMemo] = useState('');
+
   // 編輯分享
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editState, setEditState] = useState<EditState>({ content: '', title: '', visibility: 'FAMILY', categoryId: '' });
+  const [editState, setEditState] = useState<EditState>({
+    content: '', title: '', visibility: 'FAMILY', categoryId: '',
+    memo: '', linkUrl: '', locationAddress: '', locationName: '',
+  });
   const [editSaving, setEditSaving] = useState(false);
 
   // 分類篩選展開
@@ -168,6 +194,18 @@ export default function QuickSharesPage() {
   useEffect(() => {
     fetchShares();
   }, [fetchShares]);
+
+  // 切換主要類型時，自動顯示/隱藏附加欄位
+  function handleTypeChange(t: ShareType) {
+    setCreateType(t);
+    setContent('');
+    setLocationTitle('');
+    setError('');
+    // 切換類型時，隱藏當前類型對應的附加欄位（因為它已是主要欄位）
+    if (t === 'LINK') { setShowExtraUrl(false); setExtraUrl(''); }
+    if (t === 'LOCATION') { setShowExtraLocation(false); setExtraLocationAddress(''); setExtraLocationName(''); }
+    if (t === 'MEMO') { setShowExtraMemo(false); setExtraMemo(''); }
+  }
 
   // ── 分類管理操作 ────────────────────────────────────────────
 
@@ -234,7 +272,6 @@ export default function QuickSharesPage() {
       const res = await fetch(`/api/quick-shares/categories/${id}`, { method: 'DELETE' });
       if (!res.ok) return;
       setCategories((prev) => prev.filter((c) => c.id !== id));
-      // 更新分享列表中的 categoryRef
       setShares((prev) =>
         prev.map((s) =>
           s.categoryId === id ? { ...s, categoryId: null, categoryRef: null } : s,
@@ -269,6 +306,20 @@ export default function QuickSharesPage() {
         body.categoryId = createCategoryId;
       }
 
+      // 附加欄位
+      if (showExtraMemo && extraMemo.trim()) {
+        body.memo = extraMemo.trim();
+      }
+      if (showExtraUrl && extraUrl.trim()) {
+        body.linkUrl = extraUrl.trim();
+      }
+      if (showExtraLocation && extraLocationAddress.trim()) {
+        body.locationAddress = extraLocationAddress.trim();
+        if (extraLocationName.trim()) {
+          body.locationName = extraLocationName.trim();
+        }
+      }
+
       const res = await fetch('/api/quick-shares', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -285,6 +336,13 @@ export default function QuickSharesPage() {
       setContent('');
       setLocationTitle('');
       setCreateCategoryId('');
+      setExtraUrl('');
+      setExtraLocationAddress('');
+      setExtraLocationName('');
+      setExtraMemo('');
+      setShowExtraUrl(false);
+      setShowExtraLocation(false);
+      setShowExtraMemo(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : '分享失敗');
     } finally {
@@ -320,12 +378,19 @@ export default function QuickSharesPage() {
       title: share.title || '',
       visibility: share.visibility,
       categoryId: share.categoryId || '',
+      memo: share.memo || '',
+      linkUrl: share.linkUrl || '',
+      locationAddress: share.locationAddress || '',
+      locationName: share.locationName || '',
     });
   }
 
   function cancelEdit() {
     setEditingId(null);
-    setEditState({ content: '', title: '', visibility: 'FAMILY', categoryId: '' });
+    setEditState({
+      content: '', title: '', visibility: 'FAMILY', categoryId: '',
+      memo: '', linkUrl: '', locationAddress: '', locationName: '',
+    });
   }
 
   async function handleSaveEdit(share: QuickShareItem) {
@@ -346,6 +411,21 @@ export default function QuickSharesPage() {
       const newCatId = editState.categoryId || null;
       if (newCatId !== share.categoryId) {
         body.categoryId = newCatId;
+      }
+
+      // 附加欄位
+      const newMemo = editState.memo.trim() || null;
+      if (newMemo !== (share.memo || null)) {
+        body.memo = newMemo;
+      }
+      const newLinkUrl = editState.linkUrl.trim() || null;
+      if (newLinkUrl !== (share.linkUrl || null)) {
+        body.linkUrl = newLinkUrl;
+      }
+      const newLocAddr = editState.locationAddress.trim() || null;
+      if (newLocAddr !== (share.locationAddress || null)) {
+        body.locationAddress = newLocAddr;
+        body.locationName = editState.locationName.trim() || null;
       }
 
       if (Object.keys(body).length === 0) {
@@ -385,6 +465,15 @@ export default function QuickSharesPage() {
     }
   }
 
+  // 計算附加欄位數量 (badge 顯示)
+  function getExtraCount(share: QuickShareItem): number {
+    let c = 0;
+    if (share.memo) c++;
+    if (share.linkUrl) c++;
+    if (share.locationAddress) c++;
+    return c;
+  }
+
   return (
     <div className={styles.container}>
       <Link href="/bulletin" className={styles.backLink}>
@@ -395,18 +484,19 @@ export default function QuickSharesPage() {
         <h1 className={styles.pageTitle}>
           📌 快捷分享 <HelpGuide content={sharesHelp} />
         </h1>
-        <p className={styles.subtitle}>家人間的快速分享板</p>
+        <p className={styles.subtitle}>家人間的快速分享板 — 可同時附加網址、位置與備忘</p>
       </div>
 
       {/* ── 新增分享區 ────────────────────────────────────── */}
       <div className={styles.createCard}>
+        {/* 主要類型 Tab */}
         <div className={styles.typeTabs}>
           {(['LINK', 'LOCATION', 'MEMO'] as ShareType[]).map((t) => (
             <button
               key={t}
               type="button"
               className={`${styles.typeTab} ${createType === t ? styles.typeTabActive : ''}`}
-              onClick={() => { setCreateType(t); setContent(''); setLocationTitle(''); setError(''); }}
+              onClick={() => handleTypeChange(t)}
             >
               {t === 'LINK' && '🔗 網址'}
               {t === 'LOCATION' && '📍 位置'}
@@ -415,6 +505,7 @@ export default function QuickSharesPage() {
           ))}
         </div>
 
+        {/* 主要輸入欄位 */}
         <div className={styles.inputGroup}>
           {createType === 'LINK' && (
             <input
@@ -431,7 +522,7 @@ export default function QuickSharesPage() {
               <input
                 className={styles.input}
                 type="text"
-                placeholder="位置名稱（選填）"
+                placeholder="📍 位置名稱（選填）"
                 value={locationTitle}
                 onChange={(e) => setLocationTitle(e.target.value)}
               />
@@ -456,6 +547,92 @@ export default function QuickSharesPage() {
             />
           )}
         </div>
+
+        {/* ── 附加欄位切換按鈕 ─────────────────────────── */}
+        <div className={styles.extraToggleRow}>
+          <span className={styles.extraLabel}>附加：</span>
+          {createType !== 'LINK' && (
+            <button
+              type="button"
+              className={`${styles.extraToggleBtn} ${showExtraUrl ? styles.extraToggleBtnActive : ''}`}
+              onClick={() => { setShowExtraUrl(!showExtraUrl); if (showExtraUrl) setExtraUrl(''); }}
+            >
+              <Link2 size={14} /> 網址
+            </button>
+          )}
+          {createType !== 'LOCATION' && (
+            <button
+              type="button"
+              className={`${styles.extraToggleBtn} ${showExtraLocation ? styles.extraToggleBtnActive : ''}`}
+              onClick={() => { setShowExtraLocation(!showExtraLocation); if (showExtraLocation) { setExtraLocationAddress(''); setExtraLocationName(''); } }}
+            >
+              <MapPin size={14} /> 位置
+            </button>
+          )}
+          {createType !== 'MEMO' && (
+            <button
+              type="button"
+              className={`${styles.extraToggleBtn} ${showExtraMemo ? styles.extraToggleBtnActive : ''}`}
+              onClick={() => { setShowExtraMemo(!showExtraMemo); if (showExtraMemo) setExtraMemo(''); }}
+            >
+              <FileText size={14} /> 備忘
+            </button>
+          )}
+        </div>
+
+        {/* ── 附加欄位展開區 ───────────────────────────── */}
+        {showExtraUrl && (
+          <div className={styles.extraField}>
+            <div className={styles.extraFieldHeader}>
+              <Link2 size={14} /> <span>附加網址</span>
+            </div>
+            <input
+              className={styles.input}
+              type="url"
+              placeholder="輸入或貼上網址…"
+              value={extraUrl}
+              onChange={(e) => setExtraUrl(e.target.value)}
+            />
+          </div>
+        )}
+
+        {showExtraLocation && (
+          <div className={styles.extraField}>
+            <div className={styles.extraFieldHeader}>
+              <MapPin size={14} /> <span>附加位置</span>
+            </div>
+            <input
+              className={styles.input}
+              type="text"
+              placeholder="位置名稱（選填）"
+              value={extraLocationName}
+              onChange={(e) => setExtraLocationName(e.target.value)}
+            />
+            <input
+              className={styles.input}
+              type="text"
+              placeholder="地址或店名"
+              value={extraLocationAddress}
+              onChange={(e) => setExtraLocationAddress(e.target.value)}
+            />
+          </div>
+        )}
+
+        {showExtraMemo && (
+          <div className={styles.extraField}>
+            <div className={styles.extraFieldHeader}>
+              <FileText size={14} /> <span>附加備忘</span>
+            </div>
+            <textarea
+              className={styles.textarea}
+              placeholder="輸入備忘文字…"
+              value={extraMemo}
+              onChange={(e) => setExtraMemo(e.target.value)}
+              maxLength={500}
+              rows={2}
+            />
+          </div>
+        )}
 
         {/* 分類選擇 */}
         {categories.length > 0 && (
@@ -582,11 +759,12 @@ export default function QuickSharesPage() {
             const isAuthor = currentUserId === share.authorId;
             const isEditing = editingId === share.id;
             const catRef = share.categoryRef;
+            const extraCount = getExtraCount(share);
 
             return (
               <div
                 key={share.id}
-                className={`${styles.shareCard} ${share.pinned ? styles.shareCardPinned : ''} ${share.type === 'MEMO' && !isEditing ? styles.memoCard : ''}`}
+                className={`${styles.shareCard} ${share.pinned ? styles.shareCardPinned : ''} ${share.type === 'MEMO' && !isEditing && !share.linkUrl && !share.locationAddress ? styles.memoCard : ''}`}
               >
                 {share.pinned && <span className={styles.pinBadge}>📌</span>}
 
@@ -633,6 +811,58 @@ export default function QuickSharesPage() {
                         onChange={(e) => setEditState({ ...editState, content: e.target.value })}
                       />
                     )}
+
+                    {/* 編輯附加欄位 */}
+                    <div className={styles.editExtraSection}>
+                      <div className={styles.extraFieldHeader}>
+                        <FileText size={13} /> <span>附加備忘</span>
+                      </div>
+                      <textarea
+                        className={styles.textarea}
+                        placeholder="附加備忘文字（選填）…"
+                        value={editState.memo}
+                        onChange={(e) => setEditState({ ...editState, memo: e.target.value })}
+                        maxLength={500}
+                        rows={2}
+                      />
+
+                      {share.type !== 'LINK' && (
+                        <>
+                          <div className={styles.extraFieldHeader}>
+                            <Link2 size={13} /> <span>附加網址</span>
+                          </div>
+                          <input
+                            className={styles.input}
+                            type="url"
+                            placeholder="附加網址（選填）…"
+                            value={editState.linkUrl}
+                            onChange={(e) => setEditState({ ...editState, linkUrl: e.target.value })}
+                          />
+                        </>
+                      )}
+
+                      {share.type !== 'LOCATION' && (
+                        <>
+                          <div className={styles.extraFieldHeader}>
+                            <MapPin size={13} /> <span>附加位置</span>
+                          </div>
+                          <input
+                            className={styles.input}
+                            type="text"
+                            placeholder="位置名稱（選填）…"
+                            value={editState.locationName}
+                            onChange={(e) => setEditState({ ...editState, locationName: e.target.value })}
+                          />
+                          <input
+                            className={styles.input}
+                            type="text"
+                            placeholder="地址或店名（選填）…"
+                            value={editState.locationAddress}
+                            onChange={(e) => setEditState({ ...editState, locationAddress: e.target.value })}
+                          />
+                        </>
+                      )}
+                    </div>
 
                     {/* 編輯分類 */}
                     {categories.length > 0 && (
@@ -684,6 +914,7 @@ export default function QuickSharesPage() {
                 ) : (
                   /* ── 顯示模式 ──────────────────── */
                   <>
+                    {/* 主要內容 */}
                     {share.type === 'LINK' && (
                       <div className={styles.linkCard}>
                         {share.imageUrl && (
@@ -727,6 +958,48 @@ export default function QuickSharesPage() {
                     {share.type === 'MEMO' && (
                       <div className={styles.memoContent}>📝 {share.content}</div>
                     )}
+
+                    {/* ── 附加欄位顯示區 ───────────── */}
+                    {extraCount > 0 && (
+                      <div className={styles.extraDisplay}>
+                        {/* 附加備忘 */}
+                        {share.memo && (
+                          <div className={styles.extraItem}>
+                            <span className={styles.extraItemIcon}>📝</span>
+                            <span className={styles.extraItemContent}>{share.memo}</span>
+                          </div>
+                        )}
+
+                        {/* 附加網址 */}
+                        {share.linkUrl && (
+                          <div className={styles.extraItem}>
+                            <span className={styles.extraItemIcon}>🔗</span>
+                            <div className={styles.extraItemContent}>
+                              <span className={styles.extraLinkTitle}>{share.linkTitle || getDomain(share.linkUrl)}</span>
+                              <a href={share.linkUrl} target="_blank" rel="noopener noreferrer" className={styles.extraLinkUrl}>
+                                {getDomain(share.linkUrl)} →
+                              </a>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 附加位置 */}
+                        {share.locationAddress && (
+                          <div className={styles.extraItem}>
+                            <span className={styles.extraItemIcon}>📍</span>
+                            <div className={styles.extraItemContent}>
+                              {share.locationName && <span className={styles.extraLocName}>{share.locationName}</span>}
+                              <span className={styles.extraLocAddr}>{share.locationAddress}</span>
+                              {share.locationMapUrl && (
+                                <a href={share.locationMapUrl} target="_blank" rel="noopener noreferrer" className={styles.extraLocNav}>
+                                  🗺️ 導航
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </>
                 )}
 
@@ -741,6 +1014,7 @@ export default function QuickSharesPage() {
                         {share.updatedAt && share.updatedAt !== share.createdAt && ' (已編輯)'}
                       </span>
                       {share.visibility === 'PRIVATE' && <span className={styles.visibilityBadge}>🔒</span>}
+                      {extraCount > 0 && <span className={styles.extraCountBadge}>+{extraCount}</span>}
                     </div>
                     {isAuthor && (
                       <div className={styles.cardActions}>

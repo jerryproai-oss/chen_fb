@@ -92,6 +92,11 @@ export const POST = withAuth(async ({ user }, req) => {
     description?: string;
     visibility?: string;
     categoryId?: string | null;
+    // 附加欄位
+    memo?: string;
+    linkUrl?: string;
+    locationAddress?: string;
+    locationName?: string;
   };
 
   try {
@@ -125,7 +130,7 @@ export const POST = withAuth(async ({ user }, req) => {
     catId = categoryId;
   }
 
-  // 依類型處理
+  // 依主要類型處理
   let shareTitle = title?.trim() || null;
   let shareDescription = description?.trim() || null;
   let shareImageUrl: string | null = null;
@@ -148,6 +153,37 @@ export const POST = withAuth(async ({ user }, req) => {
     }
   }
 
+  // 處理附加備忘
+  const shareMemo = body.memo?.trim() || null;
+  if (shareMemo && shareMemo.length > 500) {
+    return NextResponse.json({ error: '備忘文字不能超過 500 字' }, { status: 400 });
+  }
+
+  // 處理附加網址
+  let shareLinkUrl: string | null = null;
+  let shareLinkTitle: string | null = null;
+  let shareLinkImage: string | null = null;
+  if (body.linkUrl?.trim()) {
+    const linkUrl = body.linkUrl.trim();
+    if (!/^https?:\/\//i.test(linkUrl)) {
+      return NextResponse.json({ error: '附加網址格式不正確' }, { status: 400 });
+    }
+    shareLinkUrl = linkUrl;
+    const ogMeta = await fetchOGMeta(linkUrl);
+    shareLinkTitle = ogMeta.title || null;
+    shareLinkImage = ogMeta.imageUrl || null;
+  }
+
+  // 處理附加位置
+  let shareLocationAddress: string | null = null;
+  let shareLocationName: string | null = null;
+  let shareLocationMapUrl: string | null = null;
+  if (body.locationAddress?.trim()) {
+    shareLocationAddress = body.locationAddress.trim();
+    shareLocationName = body.locationName?.trim() || null;
+    shareLocationMapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(shareLocationAddress)}`;
+  }
+
   const share = await prisma.quickShare.create({
     data: {
       authorId: user.id,
@@ -157,6 +193,13 @@ export const POST = withAuth(async ({ user }, req) => {
       description: shareDescription,
       imageUrl: shareImageUrl,
       mapUrl: shareMapUrl,
+      memo: shareMemo,
+      linkUrl: shareLinkUrl,
+      linkTitle: shareLinkTitle,
+      linkImage: shareLinkImage,
+      locationAddress: shareLocationAddress,
+      locationName: shareLocationName,
+      locationMapUrl: shareLocationMapUrl,
       visibility: vis as 'PRIVATE' | 'FAMILY',
       categoryId: catId,
     },

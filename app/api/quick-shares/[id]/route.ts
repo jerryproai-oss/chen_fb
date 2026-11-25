@@ -78,6 +78,10 @@ export const PATCH = withAuth(async ({ user }, req, routeCtx) => {
     description?: string;
     visibility?: string;
     categoryId?: string | null;
+    memo?: string | null;
+    linkUrl?: string | null;
+    locationAddress?: string | null;
+    locationName?: string | null;
   };
 
   try {
@@ -124,7 +128,7 @@ export const PATCH = withAuth(async ({ user }, req, routeCtx) => {
     }
   }
 
-  // 內容編輯
+  // 主要內容編輯
   if (body.content !== undefined && typeof body.content === 'string' && body.content.trim()) {
     updateData.content = body.content.trim();
 
@@ -153,6 +157,47 @@ export const PATCH = withAuth(async ({ user }, req, routeCtx) => {
   // 描述
   if (body.description !== undefined && share.type === 'LOCATION') {
     updateData.description = body.description?.trim() || null;
+  }
+
+  // 附加備忘
+  if (body.memo !== undefined) {
+    const m = typeof body.memo === 'string' ? body.memo.trim() : null;
+    if (m && m.length > 500) {
+      return NextResponse.json({ error: '備忘文字不能超過 500 字' }, { status: 400 });
+    }
+    updateData.memo = m || null;
+  }
+
+  // 附加網址
+  if (body.linkUrl !== undefined) {
+    const lu = typeof body.linkUrl === 'string' ? body.linkUrl.trim() : null;
+    if (lu) {
+      if (!/^https?:\/\//i.test(lu)) {
+        return NextResponse.json({ error: '附加網址格式不正確' }, { status: 400 });
+      }
+      updateData.linkUrl = lu;
+      const ogMeta = await fetchOGMeta(lu);
+      updateData.linkTitle = ogMeta.title || null;
+      updateData.linkImage = ogMeta.imageUrl || null;
+    } else {
+      updateData.linkUrl = null;
+      updateData.linkTitle = null;
+      updateData.linkImage = null;
+    }
+  }
+
+  // 附加位置
+  if (body.locationAddress !== undefined) {
+    const la = typeof body.locationAddress === 'string' ? body.locationAddress.trim() : null;
+    if (la) {
+      updateData.locationAddress = la;
+      updateData.locationName = body.locationName?.trim() || null;
+      updateData.locationMapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(la)}`;
+    } else {
+      updateData.locationAddress = null;
+      updateData.locationName = null;
+      updateData.locationMapUrl = null;
+    }
   }
 
   if (Object.keys(updateData).length === 0) {

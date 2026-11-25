@@ -1123,19 +1123,26 @@ model ShareCategory {
 }
 
 model QuickShare {
-  id          String               @id @default(uuid()) @db.Uuid
-  authorId    String               @map("author_id") @db.Uuid
-  type        QuickShareType                                      // LINK / LOCATION / MEMO
-  content     String                                               // URL / 地址文字 / 備忘文字
-  title       String?                                              // 網址標題 / 位置名稱 / null
-  description String?                                              // OG 描述 / 完整地址 / null
-  imageUrl    String?              @map("image_url")               // OG 圖片 / null
-  mapUrl      String?              @map("map_url")                 // Google Maps URL
-  pinned      Boolean              @default(false)
-  visibility  QuickShareVisibility @default(FAMILY)
-  categoryId  String?              @map("category_id") @db.Uuid   // 分類（選填）
-  updatedAt   DateTime?            @updatedAt @map("updated_at")   // 編輯時間
-  createdAt   DateTime             @default(now()) @map("created_at")
+  id              String               @id @default(uuid()) @db.Uuid
+  authorId        String               @map("author_id") @db.Uuid
+  type            QuickShareType                                      // 主要類型 LINK / LOCATION / MEMO
+  content         String                                               // 主要內容（URL / 地址 / 備忘）
+  title           String?                                              // 網址標題 / 位置名稱 / null
+  description     String?                                              // OG 描述 / 完整地址 / null
+  imageUrl        String?              @map("image_url")               // OG 圖片 / null
+  mapUrl          String?              @map("map_url")                 // Google Maps URL
+  memo            String?                                              // 附加備忘文字（所有類型可用）
+  linkUrl         String?              @map("link_url")                // 附加網址（LOCATION/MEMO 也可夾帶連結）
+  linkTitle       String?              @map("link_title")              // 附加網址的 OG 標題
+  linkImage       String?              @map("link_image")              // 附加網址的 OG 圖片
+  locationAddress String?              @map("location_address")        // 附加地址（LINK/MEMO 也可夾帶位置）
+  locationName    String?              @map("location_name")           // 附加地址名稱
+  locationMapUrl  String?              @map("location_map_url")        // 附加地址的 Maps URL
+  pinned          Boolean              @default(false)
+  visibility      QuickShareVisibility @default(FAMILY)
+  categoryId      String?              @map("category_id") @db.Uuid   // 分類（選填）
+  updatedAt       DateTime?            @updatedAt @map("updated_at")   // 編輯時間
+  createdAt       DateTime             @default(now()) @map("created_at")
 
   author      User                 @relation(fields: [authorId], references: [id], onDelete: Cascade)
   categoryRef ShareCategory?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
