@@ -391,6 +391,17 @@
   font-weight: 600;
 }
 
+/* 日期旁的用車 / 重要圖示 */
+.dayIconCar {
+  color: #039be5;
+  flex-shrink: 0;
+}
+
+.dayIconStar {
+  color: #f9a825;
+  flex-shrink: 0;
+}
+
 .dayCellEvents {
   display: flex;
   flex-direction: column;
