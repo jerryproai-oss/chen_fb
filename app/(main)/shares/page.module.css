@@ -264,9 +264,9 @@
 .extraDisplay {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 10px;
-  padding-top: 8px;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 6px;
   border-top: 1px dashed var(--border-color);
 }
 
@@ -275,16 +275,15 @@
   color: var(--text-tertiary);
   font-weight: 600;
   letter-spacing: 0.5px;
-  margin-bottom: 2px;
 }
 
 .extraItem {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: flex-start;
-  padding: 6px 10px;
+  padding: 4px 8px;
   background: rgba(90, 122, 90, 0.04);
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 [data-theme="dark"] .extraItem {
@@ -489,8 +488,8 @@
 
 .shareCard {
   background: var(--bg-card);
-  border-radius: 12px;
-  padding: var(--space-md);
+  border-radius: 10px;
+  padding: 10px 12px;
   border: 1px solid var(--border-color);
   border-left: 4px solid var(--border-color);
   transition: box-shadow 0.2s;
@@ -530,22 +529,22 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 6px;
+  margin-bottom: 6px;
   flex-wrap: wrap;
 }
 
 .cardTopLeft {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
 }
 
 .cardTopRight {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
 .typeBadge {
@@ -593,8 +592,8 @@
 
 .linkThumb {
   flex-shrink: 0;
-  width: 72px;
-  height: 72px;
+  width: 56px;
+  height: 56px;
   border-radius: 8px;
   overflow: hidden;
   background: var(--bg-page);
@@ -687,19 +686,19 @@
 .locationAddress {
   font-size: var(--font-size-sm);
   color: var(--text-secondary);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .locationNavBtn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: 4px;
+  padding: 4px 12px;
   background: #2d8a4e;
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: var(--font-size-sm);
+  border-radius: 6px;
+  font-size: var(--font-size-xs);
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
@@ -750,22 +749,23 @@
 .cardActions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+  margin-left: 4px;
 }
 
 .actionBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border: none;
   background: transparent;
   color: var(--text-tertiary);
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.2s;
-  font-size: 14px;
+  font-size: 13px;
   padding: 0;
 }
 

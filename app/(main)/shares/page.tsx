@@ -809,7 +809,7 @@ export default function QuickSharesPage() {
                 key={share.id}
                 className={`${styles.shareCard} ${typeCls} ${share.pinned ? styles.shareCardPinned : ''}`}
               >
-                {/* ── 卡片頂部：類型 + 分類 + 作者 + 時間 ── */}
+                {/* ── 卡片頂部：類型 + 分類 + 作者 + 時間 + 操作 ── */}
                 {!isEditing && (
                   <div className={styles.cardTopRow}>
                     <div className={styles.cardTopLeft}>
@@ -832,6 +832,13 @@ export default function QuickSharesPage() {
                         {timeAgo(share.createdAt)}
                         {share.updatedAt && share.updatedAt !== share.createdAt && ' (已編輯)'}
                       </span>
+                      {isAuthor && (
+                        <div className={styles.cardActions}>
+                          <button type="button" className={styles.actionBtn} onClick={() => startEdit(share)} title="編輯">✏️</button>
+                          <button type="button" className={styles.actionBtn} onClick={() => handleTogglePin(share)} title={share.pinned ? '取消置頂' : '置頂'}>📌</button>
+                          <button type="button" className={`${styles.actionBtn} ${styles.actionBtnDanger}`} onClick={() => handleDelete(share.id)} title="刪除">🗑</button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1054,24 +1061,6 @@ export default function QuickSharesPage() {
                             </div>
                           </div>
                         )}
-                      </div>
-                    )}
-
-                    {/* ── 卡片底部操作列 ───────────── */}
-                    {isAuthor && (
-                      <div className={styles.cardFooter}>
-                        <div />
-                        <div className={styles.cardActions}>
-                          <button type="button" className={styles.actionBtn} onClick={() => startEdit(share)} title="編輯">
-                            ✏️
-                          </button>
-                          <button type="button" className={styles.actionBtn} onClick={() => handleTogglePin(share)} title={share.pinned ? '取消置頂' : '置頂'}>
-                            📌
-                          </button>
-                          <button type="button" className={`${styles.actionBtn} ${styles.actionBtnDanger}`} onClick={() => handleDelete(share.id)} title="刪除">
-                            🗑
-                          </button>
-                        </div>
                       </div>
                     )}
                   </>
