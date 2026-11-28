@@ -270,6 +270,14 @@
   border-top: 1px dashed var(--border-color);
 }
 
+.extraSectionLabel {
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
 .extraItem {
   display: flex;
   gap: 8px;
@@ -476,7 +484,7 @@
 .shareList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .shareCard {
@@ -484,6 +492,7 @@
   border-radius: 12px;
   padding: var(--space-md);
   border: 1px solid var(--border-color);
+  border-left: 4px solid var(--border-color);
   transition: box-shadow 0.2s;
   position: relative;
 }
@@ -492,16 +501,87 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
+/* 類型色帶 */
+.cardTypeLink {
+  border-left-color: #1976d2;
+}
+
+.cardTypeLocation {
+  border-left-color: #2d8a4e;
+}
+
+.cardTypeMemo {
+  border-left-color: #e6a817;
+  background: #fffde7;
+}
+
+[data-theme="dark"] .cardTypeMemo {
+  background: #3a3520;
+}
+
 .shareCardPinned {
   border-color: #d4a854;
   box-shadow: 0 0 0 1px rgba(212, 168, 84, 0.3);
 }
 
+/* ── 卡片頂部列 ─────────────────────────────────────────────── */
+
+.cardTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.cardTopLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.cardTopRight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.typeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.6;
+}
+
+.typeBadge.cardTypeLink {
+  background: #1976d2;
+}
+
+.typeBadge.cardTypeLocation {
+  background: #2d8a4e;
+}
+
+.typeBadge.cardTypeMemo {
+  background: #e6a817;
+  color: #3a3520;
+}
+
 .pinBadge {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* ── 卡片主體 ───────────────────────────────────────────────── */
+
+.cardBody {
+  /* clean separation */
 }
 
 /* ── LINK 卡片 ──────────────────────────────────────────────── */
@@ -632,18 +712,6 @@
 
 /* ── MEMO 卡片 ──────────────────────────────────────────────── */
 
-.memoCard {
-  background: #fffde7;
-  border-radius: 12px;
-  padding: var(--space-md);
-  border: 1px solid #f0e68c;
-}
-
-[data-theme="dark"] .memoCard {
-  background: #3a3520;
-  border-color: #554d2a;
-}
-
 .memoContent {
   font-size: var(--font-size-base);
   color: var(--text-primary);
@@ -771,7 +839,6 @@
   font-size: var(--font-size-xs);
   font-weight: 500;
   border-radius: 12px;
-  margin-bottom: 8px;
   cursor: pointer;
   transition: background 0.2s;
 }

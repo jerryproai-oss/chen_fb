@@ -4,6 +4,17 @@ import { prisma } from '@/lib/db/client';
 
 // ── OG Meta 抓取 ────────────────────────────────────────────
 
+function decodeHtmlEntities(str: string): string {
+  return str
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)))
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'");
+}
+
 async function fetchOGMeta(url: string): Promise<{ title?: string; description?: string; imageUrl?: string }> {
   try {
     const res = await fetch(url, {
@@ -15,11 +26,12 @@ async function fetchOGMeta(url: string): Promise<{ title?: string; description?:
     const getMetaContent = (property: string) => {
       const match = html.match(new RegExp(`<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']+)["']`, 'i'))
         || html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${property}["']`, 'i'));
-      return match ? match[1] : undefined;
+      return match ? decodeHtmlEntities(match[1]) : undefined;
     };
 
-    const title = getMetaContent('og:title')
+    const rawTitle = getMetaContent('og:title')
       || html.match(/<title[^>]*>([^<]+)<\/title>/i)?.[1]?.trim();
+    const title = rawTitle ? decodeHtmlEntities(rawTitle) : undefined;
     const description = getMetaContent('og:description') || getMetaContent('description');
     const imageUrl = getMetaContent('og:image');
 

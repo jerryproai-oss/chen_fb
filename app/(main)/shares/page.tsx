@@ -801,35 +801,49 @@ export default function QuickSharesPage() {
             const isEditing = editingId === share.id;
             const catRef = share.categoryRef;
             const extraCount = getExtraCount(share);
+            const typeLabel = share.type === 'LINK' ? '🔗 網址' : share.type === 'LOCATION' ? '📍 位置' : '📝 備忘';
+            const typeCls = share.type === 'LINK' ? styles.cardTypeLink : share.type === 'LOCATION' ? styles.cardTypeLocation : styles.cardTypeMemo;
 
             return (
               <div
                 key={share.id}
-                className={`${styles.shareCard} ${share.pinned ? styles.shareCardPinned : ''} ${share.type === 'MEMO' && !isEditing && !share.linkUrl && !share.locationAddress ? styles.memoCard : ''}`}
+                className={`${styles.shareCard} ${typeCls} ${share.pinned ? styles.shareCardPinned : ''}`}
               >
-                {share.pinned && <span className={styles.pinBadge}>📌</span>}
-
-                {/* 分類 Badge */}
-                {catRef && !isEditing && (
-                  <span
-                    className={styles.categoryBadge}
-                    onClick={() => {
-                      setCategoryFilter(catRef.id);
-                      setShowCategoryFilter(true);
-                    }}
-                  >
-                    {catRef.emoji} {catRef.name}
-                  </span>
+                {/* ── 卡片頂部：類型 + 分類 + 作者 + 時間 ── */}
+                {!isEditing && (
+                  <div className={styles.cardTopRow}>
+                    <div className={styles.cardTopLeft}>
+                      <span className={`${styles.typeBadge} ${typeCls}`}>{typeLabel}</span>
+                      {catRef && (
+                        <span
+                          className={styles.categoryBadge}
+                          onClick={() => { setCategoryFilter(catRef.id); setShowCategoryFilter(true); }}
+                        >
+                          {catRef.emoji} {catRef.name}
+                        </span>
+                      )}
+                      {share.pinned && <span className={styles.pinBadge}>📌</span>}
+                      {share.visibility === 'PRIVATE' && <span className={styles.visibilityBadge}>🔒</span>}
+                    </div>
+                    <div className={styles.cardTopRight}>
+                      <Avatar name={share.author.displayName} avatarUrl={share.author.avatarUrl} size="xs" />
+                      <span className={styles.cardAuthor}>{share.author.displayName}</span>
+                      <span className={styles.cardTime}>
+                        {timeAgo(share.createdAt)}
+                        {share.updatedAt && share.updatedAt !== share.createdAt && ' (已編輯)'}
+                      </span>
+                    </div>
+                  </div>
                 )}
 
                 {isEditing ? (
                   /* ── 編輯模式 ──────────────────── */
                   <div className={styles.editForm}>
-                    {share.type === 'LOCATION' && (
+                    {(share.type === 'LINK' || share.type === 'LOCATION') && (
                       <input
                         className={styles.input}
                         type="text"
-                        placeholder="位置名稱（選填）"
+                        placeholder={share.type === 'LINK' ? '標題（選填）' : '位置名稱（選填）'}
                         value={editState.title}
                         onChange={(e) => setEditState({ ...editState, title: e.target.value })}
                       />
@@ -956,53 +970,54 @@ export default function QuickSharesPage() {
                   /* ── 顯示模式 ──────────────────── */
                   <>
                     {/* 主要內容 */}
-                    {share.type === 'LINK' && (
-                      <div className={styles.linkCard}>
-                        {share.imageUrl && (
-                          <div className={styles.linkThumb}>
-                            <img
-                              src={share.imageUrl}
-                              alt=""
-                              className={styles.linkThumbImg}
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                            />
-                          </div>
-                        )}
-                        <div className={styles.linkInfo}>
-                          <div className={styles.linkHeader}>
-                            <span className={styles.linkTitle}>🔗 {share.title || share.content}</span>
-                          </div>
-                          {share.description && <div className={styles.linkDesc}>{share.description}</div>}
-                          <div className={styles.linkActions}>
-                            <span className={styles.linkDomain}>🌐 {getDomain(share.content)}</span>
-                            <a href={share.content} target="_blank" rel="noopener noreferrer" className={styles.linkOpen}>
-                              開啟 →
-                            </a>
+                    <div className={styles.cardBody}>
+                      {share.type === 'LINK' && (
+                        <div className={styles.linkCard}>
+                          {share.imageUrl && (
+                            <div className={styles.linkThumb}>
+                              <img
+                                src={share.imageUrl}
+                                alt=""
+                                className={styles.linkThumbImg}
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                              />
+                            </div>
+                          )}
+                          <div className={styles.linkInfo}>
+                            <div className={styles.linkTitle}>{share.title || share.content}</div>
+                            {share.description && <div className={styles.linkDesc}>{share.description}</div>}
+                            <div className={styles.linkActions}>
+                              <span className={styles.linkDomain}>🌐 {getDomain(share.content)}</span>
+                              <a href={share.content} target="_blank" rel="noopener noreferrer" className={styles.linkOpen}>
+                                開啟 →
+                              </a>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {share.type === 'LOCATION' && (
-                      <div>
-                        <div className={styles.locationTitle}>📍 {share.title || share.content}</div>
-                        {share.title && <div className={styles.locationAddress}>{share.content}</div>}
-                        {share.description && <div className={styles.locationAddress}>{share.description}</div>}
-                        {share.mapUrl && (
-                          <a href={share.mapUrl} target="_blank" rel="noopener noreferrer" className={styles.locationNavBtn}>
-                            🗺️ 開啟導航
-                          </a>
-                        )}
-                      </div>
-                    )}
+                      {share.type === 'LOCATION' && (
+                        <div>
+                          <div className={styles.locationTitle}>{share.title || share.content}</div>
+                          {share.title && <div className={styles.locationAddress}>{share.content}</div>}
+                          {share.description && <div className={styles.locationAddress}>{share.description}</div>}
+                          {share.mapUrl && (
+                            <a href={share.mapUrl} target="_blank" rel="noopener noreferrer" className={styles.locationNavBtn}>
+                              🗺️ 開啟導航
+                            </a>
+                          )}
+                        </div>
+                      )}
 
-                    {share.type === 'MEMO' && (
-                      <div className={styles.memoContent}>📝 {share.content}</div>
-                    )}
+                      {share.type === 'MEMO' && (
+                        <div className={styles.memoContent}>{share.content}</div>
+                      )}
+                    </div>
 
-                    {/* ── 附加欄位顯示區 ───────────── */}
+                    {/* ── 附加資訊 ───────────── */}
                     {extraCount > 0 && (
                       <div className={styles.extraDisplay}>
+                        <div className={styles.extraSectionLabel}>附加資訊</div>
                         {/* 附加備忘 */}
                         {share.memo && (
                           <div className={styles.extraItem}>
@@ -1041,36 +1056,25 @@ export default function QuickSharesPage() {
                         )}
                       </div>
                     )}
-                  </>
-                )}
 
-                {/* 底部：作者 + 時間 + 操作 */}
-                {!isEditing && (
-                  <div className={styles.cardFooter}>
-                    <div className={styles.cardMeta}>
-                      <Avatar name={share.author.displayName} avatarUrl={share.author.avatarUrl} size="xs" />
-                      <span className={styles.cardAuthor}>{share.author.displayName}</span>
-                      <span className={styles.cardTime}>
-                        {timeAgo(share.createdAt)}
-                        {share.updatedAt && share.updatedAt !== share.createdAt && ' (已編輯)'}
-                      </span>
-                      {share.visibility === 'PRIVATE' && <span className={styles.visibilityBadge}>🔒</span>}
-                      {extraCount > 0 && <span className={styles.extraCountBadge}>+{extraCount}</span>}
-                    </div>
+                    {/* ── 卡片底部操作列 ───────────── */}
                     {isAuthor && (
-                      <div className={styles.cardActions}>
-                        <button type="button" className={styles.actionBtn} onClick={() => startEdit(share)} title="編輯">
-                          ✏️
-                        </button>
-                        <button type="button" className={styles.actionBtn} onClick={() => handleTogglePin(share)} title={share.pinned ? '取消置頂' : '置頂'}>
-                          📌
-                        </button>
-                        <button type="button" className={`${styles.actionBtn} ${styles.actionBtnDanger}`} onClick={() => handleDelete(share.id)} title="刪除">
-                          🗑
-                        </button>
+                      <div className={styles.cardFooter}>
+                        <div />
+                        <div className={styles.cardActions}>
+                          <button type="button" className={styles.actionBtn} onClick={() => startEdit(share)} title="編輯">
+                            ✏️
+                          </button>
+                          <button type="button" className={styles.actionBtn} onClick={() => handleTogglePin(share)} title={share.pinned ? '取消置頂' : '置頂'}>
+                            📌
+                          </button>
+                          <button type="button" className={`${styles.actionBtn} ${styles.actionBtnDanger}`} onClick={() => handleDelete(share.id)} title="刪除">
+                            🗑
+                          </button>
+                        </div>
                       </div>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
             );
