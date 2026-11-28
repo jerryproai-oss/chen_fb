@@ -192,11 +192,23 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
 
     // 將 CarBooking 轉換為 FamilyEventItem 合併顯示
     // 收集已透過 FamilyEvent needsCar 標記的日期範圍，避免重複
-    const needsCarEventDates = new Set<string>();
+    // 使用 { authorId, startDate, endDate } 陣列比對，支援跨天事件
+    const needsCarEventRanges: { authorId: string; start: string; end: string }[] = [];
     for (const ev of formattedEvents) {
       if (ev.needsCar) {
-        needsCarEventDates.add(`${ev.authorId}_${ev.eventDate}`);
+        needsCarEventRanges.push({
+          authorId: ev.authorId,
+          start: ev.eventDate,
+          end: ev.endDate || ev.eventDate,
+        });
       }
+    }
+
+    /** 判斷 CarBooking 是否已被 FamilyEvent needsCar 涵蓋（日期範圍重疊） */
+    function isBookingCoveredByEvent(userId: string, bStart: string, bEnd: string): boolean {
+      return needsCarEventRanges.some(r =>
+        r.authorId === userId && r.start <= bEnd && r.end >= bStart
+      );
     }
 
     const STATUS_LABEL: Record<string, string> = {
@@ -210,8 +222,8 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
       const bEndDate = booking.endDate.toISOString().split('T')[0];
       const isSameDay = bStartDate === bEndDate;
 
-      // 若此預約的起始日已有同一使用者的 needsCar 事件，跳過避免重複
-      if (needsCarEventDates.has(`${booking.userId}_${bStartDate}`)) continue;
+      // 若此預約已被同一使用者的 needsCar 事件日期範圍涵蓋，跳過避免重複
+      if (isBookingCoveredByEvent(booking.userId, bStartDate, bEndDate)) continue;
 
       const statusText = STATUS_LABEL[booking.status] || booking.status;
       const title = `🚗 ${booking.user.displayName} 用車`;

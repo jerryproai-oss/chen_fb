@@ -147,11 +147,17 @@ export default function CalendarPage() {
     });
   }, []);
 
-  /** 用車事件在行事曆中的顯示標題：「暱稱 用車」 */
+  /** 事件在行事曆中的顯示標題
+   *  - CarBooking 合成事件（id 以 carbooking_ 開頭）→「暱稱 用車」
+   *  - FamilyEvent 有 needsCar 但本身有標題 → 保留原始標題
+   *  - FamilyEvent 標題為空/預設「暱稱 用車」→「暱稱 用車」
+   */
   const evDisplayTitle = useCallback((ev: FamilyEventItem): string => {
-    if (ev.needsCar && ev.author?.displayName) {
-      return `${ev.author.displayName} 用車`;
+    // CarBooking 合成的虛擬事件：固定顯示「暱稱 用車」
+    if (ev.id.startsWith('carbooking_')) {
+      return ev.author?.displayName ? `${ev.author.displayName} 用車` : ev.title;
     }
+    // FamilyEvent 有自己的標題，直接使用
     return ev.title;
   }, []);
 
@@ -717,7 +723,13 @@ export default function CalendarPage() {
                                             handleOpenEditModal(seg.event);
                                           }}
                                         >
-                                          {isSegStart ? evDisplayTitle(seg.event) : ''}
+                                          {isSegStart && (
+                                            <>
+                                              {seg.event.needsCar && <Car size={9} style={{ flexShrink: 0, marginRight: 2 }} />}
+                                              {seg.event.isImportant && <Star size={9} style={{ flexShrink: 0, marginRight: 2 }} />}
+                                              {evDisplayTitle(seg.event)}
+                                            </>
+                                          )}
                                         </div>
                                       );
                                     })}
@@ -1608,7 +1620,7 @@ function EventsSection({
                 </div>
 
                 <div className={styles.eventTitle}>
-                  {event.needsCar && event.author?.displayName
+                  {event.id.startsWith('carbooking_') && event.author?.displayName
                     ? `${event.author.displayName} 用車`
                     : event.title}
                 </div>
