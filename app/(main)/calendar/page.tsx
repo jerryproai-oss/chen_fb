@@ -689,10 +689,10 @@ export default function CalendarPage() {
                                   )}
                                   {/* 用車 / 重要 圖示 — 放在日期旁 */}
                                   {allDayEvents.some(e => e.needsCar) && (
-                                    <Car size={14} className={styles.dayIconCar} />
+                                    <Car size={18} className={styles.dayIconCar} />
                                   )}
                                   {allDayEvents.some(e => e.isImportant) && (
-                                    <Star size={14} className={styles.dayIconStar} />
+                                    <Star size={16} className={styles.dayIconStar} />
                                   )}
                                 </div>
                                 {/* 多天事件段區（每個 row 一格） */}

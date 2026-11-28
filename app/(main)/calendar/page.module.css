@@ -393,13 +393,15 @@
 
 /* 日期旁的用車 / 重要圖示 */
 .dayIconCar {
-  color: #039be5;
+  color: #d32f2f;
   flex-shrink: 0;
+  filter: drop-shadow(0 0 1px rgba(211, 47, 47, 0.4));
 }
 
 .dayIconStar {
   color: #f9a825;
   flex-shrink: 0;
+  filter: drop-shadow(0 0 1px rgba(249, 168, 37, 0.4));
 }
 
 .dayCellEvents {
