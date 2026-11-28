@@ -138,7 +138,7 @@ export const POST = withAuth(async ({ user }, req) => {
       return NextResponse.json({ error: '請輸入有效的網址（以 http:// 或 https:// 開頭）' }, { status: 400 });
     }
     const ogMeta = await fetchOGMeta(content.trim());
-    shareTitle = ogMeta.title || content.trim();
+    shareTitle = shareTitle || ogMeta.title || content.trim();
     shareDescription = ogMeta.description || null;
     shareImageUrl = ogMeta.imageUrl || null;
   } else if (type === 'LOCATION') {

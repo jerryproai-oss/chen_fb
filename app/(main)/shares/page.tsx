@@ -112,6 +112,7 @@ export default function QuickSharesPage() {
   // 新增分享表單 — 主要類型
   const [createType, setCreateType] = useState<ShareType>('LINK');
   const [content, setContent] = useState('');
+  const [linkTitle, setLinkTitle] = useState('');
   const [locationTitle, setLocationTitle] = useState('');
   const [visibility, setVisibility] = useState<'FAMILY' | 'PRIVATE'>('FAMILY');
   const [createCategoryId, setCreateCategoryId] = useState('');
@@ -199,6 +200,7 @@ export default function QuickSharesPage() {
   function handleTypeChange(t: ShareType) {
     setCreateType(t);
     setContent('');
+    setLinkTitle('');
     setLocationTitle('');
     setError('');
     // 切換類型時，隱藏當前類型對應的附加欄位（因為它已是主要欄位）
@@ -325,6 +327,9 @@ export default function QuickSharesPage() {
         content: content.trim(),
         visibility,
       };
+      if (createType === 'LINK' && linkTitle.trim()) {
+        body.title = linkTitle.trim();
+      }
       if (createType === 'LOCATION' && locationTitle.trim()) {
         body.title = locationTitle.trim();
       }
@@ -360,6 +365,7 @@ export default function QuickSharesPage() {
       const newShare = await res.json();
       setShares((prev) => [newShare, ...prev]);
       setContent('');
+      setLinkTitle('');
       setLocationTitle('');
       setCreateCategoryId('');
       setExtraUrl('');
@@ -534,14 +540,23 @@ export default function QuickSharesPage() {
         {/* 主要輸入欄位 */}
         <div className={styles.inputGroup}>
           {createType === 'LINK' && (
-            <input
-              className={styles.input}
-              type="url"
-              placeholder="輸入或貼上網址…"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) handleSubmit(); }}
-            />
+            <>
+              <input
+                className={styles.input}
+                type="text"
+                placeholder="📝 標題（選填，留空自動抓取網頁標題）"
+                value={linkTitle}
+                onChange={(e) => setLinkTitle(e.target.value)}
+              />
+              <input
+                className={styles.input}
+                type="url"
+                placeholder="輸入或貼上網址…"
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) handleSubmit(); }}
+              />
+            </>
           )}
           {createType === 'LOCATION' && (
             <>
