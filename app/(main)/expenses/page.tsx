@@ -405,12 +405,7 @@ export default function ExpensesPage() {
 
   // ── 分組紀錄 ──────────────────────────────────────────
 
-  const groupedRecords = records.reduce<Record<string, ExpenseRecord[]>>((acc, record) => {
-    const dateStr = record.date.split('T')[0];
-    if (!acc[dateStr]) acc[dateStr] = [];
-    acc[dateStr].push(record);
-    return acc;
-  }, {});
+  const groupedRecords = Object.groupBy(records, (record) => record.date.split('T')[0]);
 
   const sortedDates = Object.keys(groupedRecords).sort((a, b) => b.localeCompare(a));
 
@@ -549,7 +544,7 @@ export default function ExpensesPage() {
               setAddAmount(val);
             }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSubmit();
+              if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) handleSubmit();
             }}
           />
         </div>
@@ -582,7 +577,7 @@ export default function ExpensesPage() {
             value={addNote}
             onChange={(e) => setAddNote(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSubmit();
+              if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) handleSubmit();
             }}
           />
         </div>
@@ -615,7 +610,7 @@ export default function ExpensesPage() {
           sortedDates.map((dateStr) => (
             <div key={dateStr} className={styles.dateGroup}>
               <div className={styles.dateHeader}>{getDateLabel(dateStr)}</div>
-              {groupedRecords[dateStr].map((record) => (
+              {(groupedRecords[dateStr] ?? []).map((record) => (
                 <div key={record.id} className={styles.recordItem}>
                   <div className={styles.recordEmoji}>
                     {record.category?.emoji || '📦'}
@@ -696,7 +691,7 @@ export default function ExpensesPage() {
                           className={styles.addCatInput}
                           value={editCatName}
                           onChange={(e) => setEditCatName(e.target.value)}
-                          onKeyDown={(e) => { if (e.key === 'Enter') handleEditCategory(); }}
+                          onKeyDown={(e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) handleEditCategory(); }}
                           autoFocus
                         />
                         <button className={styles.addCatBtn} onClick={handleEditCategory}>
@@ -782,7 +777,7 @@ export default function ExpensesPage() {
                   placeholder="新增分類名稱"
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleAddCategory(); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) handleAddCategory(); }}
                 />
                 <button
                   className={styles.addCatBtn}

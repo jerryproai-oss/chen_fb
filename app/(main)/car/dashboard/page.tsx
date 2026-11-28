@@ -216,8 +216,7 @@ export default function CarDashboardPage() {
 
   // 油耗趨勢
   const fuelData: FuelPoint[] = fuelRecords
-    .slice()
-    .sort((a, b) => new Date(a.fuelDate).getTime() - new Date(b.fuelDate).getTime())
+    .toSorted((a, b) => new Date(a.fuelDate).getTime() - new Date(b.fuelDate).getTime())
     .map((f) => ({
       date: `${new Date(f.fuelDate).getMonth() + 1}/${new Date(f.fuelDate).getDate()}`,
       efficiency: f.fuelEfficiency,

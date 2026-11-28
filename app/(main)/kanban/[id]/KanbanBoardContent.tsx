@@ -283,7 +283,7 @@ function SortableColumn({
               placeholder="輸入卡片標題..."
               value={newCardTitle}
               onChange={(e) => setNewCardTitle(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleAddCard(); if (e.key === 'Escape') setShowAddCard(false); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) handleAddCard(); if (e.key === 'Escape') setShowAddCard(false); }}
               autoFocus
             />
             <div className={styles.addCardActions}>
@@ -918,7 +918,7 @@ export default function KanbanBoardContent() {
                   placeholder="欄位名稱..."
                   value={newColumnTitle}
                   onChange={(e) => setNewColumnTitle(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleAddColumn(); if (e.key === 'Escape') setShowAddColumn(false); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) handleAddColumn(); if (e.key === 'Escape') setShowAddColumn(false); }}
                   autoFocus
                 />
                 <div className={styles.addColumnActions}>
@@ -1109,7 +1109,7 @@ export default function KanbanBoardContent() {
                   placeholder="新增子任務..."
                   value={newChecklistText}
                   onChange={(e) => setNewChecklistText(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') addChecklist(); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) addChecklist(); }}
                 />
                 <button className={styles.checklistAddBtn} onClick={addChecklist}>
                   <Plus size={14} />

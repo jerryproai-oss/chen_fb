@@ -6,13 +6,10 @@ import { prisma } from '@/lib/db/client';
 
 async function fetchOGMeta(url: string): Promise<{ title?: string; description?: string; imageUrl?: string }> {
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
     const res = await fetch(url, {
-      signal: controller.signal,
+      signal: AbortSignal.timeout(5000),
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ShiriBot/1.0)' },
     });
-    clearTimeout(timeout);
 
     const html = await res.text();
     const getMetaContent = (property: string) => {

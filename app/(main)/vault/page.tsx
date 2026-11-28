@@ -146,7 +146,7 @@ export default function VaultPage() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) {
       if (setupMode) handleSetup();
       else handleUnlock();
     }

@@ -214,7 +214,7 @@ export default function FuelPage() {
   };
 
   // 近 5 次平均油耗
-  const sortedRecords = [...records].sort((a, b) => a.fuelDate.localeCompare(b.fuelDate));
+  const sortedRecords = records.toSorted((a, b) => a.fuelDate.localeCompare(b.fuelDate));
   const recentEfficiencies: number[] = [];
   for (let i = sortedRecords.length - 1; i >= 1 && recentEfficiencies.length < 5; i--) {
     const r = sortedRecords[i];
@@ -242,7 +242,7 @@ export default function FuelPage() {
     };
   });
 
-  const displayRecords = [...records].sort((a, b) => b.fuelDate.localeCompare(a.fuelDate));
+  const displayRecords = records.toSorted((a, b) => b.fuelDate.localeCompare(a.fuelDate));
 
   if (loading) {
     return <div className={styles.container}><div className={styles.loading}>載入中...</div></div>;

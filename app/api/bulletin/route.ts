@@ -124,19 +124,16 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
     const carSchedule = allItems.filter((e) => e.needsCar);
 
     // 找出用車衝突日期（同日 ≥2 個不同使用者的用車事件）
-    const carByDate: Record<string, FamilyEventItem[]> = {};
-    for (const ev of carSchedule) {
-      if (!carByDate[ev.eventDate]) carByDate[ev.eventDate] = [];
-      carByDate[ev.eventDate].push(ev);
-    }
+    const carByDate = Object.groupBy(carSchedule, (ev) => ev.eventDate);
 
     const carConflicts = Object.entries(carByDate)
       .filter(([, evs]) => {
+        if (!evs) return false;
         // 同日有 ≥2 個不同使用者的用車事件才算衝突
         const uniqueAuthors = new Set(evs.map((e) => e.authorId));
         return uniqueAuthors.size >= 2;
       })
-      .map(([date, evs]) => ({ date, events: evs }))
+      .map(([date, evs]) => ({ date, events: evs! }))
       .sort((a, b) => a.date.localeCompare(b.date));
 
     return NextResponse.json({

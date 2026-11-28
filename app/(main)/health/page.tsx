@@ -373,8 +373,7 @@ export default function HealthPage() {
 
   const chartData = (() => {
     const sorted = records
-      .slice()
-      .sort((a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime());
+      .toSorted((a, b) => new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime());
 
     // 按日期分組
     const dayMap = new Map<string, typeof records>();

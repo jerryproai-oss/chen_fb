@@ -174,7 +174,7 @@ export default function NoteEditor({ noteData, isNew }: NoteEditorProps) {
   }
 
   function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
+    if (((e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) || e.key === ',') && tagInput.trim()) {
       e.preventDefault();
       const newTag = tagInput.trim().replace(/,/g, '');
       if (newTag && !tags.includes(newTag) && tags.length < 20) {

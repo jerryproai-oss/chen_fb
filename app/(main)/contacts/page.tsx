@@ -109,7 +109,7 @@ export default function ContactsPage() {
 
   // ── 過濾與分組 ─────────────────────────────────
   const grouped = useMemo(() => {
-    const sorted = [...contacts].sort((a, b) =>
+    const sorted = contacts.toSorted((a, b) =>
       a.name.localeCompare(b.name, 'zh-Hant')
     );
     const map = new Map<string, Contact[]>();

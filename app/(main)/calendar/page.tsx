@@ -413,12 +413,7 @@ export default function CalendarPage() {
 
   // 建立日期→事件的 map（用於週視圖、日視圖、選取日期列表）
   const eventsByDate = useMemo(() => {
-    const map: Record<string, FamilyEventItem[]> = {};
-    for (const ev of events) {
-      if (!map[ev.eventDate]) map[ev.eventDate] = [];
-      map[ev.eventDate].push(ev);
-    }
-    return map;
+    return Object.groupBy(events, (ev) => ev.eventDate);
   }, [events]);
 
   // ── 月視圖：多天事件橫跨計算（Google Calendar 風格） ────

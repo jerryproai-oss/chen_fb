@@ -540,7 +540,7 @@ export default function QuickSharesPage() {
               placeholder="輸入或貼上網址…"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) handleSubmit(); }}
             />
           )}
           {createType === 'LOCATION' && (
@@ -558,7 +558,7 @@ export default function QuickSharesPage() {
                 placeholder="地址或店名"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleSubmit(); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) handleSubmit(); }}
               />
             </>
           )}
@@ -1095,7 +1095,7 @@ export default function QuickSharesPage() {
                 value={newCatName}
                 onChange={(e) => setNewCatName(e.target.value)}
                 maxLength={20}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleAddCategory(); }}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) handleAddCategory(); }}
               />
               <button
                 type="button"
@@ -1137,7 +1137,7 @@ export default function QuickSharesPage() {
                           value={editCatName}
                           onChange={(e) => setEditCatName(e.target.value)}
                           maxLength={20}
-                          onKeyDown={(e) => { if (e.key === 'Enter') handleSaveCategory(); }}
+                          onKeyDown={(e) => { if (e.key === 'Enter' && !e.isComposing && e.keyCode !== 229) handleSaveCategory(); }}
                         />
                         <button type="button" className={styles.catSaveBtn} onClick={handleSaveCategory} disabled={catSaving || !editCatName.trim()}>
                           <Check size={14} />

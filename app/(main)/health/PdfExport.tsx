@@ -314,7 +314,7 @@ export default function PdfExport({ onClose }: PdfExportProps) {
       }
 
       // Sort by time
-      const sorted = records.slice().sort((a, b) =>
+      const sorted = records.toSorted((a, b) =>
         new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime()
       );
       const dates = sorted.map(r => {
