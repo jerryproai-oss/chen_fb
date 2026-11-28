@@ -725,9 +725,9 @@ export default function CalendarPage() {
                                         >
                                           {isSegStart && (
                                             <>
-                                              {seg.event.needsCar && <Car size={9} style={{ flexShrink: 0, marginRight: 2 }} />}
-                                              {seg.event.isImportant && <Star size={9} style={{ flexShrink: 0, marginRight: 2 }} />}
-                                              {evDisplayTitle(seg.event)}
+                                              {seg.event.needsCar && <Car size={11} style={{ flexShrink: 0 }} />}
+                                              {seg.event.isImportant && <Star size={11} style={{ flexShrink: 0 }} />}
+                                              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{evDisplayTitle(seg.event)}</span>
                                             </>
                                           )}
                                         </div>
@@ -748,9 +748,9 @@ export default function CalendarPage() {
                                         handleOpenEditModal(ev);
                                       }}
                                     >
-                                      {ev.needsCar && <Car size={9} style={{ flexShrink: 0 }} />}
-                                      {ev.isImportant && <Star size={9} style={{ flexShrink: 0 }} />}
-                                      {!ev.isAllDay && ev.eventTime ? `${ev.eventTime} ` : ''}{evDisplayTitle(ev)}
+                                      {ev.needsCar && <Car size={11} style={{ flexShrink: 0 }} />}
+                                      {ev.isImportant && <Star size={11} style={{ flexShrink: 0 }} />}
+                                      <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{!ev.isAllDay && ev.eventTime ? `${ev.eventTime} ` : ''}{evDisplayTitle(ev)}</span>
                                     </div>
                                   ))}
                                   {singleEvents.length > maxShow && (

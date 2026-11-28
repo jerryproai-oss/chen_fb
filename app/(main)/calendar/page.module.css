@@ -277,6 +277,9 @@
   line-height: 18px;
   box-sizing: border-box;
   transition: opacity var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .spanBar:hover {
@@ -409,6 +412,9 @@
   text-overflow: ellipsis;
   cursor: pointer;
   min-height: 16px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
 .eventChip:hover {
