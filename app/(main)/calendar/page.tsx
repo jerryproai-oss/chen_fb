@@ -1256,7 +1256,7 @@ export default function CalendarPage() {
 
                 {/* 管理員：用車帳號選擇器 */}
                 {editingEvent && currentUser?.role === 'ADMIN' && formNeedsCar && familyMembers.length > 0 && (
-                  <div className={styles.formGroup} style={{ marginTop: 'var(--space-xs)', marginLeft: 'calc(20px + var(--space-sm))' }}>
+                  <div className={styles.formGroup} style={{ marginTop: 'var(--space-xs)' }}>
                     <label className={styles.label} htmlFor="car-author">
                       <Car size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
                       用車帳號
@@ -1276,7 +1276,7 @@ export default function CalendarPage() {
 
                 {/* 用車時間 */}
                 {formNeedsCar && (
-                  <div className={styles.formRow} style={{ marginTop: 'var(--space-xs)', marginLeft: 'calc(20px + var(--space-sm))' }}>
+                  <div className={styles.formRow} style={{ marginTop: 'var(--space-xs)' }}>
                     <div className={styles.formGroup}>
                       <label className={styles.label} htmlFor="car-start-time">
                         <Clock size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
