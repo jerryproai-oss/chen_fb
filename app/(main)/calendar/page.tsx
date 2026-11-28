@@ -1200,15 +1200,30 @@ export default function CalendarPage() {
                   <MapPin size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
                   地點
                 </label>
-                <input
-                  id="event-location"
-                  type="text"
-                  className={styles.input}
-                  placeholder="如：家裡、大安森林公園、101 大樓"
-                  value={formLocation}
-                  onChange={(e) => setFormLocation(e.target.value)}
-                  maxLength={200}
-                />
+                <div className={styles.locationInputRow}>
+                  <input
+                    id="event-location"
+                    type="text"
+                    className={styles.input}
+                    placeholder="如：家裡、大安森林公園、101 大樓"
+                    value={formLocation}
+                    onChange={(e) => setFormLocation(e.target.value)}
+                    maxLength={200}
+                    style={{ flex: 1 }}
+                  />
+                  {formLocation.trim() && (
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(formLocation.trim())}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.mapLinkBtn}
+                      title="在 Google Maps 中查看"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <MapPin size={16} />
+                    </a>
+                  )}
+                </div>
               </div>
 
               {/* 🚗 需要用車 + ⭐ 重要行程 */}
