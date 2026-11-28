@@ -27,6 +27,8 @@ function formatEvent(ev: {
   recurringType: string | null;
   recurringEndDate: Date | null;
   needsCar: boolean;
+  carStartTime: string | null;
+  carEndTime: string | null;
   isImportant: boolean;
 }, overrideDateStr?: string): FamilyEventItem {
   return {
@@ -50,6 +52,8 @@ function formatEvent(ev: {
     recurringType: ev.recurringType,
     recurringEndDate: ev.recurringEndDate ? ev.recurringEndDate.toISOString().split('T')[0] : null,
     needsCar: ev.needsCar,
+    carStartTime: ev.carStartTime,
+    carEndTime: ev.carEndTime,
     isImportant: ev.isImportant,
   };
 }
@@ -249,6 +253,8 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
         recurringType: null,
         recurringEndDate: null,
         needsCar: true,
+        carStartTime: null,
+        carEndTime: null,
         isImportant: false,
       });
     }
@@ -277,6 +283,8 @@ export const GET = withAuth(async (_ctx, req: NextRequest) => {
         recurringType: null,
         recurringEndDate: null,
         needsCar: false,
+        carStartTime: null,
+        carEndTime: null,
         isImportant: false,
       });
     }
@@ -328,6 +336,8 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
     recurringType,
     recurringEndDate,
     needsCar: needsCarInput,
+    carStartTime: carStartTimeInput,
+    carEndTime: carEndTimeInput,
     isImportant: isImportantInput,
   } = body;
 
@@ -442,6 +452,8 @@ export const POST = withAuth(async ({ user }, req: NextRequest) => {
         recurringType: isRecurring && typeof recurringType === 'string' ? recurringType : null,
         recurringEndDate: parsedRecurringEndDate,
         needsCar,
+        carStartTime: needsCar && typeof carStartTimeInput === 'string' && TIME_PATTERN.test(carStartTimeInput) ? carStartTimeInput : null,
+        carEndTime: needsCar && typeof carEndTimeInput === 'string' && TIME_PATTERN.test(carEndTimeInput) ? carEndTimeInput : null,
         isImportant,
       },
       include: {

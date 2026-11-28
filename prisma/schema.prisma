@@ -523,6 +523,8 @@ model FamilyEvent {
   recurringType   String?   @map("recurring_type")         // YEARLY, MONTHLY, WEEKLY, DAILY
   recurringEndDate DateTime? @map("recurring_end_date") @db.Date  // 循環結束日期
   needsCar        Boolean   @default(false) @map("needs_car")      // 🚗 需要用車
+  carStartTime    String?   @map("car_start_time")                 // 用車開始時間 (HH:mm)
+  carEndTime      String?   @map("car_end_time")                   // 用車結束時間 (HH:mm)
   isImportant     Boolean   @default(false) @map("is_important")   // ⭐ 重要行程
   createdAt       DateTime  @default(now()) @map("created_at")
   updatedAt       DateTime  @updatedAt @map("updated_at")

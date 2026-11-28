@@ -274,6 +274,8 @@ export interface FamilyEventItem {
   recurringType: string | null;
   recurringEndDate: string | null;
   needsCar: boolean;
+  carStartTime: string | null;  // 用車開始時間 "HH:mm"
+  carEndTime: string | null;    // 用車結束時間 "HH:mm"
   isImportant: boolean;
 }
 

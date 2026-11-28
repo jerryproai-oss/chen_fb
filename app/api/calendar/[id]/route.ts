@@ -27,6 +27,8 @@ function formatEvent(ev: {
   recurringType: string | null;
   recurringEndDate: Date | null;
   needsCar: boolean;
+  carStartTime: string | null;
+  carEndTime: string | null;
   isImportant: boolean;
 }): FamilyEventItem {
   return {
@@ -50,6 +52,8 @@ function formatEvent(ev: {
     recurringType: ev.recurringType,
     recurringEndDate: ev.recurringEndDate ? ev.recurringEndDate.toISOString().split('T')[0] : null,
     needsCar: ev.needsCar,
+    carStartTime: ev.carStartTime,
+    carEndTime: ev.carEndTime,
     isImportant: ev.isImportant,
   };
 }
@@ -111,6 +115,8 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
     recurringType,
     recurringEndDate,
     needsCar,
+    carStartTime,
+    carEndTime,
     isImportant,
     authorId: newAuthorId,
   } = body;
@@ -245,6 +251,26 @@ export const PATCH = withAuth(async ({ user }, req: NextRequest, routeCtx) => {
 
   if (typeof needsCar === 'boolean') {
     updateData.needsCar = needsCar;
+    if (!needsCar) {
+      updateData.carStartTime = null;
+      updateData.carEndTime = null;
+    }
+  }
+
+  // 用車時間
+  if (carStartTime !== undefined) {
+    if (carStartTime === null || carStartTime === '') {
+      updateData.carStartTime = null;
+    } else if (typeof carStartTime === 'string' && TIME_PATTERN.test(carStartTime)) {
+      updateData.carStartTime = carStartTime;
+    }
+  }
+  if (carEndTime !== undefined) {
+    if (carEndTime === null || carEndTime === '') {
+      updateData.carEndTime = null;
+    } else if (typeof carEndTime === 'string' && TIME_PATTERN.test(carEndTime)) {
+      updateData.carEndTime = carEndTime;
+    }
   }
 
   if (typeof isImportant === 'boolean') {

@@ -128,6 +128,8 @@ export default function CalendarPage() {
   const [formDescription, setFormDescription] = useState('');
   const [formLocation, setFormLocation] = useState('');
   const [formNeedsCar, setFormNeedsCar] = useState(false);
+  const [formCarStartTime, setFormCarStartTime] = useState('');
+  const [formCarEndTime, setFormCarEndTime] = useState('');
   const [formIsImportant, setFormIsImportant] = useState(false);
   const [carConflicts, setCarConflicts] = useState<Array<{ id: string; title: string; author: { displayName: string }; authorId: string; eventTime: string | null; endTime: string | null; isAllDay: boolean }>>([]);
   const [showCarConflictDialog, setShowCarConflictDialog] = useState(false);
@@ -264,6 +266,8 @@ export default function CalendarPage() {
     setFormDescription('');
     setFormLocation('');
     setFormNeedsCar(false);
+    setFormCarStartTime('');
+    setFormCarEndTime('');
     setFormIsImportant(false);
     setCarConflicts([]);
     setCarConflictConfirmed(false);
@@ -287,6 +291,8 @@ export default function CalendarPage() {
     setFormDescription(event.description || '');
     setFormLocation(event.location || '');
     setFormNeedsCar(event.needsCar || false);
+    setFormCarStartTime(event.carStartTime || '');
+    setFormCarEndTime(event.carEndTime || '');
     setFormIsImportant(event.isImportant || false);
     setCarConflicts([]);
     setCarConflictConfirmed(false);
@@ -334,6 +340,8 @@ export default function CalendarPage() {
         description: formDescription.trim() || null,
         location: formLocation.trim() || null,
         needsCar: formNeedsCar,
+        carStartTime: formNeedsCar ? (formCarStartTime || null) : null,
+        carEndTime: formNeedsCar ? (formCarEndTime || null) : null,
         isImportant: formIsImportant,
       };
 
@@ -1266,6 +1274,35 @@ export default function CalendarPage() {
                   </div>
                 )}
 
+                {/* 用車時間 */}
+                {formNeedsCar && (
+                  <div className={styles.formRow} style={{ marginTop: 'var(--space-xs)', marginLeft: 'calc(20px + var(--space-sm))' }}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.label} htmlFor="car-start-time">
+                        <Clock size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                        用車時間
+                      </label>
+                      <input
+                        id="car-start-time"
+                        type="time"
+                        className={styles.input}
+                        value={formCarStartTime}
+                        onChange={(e) => setFormCarStartTime(e.target.value)}
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <label className={styles.label} htmlFor="car-end-time">還車時間</label>
+                      <input
+                        id="car-end-time"
+                        type="time"
+                        className={styles.input}
+                        value={formCarEndTime}
+                        onChange={(e) => setFormCarEndTime(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* 衝突靜態提示 */}
                 {formNeedsCar && carConflictConfirmed && carConflicts.length > 0 && (
                   <div className={styles.carConflictHint}>
@@ -1588,7 +1625,7 @@ function EventsSection({
                     {event.needsCar && (
                       <span className={styles.carBadge}>
                         <Car size={12} />
-                        用車
+                        用車{event.carStartTime ? ` ${event.carStartTime}` : ''}{event.carEndTime ? ` — ${event.carEndTime}` : ''}
                       </span>
                     )}
                     {event.isImportant && (
