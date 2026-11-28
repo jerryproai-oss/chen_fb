@@ -1182,6 +1182,7 @@ export default function CalendarPage() {
                 </div>
                 <div className={styles.formGroup}>
                   <label className={styles.label} htmlFor="event-end-time">
+                    <Clock size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
                     {formIsAllDay ? '結束時間（選填）' : '結束時間'}
                   </label>
                   <input
@@ -1306,7 +1307,10 @@ export default function CalendarPage() {
                       />
                     </div>
                     <div className={styles.formGroup}>
-                      <label className={styles.label} htmlFor="car-end-time">還車時間</label>
+                      <label className={styles.label} htmlFor="car-end-time">
+                        <Clock size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                        還車時間
+                      </label>
                       <input
                         id="car-end-time"
                         type="time"
