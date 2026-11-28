@@ -256,8 +256,8 @@ export default function CalendarPage() {
     setFormDate(dateValue || selectedDate);
     setFormEndDate('');
     setFormIsAllDay(true);
-    setFormTime('09:00');
-    setFormEndTime('10:00');
+    setFormTime('');
+    setFormEndTime('');
     setFormIsRecurring(false);
     setFormRecurringType('WEEKLY');
     setFormRecurringEndDate('');
@@ -326,8 +326,8 @@ export default function CalendarPage() {
         eventDate: formDate,
         endDate: formEndDate || null,
         isAllDay: formIsAllDay,
-        eventTime: formIsAllDay ? null : formTime,
-        endTime: formIsAllDay ? null : formEndTime,
+        eventTime: formTime || null,
+        endTime: formEndTime || null,
         isRecurring: formIsRecurring,
         recurringType: formIsRecurring ? formRecurringType : null,
         recurringEndDate: formIsRecurring && formRecurringEndDate ? formRecurringEndDate : null,
@@ -1157,31 +1157,34 @@ export default function CalendarPage() {
                 )}
               </div>
 
-              {/* 時間列（非全天才顯示） */}
-              {!formIsAllDay && (
-                <div className={styles.formRow} style={{ marginTop: 'var(--space-xs)' }}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label} htmlFor="event-time">開始時間</label>
-                    <input
-                      id="event-time"
-                      type="time"
-                      className={styles.input}
-                      value={formTime}
-                      onChange={(e) => setFormTime(e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label} htmlFor="event-end-time">結束時間</label>
-                    <input
-                      id="event-end-time"
-                      type="time"
-                      className={styles.input}
-                      value={formEndTime}
-                      onChange={(e) => setFormEndTime(e.target.value)}
-                    />
-                  </div>
+              {/* 時間列 — 整天事件可選填活動時間，非整天為必要 */}
+              <div className={styles.formRow} style={{ marginTop: 'var(--space-xs)' }}>
+                <div className={styles.formGroup}>
+                  <label className={styles.label} htmlFor="event-time">
+                    <Clock size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
+                    {formIsAllDay ? '活動時間（選填）' : '開始時間'}
+                  </label>
+                  <input
+                    id="event-time"
+                    type="time"
+                    className={styles.input}
+                    value={formTime}
+                    onChange={(e) => setFormTime(e.target.value)}
+                  />
                 </div>
-              )}
+                <div className={styles.formGroup}>
+                  <label className={styles.label} htmlFor="event-end-time">
+                    {formIsAllDay ? '結束時間（選填）' : '結束時間'}
+                  </label>
+                  <input
+                    id="event-end-time"
+                    type="time"
+                    className={styles.input}
+                    value={formEndTime}
+                    onChange={(e) => setFormEndTime(e.target.value)}
+                  />
+                </div>
+              </div>
 
               {/* 地點 */}
               <div className={styles.formGroup} style={{ marginTop: 'var(--space-sm)' }}>
